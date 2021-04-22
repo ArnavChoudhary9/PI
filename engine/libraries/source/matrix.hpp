@@ -10,6 +10,9 @@ namespace matrix
             Matrix(int, int);
             Matrix(int, int, float);
 
+            Matrix operator + (float);
+            void operator += (float);
+
             friend std::ostream& operator << (std::ostream&, Matrix&);
     };
 
@@ -37,15 +40,39 @@ namespace matrix
         }
     }
 
-    std::ostream& operator << (std::ostream& dout, Matrix& m) {
-        
-        for (int x = 0; x < m.columns; x++) {
-            for (int y = 0; y < m.rows; y++) {
-                dout << m.matrix[x][y] << " ";
+    Matrix Matrix::operator + (float scaler) {
+        Matrix m = Matrix(columns, rows);
+
+        for (int x = 0; x < columns; x++) {
+            for (int y = 0; y < rows; y++) {
+                m.matrix[x][y] = matrix[x][y] + scaler;
             }
-            dout << "\n";
         }
         
+        return m;
+    }
+
+    std::ostream& operator << (std::ostream& dout, Matrix& m) {
+        dout << "<Matrix> :\n[";
+
+        for (int x = 0; x < m.columns; x++) {
+            if (x != 0)
+                dout << " ";
+            dout << "[";
+
+            for (int y = 0; y < m.rows; y++) {
+                dout << m.matrix[x][y];
+
+                if (y != m.rows-1)
+                    dout << " ";
+            }
+            dout << "]";
+
+            if (x != m.columns-1)
+                dout << "\n";
+        }
+
+        dout << "]";        
         return dout;
     }
 }

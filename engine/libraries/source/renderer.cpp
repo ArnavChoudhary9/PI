@@ -6,9 +6,10 @@ using namespace vectors;
 using namespace matrix;
 
 int main() {
-    Matrix m = Matrix(2, 4);
+    Matrix m1 = Matrix(5, 5, 5);
+    Matrix m2 = m1;
 
-    cout << "Hello, World!" << endl << m << endl;
+    cout << "Hello, World!" << endl << m2 << endl;
 
     return 0;
 }

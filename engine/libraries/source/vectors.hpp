@@ -38,7 +38,7 @@ namespace vectors {
                 return Vector3(x+v.x, y+v.y, z+v.z);
             }
 
-            Vector3 operator += (Vector3 v) {
+            void operator += (Vector3 v) {
                 x += v.x;
                 y += v.y;
                 z += v.z;
@@ -49,7 +49,7 @@ namespace vectors {
                 return Vector3(x+scaler, y+scaler, z+scaler);
             }
 
-            Vector3 operator += (float scaler) {
+            void operator += (float scaler) {
                 x += scaler;
                 y += scaler;
                 z += scaler;
@@ -61,7 +61,7 @@ namespace vectors {
                 return Vector3(x-v.x, y-v.y, z-v.z);
             }
 
-            Vector3 operator -= (Vector3 v) {
+            void operator -= (Vector3 v) {
                 x -= v.x;
                 y -= v.y;
                 z -= v.z;
@@ -72,7 +72,7 @@ namespace vectors {
                 return Vector3(x-scaler, y-scaler, z-scaler);
             }
 
-            Vector3 operator -= (float scaler) {
+            void operator -= (float scaler) {
                 x -= scaler;
                 y -= scaler;
                 z -= scaler;
@@ -89,7 +89,7 @@ namespace vectors {
                 return Vector3(x*scaler, y*scaler, z*scaler);
             }
 
-            Vector3 operator *= (float scaler) {
+            void operator *= (float scaler) {
                 x *= scaler;
                 y *= scaler;
                 z *= scaler;
