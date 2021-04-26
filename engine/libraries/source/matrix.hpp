@@ -10,8 +10,10 @@ namespace matrix
             Matrix(int, int);
             Matrix(int, int, float);
 
-            Matrix operator + (float);
-            void operator += (float);
+            Matrix(vectors::Vector3&);
+            vectors::Vector3 asVector();
+
+            static Matrix dot(Matrix&);
 
             friend std::ostream& operator << (std::ostream&, Matrix&);
     };
@@ -28,28 +30,24 @@ namespace matrix
         }
     }
 
-    Matrix::Matrix(int _columns, int _rows, float filler) : columns{_columns}, rows{_rows} {
-        matrix = new float *[columns];
+    Matrix::Matrix(vectors::Vector3& v) : columns{3}, rows{1} {
+        matrix = new float *[3];
 
-        for (int x = 0; x < columns; x++) {
-            matrix[x] = new float[rows];
+        matrix[0] = new float[1];
+        matrix[0][0] = v.x;
 
-            for (int y = 0; y < rows; y++) {
-                matrix[x][y] = filler;
-            }
-        }
+        matrix[1] = new float[1];
+        matrix[1][0] = v.y;
+
+        matrix[2] = new float[1];
+        matrix[2][0] = v.z;
     }
 
-    Matrix Matrix::operator + (float scaler) {
-        Matrix m = Matrix(columns, rows);
+    vectors::Vector3 Matrix::asVector() {
+        if (columns == 3 && rows == 1)
+            return vectors::Vector3(matrix[0][0], matrix[1][0], matrix[2][0]);
 
-        for (int x = 0; x < columns; x++) {
-            for (int y = 0; y < rows; y++) {
-                m.matrix[x][y] = matrix[x][y] + scaler;
-            }
-        }
-        
-        return m;
+        return vectors::Vector3();
     }
 
     std::ostream& operator << (std::ostream& dout, Matrix& m) {

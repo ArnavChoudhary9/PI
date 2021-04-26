@@ -34,11 +34,11 @@ namespace vectors {
             // Operators
             // Adition
             // Vector-Vector addition
-            Vector3 operator + (Vector3 v) const {
+            Vector3 operator + (Vector3& v) const {
                 return Vector3(x+v.x, y+v.y, z+v.z);
             }
 
-            void operator += (Vector3 v) {
+            void operator += (Vector3& v) {
                 x += v.x;
                 y += v.y;
                 z += v.z;
@@ -57,11 +57,11 @@ namespace vectors {
             
             // Subtraction
             // Vector-Vector subtraction
-            Vector3 operator - (Vector3 v) const {
+            Vector3 operator - (Vector3& v) const {
                 return Vector3(x-v.x, y-v.y, z-v.z);
             }
 
-            void operator -= (Vector3 v) {
+            void operator -= (Vector3& v) {
                 x -= v.x;
                 y -= v.y;
                 z -= v.z;
@@ -80,8 +80,9 @@ namespace vectors {
 
             // Multiplicaition
             // Vector-Vector multiplication
-            Vector3 operator * (Vector3 v) const {
-                return x*v.x + y*v.y + z*v.y;
+            float operator * (Vector3& v) const {
+                Vector3 _v = Vector3(this->x, this->y, this->y);
+                return Vector3::dot(_v, v);
             }
 
             // Vector-Scaler multiplication
@@ -109,7 +110,7 @@ namespace vectors {
                 return sqrt(xDist*xDist + yDist*yDist + zDist*zDist);
             }
             
-            static float distanceSqr(Vector3 v1, Vector3 v2) {
+            static float distanceSqr(Vector3& v1, Vector3& v2) {
                 float dist = 0;
 
                 float xDist = v2.x - v1.x;
@@ -118,10 +119,37 @@ namespace vectors {
 
                 return xDist*xDist + yDist*yDist + zDist*zDist;
             }
+
+            static float dot(Vector3& v1, Vector3& v2) {
+                return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
+            }
+
+            static Vector3 cross(Vector3& v1, Vector3& v2) {
+                float x = v1.y*v2.z - v1.z*v2.y;
+                float y = v1.x*v2.z - v1.z*v2.x;
+                float z = v1.x*v2.y - v1.y*v2.x;
+                
+                return Vector3(x, y, z);
+            }
     };
 
     std::ostream& operator << (std::ostream& dout, Vector3& v) {
-        dout << "<Vector 3>: " << v.x << "i + " << v.y << "j + " << v.z << "k";
+        dout << "<Vector 3>: " << v.x << "i ";
+
+        if (v.y < 0)
+            dout << "- ";
+        else
+            dout << "+ ";
+
+        dout << abs(v.y) << "j ";
+
+        if (v.z < 0)
+            dout << "- ";
+        else
+            dout << "+ ";
+
+        dout << abs(v.z) << "k";
+
         return dout;
     }
 }
