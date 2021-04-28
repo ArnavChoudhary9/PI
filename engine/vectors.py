@@ -1,5 +1,6 @@
 import numpy as np
 from .matrix import Matrix
+from ctypes import Structure, cint, cfloat
 
 class Vector3:
     x = 0
@@ -158,3 +159,5 @@ class Vector3:
     @staticmethod
     def fromMatrix(matrix):
         return Vector3(matrix.matrix[0][0], matrix.matrix[1][0], matrix.matrix[2][0])
+
+    

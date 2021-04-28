@@ -13,7 +13,12 @@ namespace matrix
             Matrix(vectors::Vector3&);
             vectors::Vector3 asVector();
 
-            static Matrix dot(Matrix&);
+            Matrix operator*(Matrix&);
+
+            void setValue(int, int, float);
+            float getValue(int, int);
+
+            static Matrix dot(Matrix&, Matrix&);
 
             friend std::ostream& operator << (std::ostream&, Matrix&);
     };
@@ -48,6 +53,33 @@ namespace matrix
             return vectors::Vector3(matrix[0][0], matrix[1][0], matrix[2][0]);
 
         return vectors::Vector3();
+    }
+
+    Matrix Matrix::operator*(Matrix& m) {
+        Matrix _m = Matrix::dot((*this), m);
+        return _m;
+    }
+
+    void Matrix::setValue(int x, int y, float value) {
+        matrix[x][y] = value;
+    }
+
+    float Matrix::getValue(int x, int y) {
+        return matrix[x][y];
+    }
+
+    Matrix Matrix::dot(Matrix& m1, Matrix& m2) {
+        Matrix m = Matrix(m1.columns, m2.rows);
+
+        for (int i = 0; i < m1.rows; i++) {
+            for (int j = 0; j < m2.columns; j++) {
+                for (int k = 0; k < m1.columns; k++) {
+                    m.matrix[i][j] += m1.matrix[i][k] * m2.matrix[k][j];
+                }
+            }
+        }
+
+        return m;
     }
 
     std::ostream& operator << (std::ostream& dout, Matrix& m) {

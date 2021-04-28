@@ -63,5 +63,7 @@
         "xstring": "cpp",
         "xtr1common": "cpp",
         "xutility": "cpp"
-    }
+    },
+    "python.pythonPath": "E:\\Python\\Python-3.8\\python.exe",
+    "python.autoComplete.addBrackets": true
 }

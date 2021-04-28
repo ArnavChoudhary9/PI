@@ -22,8 +22,8 @@ class Matrix:
         if b.columns != a.rows:
             raise ValueError("Columns of first matrix should match the number of rows of the second")
 
-        a = np.array(a.matrix)
-        b = np.array(b.matrix)
+        a = a.matrix
+        b = b.matrix
 
         mat = np.dot(a, b)
         m = Matrix(mat.shape[0], mat.shape[1])
