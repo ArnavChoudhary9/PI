@@ -17,7 +17,7 @@ xcopy /s /i "Assets" "dist\%1\Assets"
 xcopy /s /i "%1" "dist" /E
 
 @rd /S /Q "Build\%1"
-del "dist\%1\%1.py"
+del "dist\%1.py"
 del "%1.spec"
 
 ECHO Done!!
