@@ -66,8 +66,8 @@ class EditorLayer(Layer):
         self.__SquareVA.Unbind()
 
         # This is a basic Shader so it is included in Jordan
-        self.__Shader: Shader = Shader.Create( ".\\Jordan\\Assets\\Shaders\\BasicShader.glsl"     )
-        self.__FlatColorShader: Shader = Shader.Create( ".\\Jordan\\Assets\\Shaders\\FlatColorShader.glsl" )
+        self.__Shader: Shader = Shader.Create( ".\Assets\\Shaders\\BasicShader.glsl"     )
+        self.__FlatColorShader: Shader = Shader.Create( ".\Assets\\Shaders\\FlatColorShader.glsl" )
 
         self.__Color = (0.8, 0.2, 0.2)
         self.__Grid = (1, 1)

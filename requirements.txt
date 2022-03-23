@@ -2,3 +2,6 @@ numpy
 pyrr
 PyOpenGL
 glfw
+pyinstaller     # Only for building
+
+# You also need spdlog and docking branch of imgui

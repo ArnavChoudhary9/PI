@@ -1,7 +1,7 @@
-__pycache__
+**/__pycache__
 *.pyc
 
-.vscode
+**/.vscode
 
 *.exe
 *.o

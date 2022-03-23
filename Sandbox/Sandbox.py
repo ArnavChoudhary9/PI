@@ -5,7 +5,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # Main Code starts from here
 from Jordan import *
-from Sandbox.EditorLayer import EditorLayer
+from EditorLayer import EditorLayer
 
 from time import time
 

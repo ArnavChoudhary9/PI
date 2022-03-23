@@ -79,7 +79,7 @@ class CubeLayer(Layer):
         self.__AutoRotate  = True
         self.__Framerate   = 60
 
-        self.__Shader: Shader = Shader.Create(".\\Sandbox\\Assets\\Shaders\\3DCubeShader.glsl")
+        self.__Shader: Shader = Shader.Create(".\\Assets\\Shaders\\3DCubeShader.glsl")
 
     def OnImGuiRender(self) -> None:
         imgui.begin("Settings")
