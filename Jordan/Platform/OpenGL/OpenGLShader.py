@@ -1,7 +1,7 @@
 from ...Renderer import Shader
 
 from OpenGL.GL import glDeleteProgram, glUseProgram,\
-    glUniformMatrix4fv, glUniform4f, glUniform3f, glGetUniformLocation
+    glGetUniformLocation, glUniformMatrix4fv, glUniform4f, glUniform3f, glUniform2f, glUniform1f, glUniform1i
 from OpenGL.GL import GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_FALSE
 
 from OpenGL.GL.shaders import compileProgram, compileShader
@@ -76,3 +76,15 @@ class OpenGLShader(Shader):
     def UploadUniformFloat4(self, name: str, vector: pyrr.Vector4) -> None:
         location = glGetUniformLocation(self.__RendererID, name)
         glUniform4f(location, vector.x, vector.y, vector.z, vector.w)
+
+    def UploadUniformFloat2(self, name: str, x: float, y: float) -> None:
+        location = glGetUniformLocation(self.__RendererID, name)
+        glUniform2f(location, x, y)
+
+    def UploadUniformFloat(self, name: str, value: float) -> None:
+        location = glGetUniformLocation(self.__RendererID, name)
+        glUniform1f(location, value)
+
+    def UploadUniformInt(self, name: str, value: int) -> None:
+        location = glGetUniformLocation(self.__RendererID, name)
+        glUniform1i(location, value)

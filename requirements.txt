@@ -2,4 +2,3 @@ numpy
 pyrr
 PyOpenGL
 glfw
-imgui[glfw]
