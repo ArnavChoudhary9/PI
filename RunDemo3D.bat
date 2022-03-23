@@ -1,5 +1,5 @@
 @ECHO OFF
-py Sandbox\SpinningCube.py
+py SpinningCube\SpinningCube.py
 
 PAUSE
 EXIT
