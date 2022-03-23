@@ -2,8 +2,8 @@
 *.pyc
 
 **/.vscode
+**/dist
 
 *.exe
-*.o
 
 *.json
