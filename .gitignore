@@ -3,9 +3,11 @@
 
 **/.vscode
 **/dist
+**/releases
 
 *.exe
 *.json
+*.zip
 
 *.xcf
 
