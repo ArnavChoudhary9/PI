@@ -5,5 +5,8 @@
 **/dist
 
 *.exe
-
 *.json
+
+*.xcf
+
+TODO

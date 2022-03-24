@@ -4,7 +4,7 @@ import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # Main Code starts from here
-from Jordan import *
+from PI import *
 
 from time import time
 
@@ -22,6 +22,7 @@ class CubeLayer(Layer):
     __Camera: Camera
 
     __Framerate: float
+    vSync = PI_V_SYNC
 
     def __init__(self, camera, name: str = "CubeLayer") -> None:
         super().__init__(name=name)
@@ -94,13 +95,19 @@ class CubeLayer(Layer):
             changed, rotation = imgui.drag_float3("Rotation", *self.__Rotation, change_speed=1)
             self.__Rotation = list(rotation)
 
-        if JD_DEBUG:
+        if PI_DEBUG:
             imgui.text("\nFPS: {}".format(round(self.__Framerate)))
+            
+            clicked, self.vSync = imgui.checkbox("VSync", self.vSync)
+
+            if clicked:
+                Input.GetWindow().SetVSync(self.vSync)
+                PI_V_SYNC = self.vSync
 
         imgui.end()
 
     def OnUpdate(self, timestep) -> None:
-        timer = JD_TIMER("CubeLayer::OnUpdate")
+        timer = PI_TIMER("CubeLayer::OnUpdate")
         self.__Framerate = 1 / timestep.Seconds 
         
         if self.__AutoRotate:
@@ -130,7 +137,7 @@ class CubeLayer(Layer):
         Renderer.Submit(self.__Shader, self.__VertexArray)
         Renderer.EndScene()
 
-class SpinningCube(JD_Application):
+class SpinningCube(PI_Application):
     def __init__(self, name: str, props: WindowProperties=WindowProperties()) -> None:
         super().__init__(name, props=props)
         self._Camera = PerspectiveCamera(45, self._Window.AspectRatio)
@@ -138,15 +145,15 @@ class SpinningCube(JD_Application):
 
     def Run(self) -> None:
         global frames
-        runTimer = JD_TIMER("Application::Run")
+        runTimer = PI_TIMER("Application::Run")
 
         while (self._Running):
-            updateTimer = JD_TIMER("Application::Update")
+            updateTimer = PI_TIMER("Application::Update")
             super().Run()
 
             frames += 1
 
-def CreateApp() -> JD_Application:
+def CreateApp() -> PI_Application:
     return SpinningCube("Spinning Cube", WindowProperties(
         title="Spinning Cube", width=1200, height=600
     ))
