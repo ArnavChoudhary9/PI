@@ -15,10 +15,14 @@ from abc import ABC
 import glfw
 
 class PI_Application(ABC):
-    _Name   : str
-    _Window : Window
+    '''
+    This is the Root for all classes used to make Application using PI Engine.
+    '''
 
-    _Running: bool
+    _Name   : str           # Name of the Application
+    _Window : Window        # Window that it creates
+
+    _Running: bool          # Is this application Running
     _LayerStack: LayerStack
     __ImGuiLayer: ImGuiLayer
 
@@ -28,6 +32,15 @@ class PI_Application(ABC):
     _LastFrameTime: float = 0.0
 
     def __init__(self, name: str, props: WindowProperties=WindowProperties()) -> None:
+        '''
+        This initialize the super() class
+
+        ``name``-
+            type: str\n
+            It is the name of the application.\n
+            NOTE: This is note the name of the Window it creates.
+        '''
+
         self._Name = name
         self._Running = True
 
@@ -46,24 +59,29 @@ class PI_Application(ABC):
 
     @property
     def Name(self) -> str:
+        '''Name of the Application'''
         return self._Name
 
     @property
     def Window(self) -> Window:
+        '''The Window it created'''
         return self._Window
 
     def OnWindowClose(self, event: WindowCloseEvent):
+        '''This will be called to to terminate the application.'''
         self._Running = False
         event.Handled = True
         return True
 
     def OnWindowResize(self, event: WindowResizeEvent):
+        '''Resizes the window'''
         glViewport(0, 0, event.Width, event.Height)
         self._Camera.SetAspectRatio(self._Window.AspectRatio)
         event.Handled = True
         return True
 
     def OnEvent(self, event: Event):
+        '''Called when an event occures on the Window'''
         self._EventDispacher.ChangeEvent(event)
 
         self._EventDispacher.Dispach( self.OnWindowResize , EventType.WindowResize )
@@ -72,6 +90,7 @@ class PI_Application(ABC):
         self._LayerStack.OnEvent(event)
 
     def Run(self) -> None:
+        '''you should call this function within the run loop of the derived class.'''
         _time = glfw.get_time()
         timestep = Timestep(_time - self._LastFrameTime)
         self._LastFrameTime = _time
@@ -93,6 +112,7 @@ class PI_Application(ABC):
 CreateApplication = None
 
 def main():
+    '''The Entry point fore the code'''
     PI_INSTRUMENTATION_BEGIN_SESSION("PI_Init")
     app = CreateApplication()
     PI_INSTRUMENTATION_END_SESSION()

@@ -3,7 +3,7 @@ from ..Instrumentation import Instrumentor, InstrumentationTimer
 PI_VERSION: str = "0.4.1.dev"
 
 PI_LATEST_UPDATE: str = """
-    Changed Name from Jordan to PI
+    Added Textures
 """
 
 #-------------------------------------------------------------------

@@ -1,3 +1,7 @@
+'''
+Contains Events related to the Application and Window
+'''
+
 from .Event import Event, EventType, EventCategory
 
 class WindowResizeEvent(Event):

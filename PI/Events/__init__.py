@@ -3,4 +3,4 @@ from .Application   import WindowCloseEvent, WindowFocusEvent, WindowMovedEvent,
 from .KeyEvent      import KeyPressedEvent, KeyReleasedEvent
 from .MouseEvent    import MouseButtonPressedEvent, MouseButtonReleasedEvent, MouseMovedEvent, MouseScrolledEvent
 
-ES_VERSION: str= "0.0.1alpha"
+ES_VERSION: str= "1.0.0"
