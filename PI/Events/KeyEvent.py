@@ -28,6 +28,28 @@ class KeyPressedEvent(KeyEvent):
     def ToString(self) -> str:
         return "<KeyPressedEvent: {} ({} repeats)>".format(self._KeyCode, self._RepeatCount)
 
+class CharInputEvent(KeyEvent):
+    __Char = None
+
+    def __init__(self, char: int) -> None:
+        # super().__init__(char)
+        self.__Char = char
+
+    @property
+    def Char(self):
+        return self.__Char
+
+    @property
+    def EventType(self) -> int:
+        return EventType.CharInput
+
+    @property
+    def CategoryFlags(self) -> int:
+        return EventCategory.Keyboard | EventCategory.Input
+
+    def ToString(self) -> str:
+        return "<CharInputEvent: {}>".format(self._KeyCode)
+
 class KeyReleasedEvent(KeyEvent):
     def __init__(self, keyCode: int) -> None:
         super().__init__(keyCode)

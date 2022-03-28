@@ -9,9 +9,20 @@ import pyrr
 
 class OpenGLShader(Shader):
     __RendererID: int
+    __Name : str
 
     def __init__(self, shaderFile: str) -> None:
         src = ""
+
+        slashIndex = shaderFile.rfind("\\")
+        if slashIndex == -1: slashIndex = shaderFile.rfind("/")
+
+        dotIndex = shaderFile.rfind(".")
+
+        if dotIndex != -1:
+            self.__Name = shaderFile[slashIndex+1:dotIndex]
+        else:
+            self.__Name = shaderFile[slashIndex+1:]
 
         with open(shaderFile, 'r') as file:
             src = file.read()
@@ -25,7 +36,7 @@ class OpenGLShader(Shader):
         while (len(src) > index):
             shaderType = src[index].split(" ")[1].lower()
 
-            if shaderType == "vertex" or shaderType == "vert" or shaderType == "geometry":
+            if shaderType == "vertex" or shaderType == "vert":
                 index += 1
                 while (len(src) > index and src[index].find("#type") < 0):
                     vertexSrc.append(f"{src[index]}\n")
@@ -45,9 +56,16 @@ class OpenGLShader(Shader):
             compileShader(fragmentSrc, GL_FRAGMENT_SHADER)
         )
 
+    def __repr__(self) -> str:
+        return self.__Name
+
     @property
     def RendererID(self) -> int:
         return self.__RendererID
+
+    @property
+    def Name(self) -> int:
+        return self.__Name
 
     def __del__(self) -> None:
         glDeleteProgram(self.__RendererID)

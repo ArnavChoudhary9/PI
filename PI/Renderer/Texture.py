@@ -10,6 +10,10 @@ class Texture:
     def RendererID(self) -> int:
         return self.__RendererID
 
+    @property
+    def Name(self) -> int:
+        return self.__Name
+
     def __del__(self) -> None:
         pass
 

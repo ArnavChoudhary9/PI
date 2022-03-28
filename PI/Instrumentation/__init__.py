@@ -1,6 +1,6 @@
 from .Instrumentation import Instrumentor, InstrumentationTimer
 
-IM_VERSION: str = "0.0.1alpha"
+PI_IM_VERSION: str = "1.0.0"
 
 Timer = InstrumentationTimer
 Instrumentor()

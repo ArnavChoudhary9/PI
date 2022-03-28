@@ -1,11 +1,23 @@
+from ..Window     import Window, OS
 from .RendererAPI import RendererAPI
+from ..logger     import PI_CORE_ASSERT
 
 class RenderCommand:
     __RendererAPI: RendererAPI
 
     @staticmethod
-    def SetRendererAPI(rendererAPI: RendererAPI) -> None:
-        RenderCommand.__RendererAPI = rendererAPI
+    def Init() -> None:
+        if (Window.GetOS() == OS.Null):
+            PI_CORE_ASSERT(False, "OS.Null is currently not supported!")
+            return
+
+        elif (Window.GetOS() == OS.Windows):
+            from ..Platform.OpenGL.OpenGLRendererAPI import OpenGLRendererAPI
+            RenderCommand.__RendererAPI = OpenGLRendererAPI
+            return
+
+        PI_CORE_ASSERT(False, "Unknown RendererAPI!!")
+        return None
 
     @staticmethod
     def SetClearColor(*args) -> None:

@@ -8,13 +8,9 @@ from PI import *
 
 class EditorLayer(Layer):
     __VertexArray : VertexArray
-    __Shader      : Shader
+    __SquareVA    : VertexArray
 
-    __SquareVA     : VertexArray
-    __FlatColorShader : Shader
-    
-    __TextureShader : Shader
-    __Texture       : Texture2D
+    __AssetManager: AssetManager
 
     __Color : tuple
     __Grid  : tuple
@@ -33,6 +29,7 @@ class EditorLayer(Layer):
 
     def OnAttach(self) -> None:
         self.__VertexArray: VertexArray = VertexArray.Create()
+        self.__AssetManager = AssetManager()
 
         vertices = [
             -0.5, -0.5, 0.0,    0.8, 0.2, 0.8, 1.0,
@@ -71,69 +68,70 @@ class EditorLayer(Layer):
         self.__SquareVA.SetIndexBuffer(IndexBuffer.Create([ 0, 1, 2, 2, 3, 0 ]))
         self.__SquareVA.Unbind()
 
-        # This is a basic Shader so it is included in PI
-        self.__Shader: Shader = Shader.Create( ".\\Assets\\Shaders\\BasicShader.glsl"     )
-        self.__FlatColorShader : Shader = Shader.Create( ".\\Assets\\Shaders\\FlatColorShader.glsl" )
+        self.__AssetManager.Load(AssetManager.AssetType.ShaderAsset, ".\\Assets\\Shaders\\BasicShader.glsl")
+        self.__AssetManager.Load(AssetManager.AssetType.ShaderAsset, ".\\Assets\\Shaders\\FlatColorShader.glsl")
 
-        self.__TextureShader : Shader    = Shader.Create( ".\\Assets\\Shaders\\TextureShader.glsl" )
+        texShader: Shader = self.__AssetManager.Load(AssetManager.AssetType.ShaderAsset, ".\\Assets\\Shaders\\TextureShader.glsl")
+        texture: Texture2D = self.__AssetManager.Load(AssetManager.AssetType.Texture2DAsset, ".\\Assets\\Images\\Logo_Transperent.png")
 
-        self.__Texture       : Texture2D = Texture2D.Create( ".\\Assets\\Images\\Logo_Transperent.png" )
-        # self.__Texture       : Texture2D = Texture2D.Create( ".\\Assets\\Images\\Logo.png" )
-        # self.__Texture       : Texture2D = Texture2D.Create( ".\\Assets\\Images\\Logo_HotShot.png" )
-        
-        self.__Texture.Bind()
-        self.__TextureShader.Bind()
-        self.__TextureShader.UploadUniformInt("u_Texture", 0)
+        texture.Bind()
+        texShader.Bind()
+        texShader.UploadUniformInt("u_Texture", 0)
 
         self.__Color = (0.8, 0.2, 0.2)
         self.__Grid = (1, 1)
         self.__Framerate = 60
 
-    def OnImGuiRender(self) -> None:
-        imgui.begin("Settings")
-
-        imgui.text("Use arrow keys to move the Camera\nand Right Shift and Right Ctrl to rotate it.")
-        imgui.text("\n")
-
-        changed, self.__Color = imgui.color_edit3("SquareColor", *self.__Color)
-
-        imgui.text("\nThe following is the width and height of the grid")
-        changed, self.__Grid = imgui.drag_int2(
-            "Grid Size", *self.__Grid, change_speed=0.125, min_value=1, max_value=10
+    def OnEvent(self, event: Event) -> None:
+        event.Handled = EventDispatcher(event).Dispach(
+            lambda event: self.__Camera.SetScale( self.__Camera.Scale - (event.OffsetY * 0.05) + 0.001 ),
+            EventType.MouseScrolled
         )
+        
+        self.__CameraMoveSpeed = self.__Camera.Scale * 1.25
 
-        if PI_DEBUG:
-            imgui.text("\nTotal draw calls: {}".format(self.__Grid[0]*self.__Grid[1] + 1))
-            imgui.text("FPS: {}".format(round(self.__Framerate)))
-            
+    def OnImGuiRender(self) -> None:
+        with BeginImGui("Settings"):
+            imgui.text("Use arrow keys to move the Camera\nand Right Shift and Right Ctrl to rotate it.")
             imgui.text("\n")
 
-            clicked, self.vSync = imgui.checkbox("VSync", self.vSync)
+            changed, self.__Color = imgui.color_edit3("SquareColor", *self.__Color)
 
-            if clicked:
-                Input.GetWindow().SetVSync(self.vSync)
-                PI_V_SYNC = self.vSync
+            imgui.text("\nThe following is the width and height of the grid")
+            changed, self.__Grid = imgui.drag_int2(
+                "Grid Size", *self.__Grid, change_speed=0.125, min_value=1, max_value=10
+            )
 
-        imgui.end()
+            if PI_DEBUG:
+                imgui.text("\nTotal draw calls: {}".format(self.__Grid[0]*self.__Grid[1] + 1))
+                imgui.text("FPS: {}".format(round(self.__Framerate)))
+                
+                imgui.text("\n")
+
+                clicked, self.vSync = imgui.checkbox("VSync", self.vSync)
+
+                if clicked:
+                    Input.GetWindow().SetVSync(self.vSync)
+                    PI_V_SYNC = self.vSync
 
     def OnUpdate(self, timestep) -> None:
         timer = PI_TIMER("EditorLayer::OnUpdate")
         self.__Framerate = 1 / timestep.Seconds
 
-        if (Input.IsKeyPressed(PI_KEY_UP)):
+        if (Input.IsKeyPressed(PI_KEY_W)):
             self.__Camera.SetPosition(
                 self.__Camera.Position + pyrr.Vector3([0, self.__CameraMoveSpeed * timestep.Seconds, 0])
             )
-        if (Input.IsKeyPressed(PI_KEY_DOWN)):
+        if (Input.IsKeyPressed(PI_KEY_S)):
             self.__Camera.SetPosition(
                 self.__Camera.Position - pyrr.Vector3([0, self.__CameraMoveSpeed * timestep.Seconds, 0])
             )
 
-        if (Input.IsKeyPressed(PI_KEY_LEFT)):
+        if (Input.IsKeyPressed(PI_KEY_A)):
             self.__Camera.SetPosition(
                 self.__Camera.Position - pyrr.Vector3([self.__CameraMoveSpeed * timestep.Seconds, 0, 0])
             )
-        if (Input.IsKeyPressed(PI_KEY_RIGHT)):
+        if (Input.IsKeyPressed(PI_KEY_D)):
             self.__Camera.SetPosition(
                 self.__Camera.Position + pyrr.Vector3([self.__CameraMoveSpeed * timestep.Seconds, 0, 0])
             )
@@ -144,27 +142,24 @@ class EditorLayer(Layer):
             self.__Camera.SetRotation(self.__Camera.Rotation + self.__CameraRotationSpeed * timestep.Seconds)
 
         drawtimer = PI_TIMER("EditorLayer::Draw")
-        Renderer.BeginScene(self.__Camera)
+        with BeginRenderer(self.__Camera):
+            scale = pyrr.matrix44.create_from_scale(pyrr.Vector3([ 0.1, 0.1, 0.1 ]))
 
-        scale = pyrr.matrix44.create_from_scale(pyrr.Vector3([ 0.1, 0.1, 0.1 ]))
+            for i in range(self.__Grid[0]):
+                for j in range(self.__Grid[1]):
+                    pos = pyrr.Vector3([ i*0.11, j*0.11, 0 ])
+                    translation = pyrr.matrix44.create_from_translation(pos)
+                    transform = scale @ translation
 
-        for i in range(self.__Grid[0]):
-            for j in range(self.__Grid[1]):
-                pos = pyrr.Vector3([ i*0.11, j*0.11, 0 ])
-                translation = pyrr.matrix44.create_from_translation(pos)
-                transform = scale @ translation
+                    self.__AssetManager.Get("FlatColorShader").Bind()
+                    self.__AssetManager.Get("FlatColorShader") \
+                        .UploadUniformFloat3("u_Color", pyrr.Vector3([ *self.__Color ]))
+                    
+                    Renderer.Submit(self.__AssetManager.Get("FlatColorShader"), self.__SquareVA, transform)
+            
+            scale = pyrr.matrix44.create_from_scale(pyrr.Vector3([ 1, 1, 1 ]))
+            translation = pyrr.matrix44.create_from_translation(pyrr.Vector3([ -0.75, 0.5*(1 / 1.1), 0 ]))
+            transform = scale @ translation
 
-                self.__FlatColorShader.Bind()
-                self.__FlatColorShader.UploadUniformFloat3("u_Color", pyrr.Vector3([ *self.__Color ]))
-                
-                Renderer.Submit(self.__FlatColorShader, self.__SquareVA, transform)
-        
-        
-        scale = pyrr.matrix44.create_from_scale(pyrr.Vector3([ 1, 1, 1 ]))
-        translation = pyrr.matrix44.create_from_translation(pyrr.Vector3([ -0.75, 0.5*(1 / 1.1), 0 ]))
-        transform = scale @ translation
-
-        Renderer.Submit(self.__TextureShader, self.__SquareVA, transform)
-        # Renderer.Submit(self.__Shader, self.__VertexArray)
-
-        Renderer.EndScene()
+            Renderer.Submit(self.__AssetManager.Get("TextureShader"), self.__SquareVA, transform)
+            # Renderer.Submit(self.__Shader, self.__VertexArray)

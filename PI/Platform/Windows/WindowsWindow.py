@@ -72,6 +72,7 @@ class WindowsWindow(Window):
         glfw.set_window_size_callback  ( self.__Window, WindowsWindow.WindowResizeEventHandler )
         glfw.set_window_close_callback ( self.__Window, WindowsWindow.WindowCloseEventHandler  )
         glfw.set_key_callback          ( self.__Window, WindowsWindow.KeyEventHandler          )
+        glfw.set_char_callback         ( self.__Window, WindowsWindow.CharInputHandler         )
         glfw.set_mouse_button_callback ( self.__Window, WindowsWindow.MouseButtonEventHandler  )
         glfw.set_scroll_callback       ( self.__Window, WindowsWindow.MouseScrollEventHandler  )
         glfw.set_cursor_pos_callback   ( self.__Window, WindowsWindow.MouseMovedEventHandler   )
@@ -114,6 +115,12 @@ class WindowsWindow(Window):
         elif (action == glfw.REPEAT):
             event = KeyPressedEvent(key, 1)
             data.EventCallback(event)
+
+    @staticmethod
+    def CharInputHandler(window, char):
+        data = glfw.get_window_user_pointer(window)
+        event = CharInputEvent(char)
+        data.EventCallback(event)
 
     @staticmethod
     def MouseButtonEventHandler(window, button, action, mods):

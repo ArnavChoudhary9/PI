@@ -5,7 +5,7 @@ from .Events import *
 from .Layers import *
 
 from .Input import *
-from .Instrumentation import *
+from .ImGui import *
 
 from .Platform import *
 from .Renderer import *
@@ -18,7 +18,6 @@ from .MouseButtonCodes import *
 
 from .Window import *
 
-import glfw
 import pyrr
 import imgui
 
@@ -31,15 +30,6 @@ if PI_LOGGING:
 # Cause this is all what The Cherno taught me.
 if (CURRENT_PLATFORM == "Windows"):
     Window.SetOS(OS.Windows)
-    RendererAPI.SetAPI(RendererAPI.API.OpenGL)
 
-    RenderCommand.SetRendererAPI(OpenGLRendererAPI)
-
-
+Renderer.Init()
 Input.Init()
-
-VertexArray.Init()
-VertexBuffer.Init()
-IndexBuffer.Init()
-Shader.Init()
-Texture.Init()

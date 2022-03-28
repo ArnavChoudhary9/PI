@@ -1,6 +1,6 @@
-from .Event         import Event, EventType, EventCategory, EventDispatcher
-from .Application   import WindowCloseEvent, WindowFocusEvent, WindowMovedEvent, WindowResizeEvent
-from .KeyEvent      import KeyPressedEvent, KeyReleasedEvent
-from .MouseEvent    import MouseButtonPressedEvent, MouseButtonReleasedEvent, MouseMovedEvent, MouseScrolledEvent
+from .Event       import *
+from .Application import *
+from .KeyEvent    import *
+from .MouseEvent  import *
 
-ES_VERSION: str= "1.0.0"
+PI_ES_VERSION: str= "1.0.1"

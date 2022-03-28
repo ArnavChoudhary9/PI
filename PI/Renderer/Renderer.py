@@ -3,6 +3,16 @@ from .RendererAPI   import RendererAPI
 from .RenderCommand import RenderCommand
 
 import pyrr
+from contextlib import contextmanager
+
+@contextmanager
+def BeginRenderer(camera):
+    try:
+        Renderer.BeginScene(camera)
+        yield Renderer
+
+    finally:
+        Renderer.EndScene()
 
 class Renderer:
     class SceneData:
@@ -16,6 +26,33 @@ class Renderer:
                 self.RenderQueue[shader] = [ (vertexArray, transform) ]
 
     __CurrentSceneData: SceneData
+
+    @staticmethod
+    def Init() -> None:
+        # RendererAPI.Init()
+        # RenderCommand.Init()
+
+        # VertexArray.Init()
+        # VertexBuffer.Init()
+        # IndexBuffer.Init()
+        # Shader.Init()
+        # Texture.Init()
+
+        RendererAPI.Init()
+        RenderCommand.Init()
+
+        from .VertexArray import VertexArray
+        VertexArray.Init()
+
+        from .Buffer import VertexBuffer, IndexBuffer
+        VertexBuffer.Init()
+        IndexBuffer.Init()
+
+        from .Shader import Shader
+        Shader.Init()
+
+        from .Texture import Texture
+        Texture.Init()
 
     @staticmethod
     def BeginScene(camera) -> None:

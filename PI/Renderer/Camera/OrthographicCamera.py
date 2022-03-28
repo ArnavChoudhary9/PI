@@ -37,7 +37,7 @@ class OrthographicCamera(Camera):
         return self.__Scale
 
     def SetScale(self, newScale: float) -> None:
-        self._Scale = newScale
+        self.__Scale = newScale
         self._ProjectionMatrix = pyrr.matrix44.create_orthogonal_projection_matrix(
             -self._AspectRatio * newScale, self._AspectRatio * newScale, -newScale, newScale, -1, 1
         )

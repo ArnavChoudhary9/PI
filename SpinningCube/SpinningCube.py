@@ -83,28 +83,25 @@ class CubeLayer(Layer):
         self.__Shader: Shader = Shader.Create(".\\Assets\\Shaders\\3DCubeShader.glsl")
 
     def OnImGuiRender(self) -> None:
-        imgui.begin("Settings")
-
-        changed, self.__AutoRotate = imgui.checkbox("Auto Rotate", self.__AutoRotate)
-        
-        imgui.text("\nTransform:")
-        changed, self.__Translation = imgui.drag_float3("Location" , *self.__Translation , change_speed=0.05 )
-        changed, self.__Scale       = imgui.drag_float3("Scale"    , *self.__Scale       , change_speed=0.05 )
-
-        if not self.__AutoRotate:
-            changed, rotation = imgui.drag_float3("Rotation", *self.__Rotation, change_speed=1)
-            self.__Rotation = list(rotation)
-
-        if PI_DEBUG:
-            imgui.text("\nFPS: {}".format(round(self.__Framerate)))
+        with BeginImGui("Settings"):
+            changed, self.__AutoRotate = imgui.checkbox("Auto Rotate", self.__AutoRotate)
             
-            clicked, self.vSync = imgui.checkbox("VSync", self.vSync)
+            imgui.text("\nTransform:")
+            changed, self.__Translation = imgui.drag_float3("Location" , *self.__Translation , change_speed=0.05 )
+            changed, self.__Scale       = imgui.drag_float3("Scale"    , *self.__Scale       , change_speed=0.05 )
 
-            if clicked:
-                Input.GetWindow().SetVSync(self.vSync)
-                PI_V_SYNC = self.vSync
+            if not self.__AutoRotate:
+                changed, rotation = imgui.drag_float3("Rotation", *self.__Rotation, change_speed=1)
+                self.__Rotation = list(rotation)
 
-        imgui.end()
+            if PI_DEBUG:
+                imgui.text("\nFPS: {}".format(round(self.__Framerate)))
+                
+                clicked, self.vSync = imgui.checkbox("VSync", self.vSync)
+
+                if clicked:
+                    Input.GetWindow().SetVSync(self.vSync)
+                    PI_V_SYNC = self.vSync
 
     def OnUpdate(self, timestep) -> None:
         timer = PI_TIMER("CubeLayer::OnUpdate")
@@ -133,9 +130,8 @@ class CubeLayer(Layer):
         self.__Shader.UploadUniformMat4( "u_Rotation"    , rotation          )
         self.__Shader.UploadUniformMat4( "u_Scale"       , scaleMatrix       )
 
-        Renderer.BeginScene(self.__Camera)
-        Renderer.Submit(self.__Shader, self.__VertexArray)
-        Renderer.EndScene()
+        with BeginRenderer(self.__Camera):
+            Renderer.Submit(self.__Shader, self.__VertexArray)
 
 class SpinningCube(PI_Application):
     def __init__(self, name: str, props: WindowProperties=WindowProperties()) -> None:

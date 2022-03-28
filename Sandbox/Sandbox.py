@@ -16,16 +16,7 @@ class Sandbox(PI_Application):
         timer = PI_TIMER("Application::Init")
         super().__init__(name, props)
         self._Camera = OrthographicCamera(self._Window.AspectRatio, 1)
-        self._LayerStack.PushOverlay(EditorLayer(self._Camera))
-
-    def __del__(self) -> None:
-        timer = PI_TIMER("Application::Destroy")
-        
-        self._Running = False
-
-        del self._LayerStack
-        del self._EventDispacher
-        del self._Window
+        self._LayerStack.PushLayer(EditorLayer(self._Camera))
 
     def Run(self) -> None:
         global frames

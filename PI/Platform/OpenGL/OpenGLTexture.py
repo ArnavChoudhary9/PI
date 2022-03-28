@@ -8,6 +8,7 @@ from OpenGL.GL import GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T, GL_RE
                       GL_UNSIGNED_BYTE, GL_NEAREST
 
 from PIL import Image
+from ...logger   import PI_CORE_TRACE
 
 class OpenGLTexture2D(Texture2D):
     __RendererID : int
@@ -15,6 +16,7 @@ class OpenGLTexture2D(Texture2D):
     __Height : int
 
     __Path: str
+    __Name: str
 
     def __init__(self, path: str) -> None:
         self.__Path = path
@@ -24,6 +26,16 @@ class OpenGLTexture2D(Texture2D):
 
         self.__Width = image.width
         self.__Height = image.height
+        
+        slashIndex = path.rfind("\\")
+        if slashIndex == -1: slashIndex = path.rfind("/")
+
+        dotIndex = path.rfind(".")
+
+        if dotIndex != -1:
+            self.__Name = path[slashIndex+1:dotIndex]
+        else:
+            self.__Name = path[slashIndex+1:]
         
         self.__RendererID = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.__RendererID)
@@ -45,6 +57,21 @@ class OpenGLTexture2D(Texture2D):
         RenderCommand.EnableBlending()
 
         glBindTexture(GL_TEXTURE_2D, 0)
+
+    def __repr__(self) -> str:
+        return self.__Name
+
+    @property
+    def RendererID(self) -> int:
+        return self.__RendererID
+
+    @property
+    def Name(self) -> int:
+        return self.__Name
+
+    @property
+    def Path(self) -> int:
+        return self.__Path
 
     @property
     def Width(self) -> int:

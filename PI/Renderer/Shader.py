@@ -19,8 +19,8 @@ class Shader:
         return None
 
     @property
-    def RendererID(self) -> int:
-        return self.__RendererID
+    def Name(self) -> int:
+        return self.__Name
 
     def __del__(self) -> None:
         pass

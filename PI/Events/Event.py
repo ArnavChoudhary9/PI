@@ -7,9 +7,9 @@ class EventType:
     Null,                                                                   \
     WindowClose, WindowResize, WindowFocus, WindowMoved,                    \
     AppTick, AppUpdate, AppRender,                                          \
-    KeyPressed, KeyReleased,                                                \
+    KeyPressed, KeyReleased, CharInput,                                               \
     MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled      \
-        = range(0, 14)
+        = range(0, 15)
 
 # This class is equvalent to a C++ enum
 
@@ -58,7 +58,8 @@ class EventDispatcher:
 
     def Dispach(self, func, eventType: int) -> bool:
         if (self._Event.EventType == eventType):
-            self._Event.Handled = func(self._Event)
+            handeled = func(self._Event)
+            self._Event.Handled = handeled
             return True
 
         return False
