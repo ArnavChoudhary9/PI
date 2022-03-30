@@ -8,21 +8,15 @@ from OpenGL.GL import glEnable, GL_DEPTH_TEST
 import glfw
 
 class WindowData:
-    Title: str
-
-    Width: int
-    Height: int
-    VSync: bool
-
-    EventCallback = None
+    __slots__ = "Title", \
+        "Width", "Height", "VSync", \
+        "EventCallback"
 
 class WindowsWindow(Window):
     GLFWInitialized = False
-
-    __Window = None
-    __Data: WindowData
-
-    __Context: GraphicsContext
+    
+    __slots__ = "__Window", "__Data", \
+        "__Context"
 
     def __init__(self, props: WindowProperties) -> None:
         self.__Data = WindowData()

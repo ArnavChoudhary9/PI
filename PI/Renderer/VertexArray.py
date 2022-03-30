@@ -3,7 +3,7 @@ from .Buffer   import IndexBuffer, VertexBuffer
 from .Renderer import Renderer, RendererAPI
 
 class VertexArray:
-    __NativeAPI = None
+    __slots__ = ("__NativeAPI",)
 
     def Bind(self) -> None:
         pass

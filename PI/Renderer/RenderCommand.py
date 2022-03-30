@@ -3,7 +3,7 @@ from .RendererAPI import RendererAPI
 from ..logger     import PI_CORE_ASSERT
 
 class RenderCommand:
-    __RendererAPI: RendererAPI
+    __slots__ = ("__RendererAPI",)
 
     @staticmethod
     def Init() -> None:

@@ -1,7 +1,7 @@
 from .Event import Event, EventCategory, EventType
 
 class KeyEvent(Event):
-    _KeyCode: int
+    __slots__ = "_KeyCode"
 
     def __init__(self, keyCode: int) -> None:
         self._KeyCode = keyCode
@@ -15,7 +15,7 @@ class KeyEvent(Event):
         return EventCategory.Keyboard | EventCategory.Input
 
 class KeyPressedEvent(KeyEvent):
-    _RepeatCount: int
+    __slots__ = "_RepeatCount"
 
     def __init__(self, keyCode: int, repeatCount: int) -> None:
         super().__init__(keyCode)
@@ -29,7 +29,7 @@ class KeyPressedEvent(KeyEvent):
         return "<KeyPressedEvent: {} ({} repeats)>".format(self._KeyCode, self._RepeatCount)
 
 class CharInputEvent(KeyEvent):
-    __Char = None
+    __slots__ = "__Char"
 
     def __init__(self, char: int) -> None:
         # super().__init__(char)

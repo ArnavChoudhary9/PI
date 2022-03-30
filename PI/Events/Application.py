@@ -5,8 +5,7 @@ Contains Events related to the Application and Window
 from .Event import Event, EventType, EventCategory
 
 class WindowResizeEvent(Event):
-    __Width: int
-    __Height: int
+    __slots__ = "__Width", "__Height"
 
     def __init__(self, width: int, height: int) -> None:
         self.__Width = width
@@ -62,8 +61,7 @@ class WindowFocusEvent(Event):
         return "<WindowFocusEvent>"  
 
 class WindowMovedEvent(Event):
-    __offsetX: int
-    __offsetY: int
+    __slots__ = "__offsetX", "__offsetY"
 
     def __init__(self, offsetX: int, offsetY: int) -> None:
         self.__offsetX = offsetX

@@ -8,8 +8,7 @@ class AssetManager:
     class AssetType:
         ShaderAsset, Texture2DAsset = range(0, 2)
 
-    __ShaderMap  : dict
-    __TextureMap : dict
+    __slots__ = "__ShaderMap", "__TextureMap"
 
     def __init__(self) -> None:
         self.__ShaderMap  : dict = {}

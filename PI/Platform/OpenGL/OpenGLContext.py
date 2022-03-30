@@ -5,7 +5,7 @@ from OpenGL.GL   import GL_RENDERER, GL_VENDOR, GL_VERSION, glGetString
 import glfw
 
 class OpenGLContext(GraphicsContext):
-    __WindowHandle = None
+    __slots__ = ("__WindowHandle",)
 
     def __init__(self, windowHandle) -> None:
         self.__WindowHandle = windowHandle

@@ -6,13 +6,12 @@ from OpenGL.GL import \
     glBindVertexArray, glEnableVertexAttribArray, glVertexAttribPointer
 
 class OpenGLVertexArray(VertexArray):
-    __RendererID: int = 0
-
-    __VertexBuffers : list = []
-    __IndexBuffer   : IndexBuffer
+    __slots__ = "__RendererID", \
+        "__VertexBuffers", "__IndexBuffer"
 
     def __init__(self) -> None:
         self.__RendererID = glGenVertexArrays(1)
+        self.__VertexBuffers = []
 
     def __del__(self) -> None:
         glDeleteVertexArrays(self.__RendererID)

@@ -1,9 +1,9 @@
 from ..Instrumentation import Instrumentor, InstrumentationTimer
 
-PI_VERSION: str = "0.4.4.dev"
+PI_VERSION: str = "0.5.0.dev"
 
 PI_LATEST_UPDATE: str = """
-    Improved ImGui Event "Situation"
+    Added __slots__ for speed and memory
 """
 
 #-------------------------------------------------------------------
@@ -54,7 +54,8 @@ if PI_CONFIG == "RELEASE_NO_IMGUI":
     PI_INSTRUMENTATION: bool = False
 
 try:
-    from imgui import CONFIG_DOCKING_ENABLE   # if Python is able to import this it means the docking branch is enabled
+    # if Python is able to import this it means the docking branch is enabled
+    from imgui import CONFIG_DOCKING_ENABLE
     PI_IMGUI_DOCKING = True
 except:
     PI_IMGUI_DOCKING = False

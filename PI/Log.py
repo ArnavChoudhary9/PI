@@ -2,8 +2,7 @@ from .Core import *
 import spdlog
 
 class Log:
-    __CoreLogger   : spdlog.ConsoleLogger
-    __ClientLogger : spdlog.ConsoleLogger
+    __slots__ = "__CoreLogger", "__ClientLogger"
 
     @staticmethod
     def Init() -> None:

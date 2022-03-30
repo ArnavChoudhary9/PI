@@ -9,7 +9,7 @@ class MouseEvent(Event):
         return EventCategory.Mouse | EventCategory.Input
 
 class MouseButtonPressedEvent(MouseEvent):
-    __ButtonCode: int
+    __slots__ = "__ButtonCode"
 
     def __init__(self, buttonCode: int) -> None:
         self.__ButtonCode = buttonCode
@@ -30,7 +30,7 @@ class MouseButtonPressedEvent(MouseEvent):
         return "<MouseButtonPressedEvent: {}>".format(self.__ButtonCode)
         
 class MouseButtonReleasedEvent(MouseEvent):
-    __ButtonCode: int
+    __slots__ = "__ButtonCode"
 
     def __init__(self, buttonCode: int) -> None:
         self.__ButtonCode = buttonCode
@@ -51,8 +51,7 @@ class MouseButtonReleasedEvent(MouseEvent):
         return "<MouseButtonReleasedEvent: {}>".format(self.__ButtonCode)
 
 class MouseMovedEvent(MouseEvent):
-    __OffsetX: int
-    __OffsetY: int
+    __slots__ = "__OffsetX", "__OffsetY"
 
     def __init__(self, offsetX: int, offsetY: int) -> None:
         self.__OffsetX = offsetX
@@ -74,8 +73,7 @@ class MouseMovedEvent(MouseEvent):
         return "<MouseMovedEvent: {}, {}>".format(self.__OffsetX, self.__OffsetY)
 
 class MouseScrolledEvent(MouseEvent):
-    __OffsetX: int
-    __OffsetY: int
+    __slots__ = "__OffsetX", "__OffsetY"
 
     def __init__(self, offsetY: int, offsetX: int=0) -> None:
         self.__OffsetX = offsetX

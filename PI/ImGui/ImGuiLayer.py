@@ -1,23 +1,19 @@
 from ..Core   import PI_IMGUI_DOCKING
 from ..Events import Event, EventDispatcher, EventCategory, EventType
 from ..Layers import Layer
-from ..logger import PI_CORE_TRACE
 from ..Input  import Input
 from ..KeyCodes import *
 
-from imgui.integrations.glfw   import *
+from imgui.integrations.glfw import *
 import imgui
 
 class ImGuiLayer(Layer):
-    __Time: float
-    __Renderer = None
-    __io = None
-
-    __BlockEvents: bool = False
+    __slots__ = "__Time", "__Renderer", "__io", "__BlockEvents"
 
     def __init__(self, name: str="ImGuiLayer") -> None:
         super().__init__(name=name)
         self.__Time = 0.0
+        self.__BlockEvents = False
 
     def OnAttach(self) -> None:
         imgui.create_context()

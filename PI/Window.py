@@ -1,9 +1,7 @@
 from .logger import PI_CORE_ASSERT
 
 class WindowProperties:
-    Title: str
-    Width: int
-    Height: int
+    __slots__ = "Title", "Width", "Height"
     
     def __init__(self, title: str="PI",
                  width: int=640,
@@ -36,7 +34,10 @@ class Window:
 
     @property
     def AspectRatio(self) -> float:
-        return self.Width / self.Height
+        try:
+            return self.Width / self.Height
+        except:
+            return 1
 
     def SetEventCallback(self, callback) -> None:
         pass

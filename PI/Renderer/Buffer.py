@@ -29,13 +29,9 @@ def ShaderDataTypeSize(_type: ShaderDataType) -> int:
     return 0
 
 class BufferElement:
-    Name: str
-    Type: ShaderDataType
-
-    Offset: int
-    Size: int
-
-    Normalized: bool
+    __slots__ = "Name", "Type", \
+        "Offset", "Size", \
+        "Normalized"
 
     def __init__(self, _type: ShaderDataType, name: str, normalized: bool=False) -> None:
         self.Name = name
@@ -85,8 +81,7 @@ class BufferElement:
         return 0
 
 class BufferLayout:
-    __Elements : tuple
-    __Stride   : int
+    __slots__ = "__Elements", "__Stride"
 
     def __init__(self, *elements: tuple) -> None:
         self.__Elements = tuple([
@@ -113,7 +108,7 @@ class BufferLayout:
             self.__Stride += element.Size
 
 class VertexBuffer:
-    __NativeAPI = None
+    __slots__ = ("__NativeAPI",)
 
     def Bind(self) -> None:
         pass
@@ -147,7 +142,7 @@ class VertexBuffer:
         return VertexBuffer.__NativeAPI(vertices)
 
 class IndexBuffer:
-    __NativeAPI = None
+    __slots__ = ("__NativeAPI",)
 
     def Bind(self) -> None:
         pass

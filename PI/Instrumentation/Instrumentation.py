@@ -8,10 +8,7 @@ def Time_MicroSec() -> float:
     return time_ns() / 1000
 
 class ProfileResult:
-    Name: str
-
-    Start : float
-    End   : float
+    __slots__ = "Name", "Start", "End"
 
     def __init__(self, name: str, start: float, end: float) -> None:
         self.Name = name
@@ -19,17 +16,14 @@ class ProfileResult:
         self.End = end
 
 class InstrumentationSession:
-    Name: str
+    __slots__ = ("Name",)
 
     def __init__(self, name: str) -> None:
         self.Name = name
 
 class Instrumentor:
-    __CurrentSession : InstrumentationSession
-    __OutputStream   : io.TextIOWrapper
-    __ProfileCount   : int
-
-    __Instance: None
+    __slots__ = "__CurrentSession", "__OutputStream", "__ProfileCount", \
+        "__Instance"
 
     def __init__(self) -> None:
         self.__CurrentSession : InstrumentationSession = None
@@ -84,9 +78,7 @@ class Instrumentor:
         return Instrumentor.__Instance
 
 class InstrumentationTimer:
-    __Name           : str
-    __StartTimepoint : float
-    __Stopped        : bool
+    __slots__ = "__Name", "__StartTimepoint", "__Stopped"
 
     def __init__(self, name: str) -> None:
         self.__Name = name

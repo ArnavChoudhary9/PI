@@ -1,13 +1,10 @@
 glfw
-imgui[glfw]    # Comment this if you want the docking branch
+esper
 numpy
 pyrr
+spdlog
 PyOpenGL
 pillow
 pyinstaller     # Only for building
 
-# You also need docking branch of imgui or
-# just pip install imgui if you do not want
-# docking the Engine will automatically 
-# detect the branch and will use features
-# accordingly
+# You also need docking branch of imgui

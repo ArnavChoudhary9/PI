@@ -32,7 +32,7 @@ class Texture:
         pass
 
 class Texture2D(Texture):
-    __NativeAPI = None
+    __slots__ = ("__NativeAPI",)
 
     @staticmethod
     def Init() -> None:

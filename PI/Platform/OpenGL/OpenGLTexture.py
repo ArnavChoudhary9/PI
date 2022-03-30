@@ -11,12 +11,8 @@ from PIL import Image
 from ...logger   import PI_CORE_TRACE
 
 class OpenGLTexture2D(Texture2D):
-    __RendererID : int
-    __Width  : int
-    __Height : int
-
-    __Path: str
-    __Name: str
+    __slots__ = "__RendererID", "__Width", "__Height", \
+        "__Path", "__Name"
 
     def __init__(self, path: str) -> None:
         self.__Path = path

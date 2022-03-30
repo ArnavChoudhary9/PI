@@ -3,7 +3,7 @@ from .Camera import Camera
 import pyrr
 
 class OrthographicCamera(Camera):
-    __Scale: float
+    __slots__ = ("__Scale",)
 
     def __init__(self, aspectRatio: float, scale: float=1) -> None:
         self.__Scale = scale

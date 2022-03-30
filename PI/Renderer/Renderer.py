@@ -25,7 +25,7 @@ class Renderer:
             else:
                 self.RenderQueue[shader] = [ (vertexArray, transform) ]
 
-    __CurrentSceneData: SceneData
+    __slots__ = ("__CurrentSceneData",)
 
     @staticmethod
     def Init() -> None:

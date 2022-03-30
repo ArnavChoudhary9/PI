@@ -8,8 +8,7 @@ from OpenGL.GL.shaders import compileProgram, compileShader
 import pyrr
 
 class OpenGLShader(Shader):
-    __RendererID: int
-    __Name : str
+    __slots__ = "__RendererID", "__Name"
 
     def __init__(self, shaderFile: str) -> None:
         src = ""

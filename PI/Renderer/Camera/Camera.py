@@ -2,14 +2,9 @@ import pyrr
 from math import radians
 
 class Camera:
-    _ProjectionMatrix : pyrr.Matrix44
-    _ViewMatrix       : pyrr.Matrix44
-    _ViewProjectionMatrix : pyrr.Matrix44
-
-    _Position : pyrr.Vector3
-    _Rotation : pyrr.Vector3
-
-    _AspectRatio : float
+    __slots__ = "_ProjectionMatrix", "_ViewMatrix", "_ViewProjectionMatrix", \
+        "_Position", "_Rotation", \
+        "_AspectRatio"
 
     def __init__(self, view: pyrr.Matrix44, projection: pyrr.Matrix44) -> None:
         self._ViewMatrix = view

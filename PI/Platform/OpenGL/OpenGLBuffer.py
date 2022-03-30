@@ -6,10 +6,8 @@ from OpenGL.GL import GL_ARRAY_BUFFER, GL_STATIC_DRAW, GL_ELEMENT_ARRAY_BUFFER
 import numpy as np
 
 class OpenGLVertexBuffer(VertexBuffer):
-    __RendererID : int
-    __itemsize   : int
-
-    __Layout: BufferLayout
+    __slots__ = "__RendererID", "__itemsize", \
+        "__Layout"
 
     def __init__(self, vertices: list) -> None:
         vertices: np.ndarray = np.array(vertices, dtype=np.float32)

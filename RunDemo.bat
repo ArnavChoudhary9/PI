@@ -1,5 +1,5 @@
 @ECHO OFF
-py Sandbox\SandboxApp.py
+py Sandbox\Sandbox.py
 
 PAUSE
 EXIT

@@ -6,7 +6,7 @@ class RendererAPI:
         Null = 0
         OpenGL = 1
 
-    __API: int
+    __slots__ = ("__API",)
 
     @staticmethod
     def Init() -> None:

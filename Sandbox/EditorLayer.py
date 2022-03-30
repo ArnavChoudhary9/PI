@@ -136,24 +136,24 @@ class EditorLayer(Layer):
                 self.__Camera.Position + pyrr.Vector3([self.__CameraMoveSpeed * timestep.Seconds, 0, 0])
             )
 
-        if (Input.IsKeyPressed(PI_KEY_RIGHT_SHIFT)):
+        if (Input.IsKeyPressed(PI_KEY_Q)):
             self.__Camera.SetRotation(self.__Camera.Rotation - self.__CameraRotationSpeed * timestep.Seconds)
-        if (Input.IsKeyPressed(PI_KEY_RIGHT_CONTROL)):
+        if (Input.IsKeyPressed(PI_KEY_E)):
             self.__Camera.SetRotation(self.__Camera.Rotation + self.__CameraRotationSpeed * timestep.Seconds)
 
         drawtimer = PI_TIMER("EditorLayer::Draw")
         with BeginRenderer(self.__Camera):
             scale = pyrr.matrix44.create_from_scale(pyrr.Vector3([ 0.1, 0.1, 0.1 ]))
+            self.__AssetManager.Get("FlatColorShader").Bind()
+
+            self.__AssetManager.Get("FlatColorShader") \
+                .UploadUniformFloat3("u_Color", pyrr.Vector3([ *self.__Color ]))
 
             for i in range(self.__Grid[0]):
                 for j in range(self.__Grid[1]):
                     pos = pyrr.Vector3([ i*0.11, j*0.11, 0 ])
                     translation = pyrr.matrix44.create_from_translation(pos)
                     transform = scale @ translation
-
-                    self.__AssetManager.Get("FlatColorShader").Bind()
-                    self.__AssetManager.Get("FlatColorShader") \
-                        .UploadUniformFloat3("u_Color", pyrr.Vector3([ *self.__Color ]))
                     
                     Renderer.Submit(self.__AssetManager.Get("FlatColorShader"), self.__SquareVA, transform)
             

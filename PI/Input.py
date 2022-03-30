@@ -3,9 +3,7 @@ from .Window import OS, Window
 from typing  import Tuple
 
 class Input:
-    __NativeClass   : None
-    __CurrentWindow : Window
-    __CurrentNativeWindow : None
+    __slots__ = "__NativeClass", "__CurrentWindow", "__CurrentNativeWindow"
     
     @staticmethod
     def Init():

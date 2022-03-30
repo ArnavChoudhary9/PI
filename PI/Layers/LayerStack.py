@@ -1,8 +1,7 @@
 from .Layer import Event, Layer
 
 class LayerStack:
-    __Layers: list
-    __LayerInsertPos: int
+    __slots__ = "__Layers", "__LayerInsertPos"
     
     def __init__(self) -> None:
         self.__Layers: list = []

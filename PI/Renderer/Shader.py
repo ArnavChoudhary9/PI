@@ -2,7 +2,7 @@ from ..logger  import PI_CORE_ASSERT
 from .Renderer import Renderer, RendererAPI
 
 class Shader:
-    __NativeAPI = None
+    __slots__ = ("__NativeAPI",)
 
     @staticmethod
     def Init() -> None:

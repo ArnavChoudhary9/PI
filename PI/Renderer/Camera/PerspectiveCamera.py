@@ -4,9 +4,7 @@ from ..RenderCommand import RenderCommand
 import pyrr
 
 class PerspectiveCamera(Camera):
-    __Fov  : float
-    __Near : float
-    __Far  : float
+    __slots__ = "__Fov", "__Near", "__Far"
 
     def __init__(self, fov: float, aspectRatio: float, near: float=0.01, far: float=1000) -> None:
         self.__Fov = fov

@@ -48,12 +48,9 @@ class Event:
         return self.ToString()
 
 class EventDispatcher:
-    _Event: Event
+    __slots__ = ("_Event",)
 
-    def __init__(self, event: Event=Event()) -> None:
-        self._Event = event
-
-    def ChangeEvent(self, event: Event):
+    def __init__(self, event: Event) -> None:
         self._Event = event
 
     def Dispach(self, func, eventType: int) -> bool:

@@ -1,11 +1,11 @@
 from ..Events import Event
 
 class Layer:
-    _DebugName: str
-    _IsEnable: bool = True
+    __slots__ = "_DebugName", "_IsEnable"
 
     def __init__(self, name: str="Layer") -> None:
         self._DebugName = name
+        self._IsEnable  = True
 
     def OnAttach(self) -> None:
         pass

@@ -19,17 +19,20 @@ class PI_Application(ABC):
     This is the Root for all classes used to make Application using PI Engine.
     '''
 
-    _Name   : str           # Name of the Application
-    _Window : Window        # Window that it creates
+    # _Name   : str           # Name of the Application
+    # _Window : Window        # Window that it creates
 
-    _Running: bool          # Is this application Running
-    _LayerStack: LayerStack
-    __ImGuiLayer: ImGuiLayer
+    # _Running: bool          # Is this application Running
+    # _LayerStack: LayerStack
+    # __ImGuiLayer: ImGuiLayer
 
-    _EventDispacher: EventDispatcher
-    _Camera: Camera
+    # _Camera: Camera
 
-    _LastFrameTime: float = 0.0
+    # _LastFrameTime: float = 0.0
+
+    __slots__ = "_Name", "_Window", "_Running", \
+        "_LayerStack", "__ImGuiLayer", \
+        "_Camera", "_LastFrameTime"
 
     def __init__(self, name: str, props: WindowProperties=WindowProperties()) -> None:
         '''
@@ -48,11 +51,12 @@ class PI_Application(ABC):
         self._Window.SetEventCallback(self.OnEvent)
         Input.SetWindow(self._Window)
 
-        self._EventDispacher = EventDispatcher()
         self._LayerStack = LayerStack()
 
         self.__ImGuiLayer = ImGuiLayer()
         self._LayerStack.PushOverlay(self.__ImGuiLayer)
+
+        self._LastFrameTime = 0.0
 
     def __del__(self) -> None:
         pass
@@ -82,10 +86,10 @@ class PI_Application(ABC):
 
     def OnEvent(self, event: Event):
         '''Called when an event occures on the Window'''
-        self._EventDispacher.ChangeEvent(event)
+        dispatcher = EventDispatcher(event)
 
-        self._EventDispacher.Dispach( self.OnWindowResize , EventType.WindowResize )
-        self._EventDispacher.Dispach( self.OnWindowClose  , EventType.WindowClose  )
+        dispatcher.Dispach( self.OnWindowResize , EventType.WindowResize )
+        dispatcher.Dispach( self.OnWindowClose  , EventType.WindowClose  )
 
         self._LayerStack.OnEvent(event)
 
