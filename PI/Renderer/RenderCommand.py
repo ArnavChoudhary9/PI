@@ -1,6 +1,5 @@
-from ..Window     import Window, OS
-from .RendererAPI import RendererAPI
-from ..logger     import PI_CORE_ASSERT
+from ..Window   import Window, OS
+from ..logger   import PI_CORE_ASSERT
 
 class RenderCommand:
     __slots__ = ("__RendererAPI",)
@@ -28,8 +27,12 @@ class RenderCommand:
         RenderCommand.__RendererAPI.Clear()
 
     @staticmethod
-    def DrawIndexed(vertexArray) -> None:
-        RenderCommand.__RendererAPI.DrawIndexed(vertexArray)
+    def DrawIndexed(vertexArray, indices: int=None) -> None:
+        RenderCommand.__RendererAPI.DrawIndexed(vertexArray, indices)
+
+    @staticmethod
+    def Resize(x: int, y: int, width: int, height: int) -> None:
+        RenderCommand.__RendererAPI.Resize(x, y, width, height)
 
     @staticmethod
     def EnableDepth() -> None:

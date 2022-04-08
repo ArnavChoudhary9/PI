@@ -1,6 +1,8 @@
 from ..logger  import PI_CORE_ASSERT
 from .Renderer import Renderer, RendererAPI
 
+from multipledispatch import dispatch
+
 class Texture:
     @staticmethod
     def Init() -> None:
@@ -23,6 +25,9 @@ class Texture:
 
     @property
     def Height(self) -> int:
+        pass
+
+    def SetData(self, data, size) -> None:
         pass
 
     def Bind(self, slot: int=0) -> None:
@@ -49,5 +54,11 @@ class Texture2D(Texture):
         return None
 
     @staticmethod
+    @dispatch(str)
     def Create(texturePath: str):
         return Texture2D.__NativeAPI(texturePath)
+
+    @staticmethod
+    @dispatch(int, int)
+    def Create(width: int, height: int):
+        return Texture2D.__NativeAPI(width, height)

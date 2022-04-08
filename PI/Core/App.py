@@ -4,7 +4,7 @@ from ..Input    import Input
 from ..ImGui    import ImGuiLayer
 from ..Layers   import *
 from ..Platform import *
-from ..Renderer import RenderCommand, Camera
+from ..Renderer import RenderCommand, Renderer, Renderer2D
 from .Timestep  import Timestep
 from ..Window   import Window, WindowProperties
 
@@ -30,9 +30,9 @@ class PI_Application(ABC):
 
     # _LastFrameTime: float = 0.0
 
-    __slots__ = "_Name", "_Window", "_Running", \
+    __slots__ = "_Name", "_Window", "_Running", "_IsMinimised", \
         "_LayerStack", "__ImGuiLayer", \
-        "_Camera", "_LastFrameTime"
+        "_Camera", "_LastFrameTime", "timestep"
 
     def __init__(self, name: str, props: WindowProperties=WindowProperties()) -> None:
         '''
@@ -47,9 +47,18 @@ class PI_Application(ABC):
         self._Name = name
         self._Running = True
 
+        Renderer.Init()
+        Input.Init()
+
         self._Window = Window.Create(props)
         self._Window.SetEventCallback(self.OnEvent)
         Input.SetWindow(self._Window)
+
+        # Renderer 2D can only be initialized after Rendering API is Initializd
+        # i.e. After window is created
+        Renderer2D.Init()
+
+        self._IsMinimised = False
 
         self._LayerStack = LayerStack()
 
@@ -57,6 +66,7 @@ class PI_Application(ABC):
         self._LayerStack.PushOverlay(self.__ImGuiLayer)
 
         self._LastFrameTime = 0.0
+        self.timestep = Timestep(0)
 
     def __del__(self) -> None:
         pass
@@ -74,15 +84,22 @@ class PI_Application(ABC):
     def OnWindowClose(self, event: WindowCloseEvent):
         '''This will be called to to terminate the application.'''
         self._Running = False
-        event.Handled = True
         return True
 
     def OnWindowResize(self, event: WindowResizeEvent):
         '''Resizes the window'''
-        glViewport(0, 0, event.Width, event.Height)
+
+        if event.Width == 0 or event.Height == 0:
+            self._IsMinimised = True
+            return False
+
+        self._IsMinimised = False
+
+        # glViewport(0, 0, event.Width, event.Height)
+        Renderer.OnResize(event.Width, event.Height)
         self._Camera.SetAspectRatio(self._Window.AspectRatio)
-        event.Handled = True
-        return True
+
+        return False
 
     def OnEvent(self, event: Event):
         '''Called when an event occures on the Window'''
@@ -96,15 +113,16 @@ class PI_Application(ABC):
     def Run(self) -> None:
         '''you should call this function within the run loop of the derived class.'''
         _time = glfw.get_time()
-        timestep = Timestep(_time - self._LastFrameTime)
+        self.timestep = Timestep(_time - self._LastFrameTime)
         self._LastFrameTime = _time
 
-        Input.SetWindow(self._Window)
-        
-        RenderCommand.SetClearColor(0.1, 0.1, 0.1, 1)
-        RenderCommand.Clear()
+        if not self._IsMinimised:
+            Input.SetWindow(self._Window)
+            
+            RenderCommand.SetClearColor(0.1, 0.1, 0.1, 1)
+            RenderCommand.Clear()
 
-        self._LayerStack.OnUpdate(timestep)
+            self._LayerStack.OnUpdate(self.timestep)
 
         if PI_IMGUI:
             self.__ImGuiLayer.Begin()

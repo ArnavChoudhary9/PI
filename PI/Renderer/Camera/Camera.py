@@ -19,8 +19,8 @@ class Camera:
     def _RecalculateViewMatrix(self) -> None:
         transform : pyrr.Matrix44 = pyrr.matrix44.create_from_translation(self._Position)
 
-        rotX = pyrr.matrix44.create_from_z_rotation( radians(self._Rotation.x) )
-        rotY = pyrr.matrix44.create_from_z_rotation( radians(self._Rotation.y) )
+        rotX = pyrr.matrix44.create_from_x_rotation( radians(self._Rotation.x) )
+        rotY = pyrr.matrix44.create_from_y_rotation( radians(self._Rotation.y) )
         rotZ = pyrr.matrix44.create_from_z_rotation( radians(self._Rotation.z) )
 
         rotation = rotX @ rotY @ rotZ
@@ -35,6 +35,10 @@ class Camera:
 
     def SetPosition(self, pos: pyrr.Vector3) -> None:
         self._Position = pos
+        self._RecalculateViewMatrix()
+
+    def Translate(self, delta: pyrr.Vector3) -> None:
+        self._Position = self._Position + delta
         self._RecalculateViewMatrix()
 
     @property
@@ -64,4 +68,7 @@ class Camera:
     def SetAspectRatio(self, newRatio: float) -> None:
         self._AspectRatio = newRatio
         self._RecalculateViewMatrix()
+
+    def GetSpeed(self) -> float:
+        pass
     

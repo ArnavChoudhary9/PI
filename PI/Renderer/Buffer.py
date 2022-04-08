@@ -4,6 +4,8 @@ from ..logger   import PI_CORE_ASSERT
 from OpenGL.GL import GL_FLOAT, GL_INT, GL_BOOL
 from ctypes    import c_void_p
 
+from multipledispatch import dispatch
+
 class ShaderDataType:
     Null,                          \
     Float, Float2, Float3, Float4, \
@@ -119,6 +121,9 @@ class VertexBuffer:
     def SetLayout(self, layout: BufferLayout) -> None:
         pass
 
+    def SetData(self, data) -> None:
+        pass
+
     @property
     def Layout(self) -> BufferLayout:
         pass
@@ -138,8 +143,14 @@ class VertexBuffer:
         return None
 
     @staticmethod
+    @dispatch(list)
     def Create(vertices: list):
         return VertexBuffer.__NativeAPI(vertices)
+
+    @staticmethod
+    @dispatch(int)
+    def Create(size: int):
+        return VertexBuffer.__NativeAPI(size)
 
 class IndexBuffer:
     __slots__ = ("__NativeAPI",)

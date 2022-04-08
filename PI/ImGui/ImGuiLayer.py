@@ -38,7 +38,10 @@ class ImGuiLayer(Layer):
                 # style.colors[imgui.COLOR_WINDOW_BACKGROUND].w = 1.0
 
         window = Input.GetNativeWindow()
-        self.__Renderer = GlfwRenderer(window, False)        
+        self.__Renderer = GlfwRenderer(window, False)    
+
+    def OnImGuiRender(self) -> None:
+        imgui.show_demo_window()    
 
     def OnDetach(self) -> None:
         self.__Renderer.shutdown()
@@ -140,9 +143,6 @@ class ImGuiLayer(Layer):
         if self.__BlockEvents: return True
         return False
     #----------------------------------------
-
-    def OnImGuiRender(self) -> None:
-        imgui.show_demo_window(True)
 
     def Begin(self) -> None:
         self.__Renderer.process_inputs()

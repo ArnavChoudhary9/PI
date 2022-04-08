@@ -8,7 +8,7 @@ from OpenGL.GL.shaders import compileProgram, compileShader
 import pyrr
 
 class OpenGLShader(Shader):
-    __slots__ = "__RendererID", "__Name"
+    __slots__ = "__RendererID", "__Name", "__UniformLocations"
 
     def __init__(self, shaderFile: str) -> None:
         src = ""
@@ -55,6 +55,8 @@ class OpenGLShader(Shader):
             compileShader(fragmentSrc, GL_FRAGMENT_SHADER)
         )
 
+        self.__UniformLocations: dict = {}
+
     def __repr__(self) -> str:
         return self.__Name
 
@@ -75,26 +77,33 @@ class OpenGLShader(Shader):
     def Unbind(self) -> None:
         glUseProgram(0)
 
-    def UploadUniformMat4(self, name: str, matrix: pyrr.Matrix44) -> None:
-        location = glGetUniformLocation(self.__RendererID, name)
+    def _GetUniformLocation(self, name: str) -> int:
+        location = self.__UniformLocations.get(name, False)
+        if not location:
+            location = glGetUniformLocation(self.__RendererID, name)
+            self.__UniformLocations[name] = location
+        return location
+
+    def SetMat4(self, name: str, matrix: pyrr.Matrix44) -> None:
+        location = self._GetUniformLocation(name)
         glUniformMatrix4fv(location, 1, GL_FALSE, matrix)
 
-    def UploadUniformFloat3(self, name: str, vector: pyrr.Vector3) -> None:
-        location = glGetUniformLocation(self.__RendererID, name)
+    def SetFloat3(self, name: str, vector: pyrr.Vector3) -> None:
+        location = self._GetUniformLocation(name)
         glUniform3f(location, vector.x, vector.y, vector.z)
 
-    def UploadUniformFloat4(self, name: str, vector: pyrr.Vector4) -> None:
-        location = glGetUniformLocation(self.__RendererID, name)
+    def SetFloat4(self, name: str, vector: pyrr.Vector4) -> None:
+        location = self._GetUniformLocation(name)
         glUniform4f(location, vector.x, vector.y, vector.z, vector.w)
 
-    def UploadUniformFloat2(self, name: str, x: float, y: float) -> None:
-        location = glGetUniformLocation(self.__RendererID, name)
+    def SetFloat2(self, name: str, x: float, y: float) -> None:
+        location = self._GetUniformLocation(name)
         glUniform2f(location, x, y)
 
-    def UploadUniformFloat(self, name: str, value: float) -> None:
-        location = glGetUniformLocation(self.__RendererID, name)
+    def SetFloat(self, name: str, value: float) -> None:
+        location = self._GetUniformLocation(name)
         glUniform1f(location, value)
 
-    def UploadUniformInt(self, name: str, value: int) -> None:
-        location = glGetUniformLocation(self.__RendererID, name)
+    def SetInt(self, name: str, value: int) -> None:
+        location = self._GetUniformLocation(name)
         glUniform1i(location, value)

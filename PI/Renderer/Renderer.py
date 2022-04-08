@@ -4,6 +4,7 @@ from .RenderCommand import RenderCommand
 
 import pyrr
 from contextlib import contextmanager
+from multipledispatch import dispatch
 
 @contextmanager
 def BeginRenderer(camera):
@@ -29,15 +30,6 @@ class Renderer:
 
     @staticmethod
     def Init() -> None:
-        # RendererAPI.Init()
-        # RenderCommand.Init()
-
-        # VertexArray.Init()
-        # VertexBuffer.Init()
-        # IndexBuffer.Init()
-        # Shader.Init()
-        # Texture.Init()
-
         RendererAPI.Init()
         RenderCommand.Init()
 
@@ -61,29 +53,26 @@ class Renderer:
 
     @staticmethod
     def EndScene() -> None:
-        # endSceneTimer = PI_TIMER("Renderer::EndScene")
-        # for shader, objects in Renderer.__CurrentSceneData.RenderQueue.items():
-        #     shader.Bind()
-        #     shader.UploadUniformMat4("u_ViewProjection", Renderer.__CurrentSceneData.ViewProjectionMatrix)
-
-        #     for vertexArray, transform in objects:
-        #         shader.UploadUniformMat4("u_Transform", transform)
-        #         vertexArray.Bind()
-        #         RenderCommand.DrawIndexed(vertexArray)
-
         pass
-
 
     @staticmethod
     def Submit(shader, vertexArray, transform=pyrr.matrix44.create_identity()) -> None:
         shader.Bind()
-        shader.UploadUniformMat4("u_ViewProjection", Renderer.__CurrentSceneData.ViewProjectionMatrix)
-        shader.UploadUniformMat4("u_Transform", transform)
+        shader.SetMat4("u_ViewProjection", Renderer.__CurrentSceneData.ViewProjectionMatrix)
+        shader.SetMat4("u_Transform", transform)
 
         vertexArray.Bind()
         RenderCommand.DrawIndexed(vertexArray)
 
-        # Renderer.__CurrentSceneData.Enqueue(shader, vertexArray, transform)
+    @staticmethod
+    def SubmitMesh(mesh) -> None:
+        mesh.Bind()
+        mesh.Material.SetViewProjection(Renderer.__CurrentSceneData.ViewProjectionMatrix)
+        RenderCommand.DrawIndexed(mesh.VertexArray)
+
+    @staticmethod
+    def OnResize(width: int, height: int) -> None:
+        RenderCommand.Resize(0, 0, width, height)
 
     @staticmethod
     def GetAPI() -> int:

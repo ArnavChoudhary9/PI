@@ -2,7 +2,7 @@ from ...Renderer import VertexArray, VertexBuffer, IndexBuffer
 from ...logger   import PI_CORE_ASSERT
 
 from OpenGL.GL import \
-    glGenVertexArrays, glDeleteVertexArrays, \
+    glGenVertexArrays, glDeleteVertexArrays, glDeleteBuffers, \
     glBindVertexArray, glEnableVertexAttribArray, glVertexAttribPointer
 
 class OpenGLVertexArray(VertexArray):
@@ -14,7 +14,11 @@ class OpenGLVertexArray(VertexArray):
         self.__VertexBuffers = []
 
     def __del__(self) -> None:
-        glDeleteVertexArrays(self.__RendererID)
+        # glDeleteBuffers(1, self.VertexBuffers[0].RendererID)
+        # glDeleteBuffers(1, self.IndexBuffer.RendererID)
+        # glDeleteVertexArrays(1, self.__RendererID)
+
+        pass
 
     def Bind(self) -> None:
         glBindVertexArray(self.__RendererID)

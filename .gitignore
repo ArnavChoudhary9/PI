@@ -7,6 +7,7 @@
 
 *.exe
 *.json
+*.prof
 *.zip
 
 *.xcf

@@ -34,5 +34,14 @@ class PerspectiveCamera(Camera):
     def FOV(self) -> float:
         return self.__Fov
 
+    def GetSpeed(self) -> float:
+        return self.__Fov / 15
+
     def SetFOV(self, fov: float) -> None:
-        self.__Fov = fov
+        self.__Fov = fov + 0.001
+        
+        self._ProjectionMatrix = pyrr.matrix44.create_perspective_projection_matrix(
+            fov, self._AspectRatio, self.__Near, self.__Far
+        )
+
+        self._RecalculateViewMatrix()

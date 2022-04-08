@@ -20,8 +20,9 @@ from .Window import *
 
 import pyrr
 import imgui
+import weakref
 
-from math import radians, degrees
+from numpy import degrees, radians
 
 if PI_LOGGING:
     Log.Init()
@@ -30,6 +31,3 @@ if PI_LOGGING:
 # Cause this is all what The Cherno taught me.
 if (CURRENT_PLATFORM == "Windows"):
     Window.SetOS(OS.Windows)
-
-Renderer.Init()
-Input.Init()

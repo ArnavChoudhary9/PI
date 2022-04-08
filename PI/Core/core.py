@@ -1,9 +1,13 @@
 from ..Instrumentation import Instrumentor, InstrumentationTimer
 
-PI_VERSION: str = "0.5.0.dev"
+PI_VERSION: str = "0.6.1.dev"
 
 PI_LATEST_UPDATE: str = """
-    Added __slots__ for speed and memory
+    x.x.0
+    Added Renderer2D
+
+    x.x.1
+    Added CameraControllers
 """
 
 #-------------------------------------------------------------------
@@ -15,7 +19,7 @@ CURRENT_PLATFORM = SUPPORTED_PLATFORMS[0]
 #-------------------------------------------------------------------
 # To turn on and off certain features
 PI_CONFIGS : tuple = ("DEBUG", "NO_INSTRUMENTATION", "RELEASE", "RELEASE_NO_IMGUI")
-PI_CONFIG  : str   = PI_CONFIGS[1]
+PI_CONFIG  : str   = PI_CONFIGS[0]
 
 PI_DEBUG           : bool
 PI_LOGGING         : bool

@@ -43,3 +43,6 @@ class OrthographicCamera(Camera):
         )
 
         self._RecalculateViewMatrix()
+
+    def GetSpeed(self) -> float:
+        return self.__Scale * 1.25
