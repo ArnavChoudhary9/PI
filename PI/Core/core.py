@@ -1,13 +1,13 @@
 from ..Instrumentation import Instrumentor, InstrumentationTimer
 
-PI_VERSION: str = "0.6.1.dev"
+PI_VERSION: str = "0.7.1.dev"
 
 PI_LATEST_UPDATE: str = """
     x.x.0
-    Added Renderer2D
+    Added Phong Shading
 
     x.x.1
-    Added CameraControllers
+    Added Specular controll
 """
 
 #-------------------------------------------------------------------

@@ -29,6 +29,7 @@ in vec3 v_Normal;
 in vec3 v_FragPos;
 
 uniform vec4 u_Color;
+uniform float u_Specular;
 uniform sampler2D u_Texture;
 
 uniform vec3 u_CameraPos;
@@ -50,13 +51,11 @@ void main() {
     vec3 diffuse = diff * u_LightColor;
 
     // Specular
-    float specularStrength = 0.5;
-
     vec3 viewDir = normalize(u_CameraPos - v_FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
 
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = specularStrength * spec * u_LightColor;
+    vec3 specular = u_Specular * spec * u_LightColor;
 
     // Final combining
     vec3 result = (ambient + diffuse + specular) * vec3(u_Color);

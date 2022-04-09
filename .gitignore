@@ -5,7 +5,6 @@
 **/dist
 **/releases
 
-*.exe
 *.json
 *.prof
 *.zip

@@ -13,10 +13,15 @@ class Material:
     # __slots__ = 
 
     __Shader : Shader
-    __Albedo : pyrr.Vector4
+
+    __Diffuse  : pyrr.Vector4
+    __Specular : int
+
     __Name   : str
 
-    def __init__(self, _type: int, albedo: pyrr.Vector4=pyrr.Vector4([ 1.0, 1.0, 1.0, 1.0 ]),
+    def __init__(self, _type: int, 
+        diffuse: pyrr.Vector4=pyrr.Vector4([ 1.0, 1.0, 1.0, 1.0 ]),
+        specular: float = 0.5,
         name: str="Material_{}".format(randrange(0, 10000))) -> None:
         if _type == Material.Type.StandardUnlit:
             self.__Shader : Shader = Shader.Create(".\\Assets\\Shaders\\StandardLitPhong_3D.glsl")
@@ -24,8 +29,9 @@ class Material:
         
         else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
 
-        self.__Albedo = albedo
-        self.__Name   = name
+        self.__Diffuse  = diffuse
+        self.__Specular = specular
+        self.__Name     = name
 
     @property
     def Name(self) -> str:
@@ -41,7 +47,8 @@ class Material:
     def SetFields(self, mesh, lightColor: pyrr.Vector3, lightPos: pyrr.Vector3, cameraPos: pyrr.Vector3) -> None:
         self.__Shader.Bind()
         self.__Shader.SetMat4("u_Transform", mesh.Transform)
-        self.__Shader.SetFloat4("u_Color", self.__Albedo)
+        self.__Shader.SetFloat4("u_Color", self.__Diffuse)
+        self.__Shader.SetFloat("u_Specular", self.__Specular)
         self.__Shader.SetFloat3("u_LightColor", lightColor)
         self.__Shader.SetFloat3("u_LightPos", lightPos)
         self.__Shader.SetFloat3("u_CameraPos", cameraPos)

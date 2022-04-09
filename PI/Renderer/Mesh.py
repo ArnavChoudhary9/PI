@@ -57,7 +57,14 @@ class Mesh:
         objects = []
 
         for (nameMat, material), (nameMesh, mesh) in zip(materials.items(), meshes.items()):
-            mat = Material(Material.Type.StandardUnlit, albedo=pyrr.Vector4([ *material.diffuse ]), name=nameMat)
+            specular = (material.specular[0] + material.specular[1] + material.specular[2]) / 3
+            mat = Material(
+                Material.Type.StandardUnlit,
+                diffuse=pyrr.Vector4([ *material.diffuse ]),
+                specular=specular,
+                name=nameMat
+            )
+
             mesh = Mesh(
                 vertices=material.vertices, indicies=list(range(0, int(len(material.vertices)/8))),
                 layout=BufferLayout(

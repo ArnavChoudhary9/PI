@@ -44,6 +44,14 @@ class CubeLayer(Layer):
         mesh.SetScale(pyrr.Vector3([ 15.0, 1.0, 15.0 ]))
         self.__Meshes.append(mesh.Name)
 
+        mesh: Mesh = self.__AssetManager.Load(AssetManager.AssetType.MeshAsset, ".\\Assets\\Meshes\\Hut.obj")
+        mesh.Translate(pyrr.Vector3([ 7.5, 0.0, -10.0 ]))
+        self.__Meshes.append(mesh.Name)
+
+        mesh: Mesh = self.__AssetManager.Load(AssetManager.AssetType.MeshAsset, ".\\Assets\\Meshes\\Torus.obj")
+        mesh.Translate(pyrr.Vector3([ -7.5, -0.75, -10.0 ]))
+        self.__Meshes.append(mesh.Name)
+
         self.__LightPos   = pyrr.Vector3([ 0.0, 5.0, 10.0 ])
         self.__LightColor = pyrr.Vector3([ 1.0, 1.0, 1.0 ])
 
@@ -131,7 +139,7 @@ class CubeLayer(Layer):
             imgui.text("\nLight Transforms")
 
             changed, lightPos   = imgui.drag_float3("LightLocation" , *self.__LightPos , change_speed=0.05 )
-            changed, lightColor = imgui.color_edit3("SquareColor", *self.__LightColor)
+            changed, lightColor = imgui.color_edit3("LightColor", *self.__LightColor)
 
             self.__LightPos = pyrr.Vector3([ *lightPos ])
             self.__LightColor = pyrr.Vector3([ *lightColor ])
