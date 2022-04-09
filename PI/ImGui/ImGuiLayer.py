@@ -27,7 +27,6 @@ class ImGuiLayer(Layer):
             io.config_flags |= imgui.CONFIG_VIEWEPORTS_ENABLE
 
         io.fonts.add_font_from_file_ttf(".\\Assets\\Fonts\\opensans\\OpenSans-Regular.ttf", 18.0)
-        # io.fonts_default = io.fonts.add_font_from_file_ttf(".\\Assets\\Fonts\\opensans\\OpenSans-Regular.ttf", 18.0)
 
         imgui.style_colors_dark()
 
@@ -35,13 +34,9 @@ class ImGuiLayer(Layer):
             style = imgui.get_style()
             if io.config_flags & imgui.CONFIG_VIEWEPORTS_ENABLE:
                 style.window_rounding = 0.0
-                # style.colors[imgui.COLOR_WINDOW_BACKGROUND].w = 1.0
 
         window = Input.GetNativeWindow()
         self.__Renderer = GlfwRenderer(window, False)    
-
-    def OnImGuiRender(self) -> None:
-        imgui.show_demo_window()    
 
     def OnDetach(self) -> None:
         self.__Renderer.shutdown()

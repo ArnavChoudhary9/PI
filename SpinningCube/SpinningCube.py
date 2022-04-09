@@ -22,7 +22,7 @@ class SpinningCube(PI_Application):
 
 def CreateApp() -> PI_Application:
     return SpinningCube("Spinning Cube", WindowProperties(
-        title="Spinning Cube", width=1200, height=600
+        title="Spinning Cube", width=1280, height=720
     ))
 
 App.CreateApplication = CreateApp

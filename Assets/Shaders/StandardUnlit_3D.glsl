@@ -1,9 +1,9 @@
 #type vertex
 #version 330 core
 
-layout(location=0) in vec3 a_Position;
-layout(location=1) in vec2 a_TexCoord;
-layout(location=2) in vec3 a_Normal;
+layout(location=0) in vec2 a_TexCoord;
+layout(location=1) in vec3 a_Normal;
+layout(location=2) in vec3 a_Position;
 
 uniform mat4 u_Transform;
 uniform mat4 u_ViewProjection;
@@ -24,6 +24,13 @@ in vec2 v_TexCoord;
 
 uniform vec4 u_Color;
 uniform sampler2D u_Texture;
+
+uniform vec3 u_CameraPos;
+
+// This is so that we do not have to check in actual Material class
+// Light info
+uniform vec3 u_LightColor;
+uniform vec3 u_LightPos;
 
 void main() {
     // color = texture(u_Texture, v_TexCoord) * u_Color;

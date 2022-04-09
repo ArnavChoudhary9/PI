@@ -57,8 +57,3 @@ class Shader:
     @staticmethod
     def Create(shaderFile: str):
         return Shader.__NativeAPI(shaderFile)
-
-    # @staticmethod
-    # @dispatch(str, str)
-    # def Create(vertexShader: str, fragmentShader: str):
-    #     return Shader.__NativeAPI(vertexShader, fragmentShader)

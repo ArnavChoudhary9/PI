@@ -7,9 +7,9 @@ from contextlib import contextmanager
 from multipledispatch import dispatch
 
 @contextmanager
-def BeginRenderer(camera):
+def BeginRenderer(camera, lightColor: pyrr.Vector3, lightPos: pyrr.Vector3):
     try:
-        Renderer.BeginScene(camera)
+        Renderer.BeginScene(camera, lightColor, lightPos)
         yield Renderer
 
     finally:
@@ -17,14 +17,11 @@ def BeginRenderer(camera):
 
 class Renderer:
     class SceneData:
-        ViewProjectionMatrix: pyrr.Matrix44
-        RenderQueue: dict = {}
+        ViewProjectionMatrix : pyrr.Matrix44
+        CameraPos            : pyrr.Vector3
 
-        def Enqueue(self, shader, vertexArray, transform) -> None:
-            if (self.RenderQueue.get(shader, False)):
-                self.RenderQueue[shader].append( (vertexArray, transform) )
-            else:
-                self.RenderQueue[shader] = [ (vertexArray, transform) ]
+        LightColor : pyrr.Vector3
+        LightPos   : pyrr.Vector3
 
     __slots__ = ("__CurrentSceneData",)
 
@@ -47,9 +44,14 @@ class Renderer:
         Texture.Init()
 
     @staticmethod
-    def BeginScene(camera) -> None:
+    def BeginScene(camera, lightColor: pyrr.Vector3, lightPos: pyrr.Vector3) -> None:
         Renderer.__CurrentSceneData = Renderer.SceneData()
+
         Renderer.__CurrentSceneData.ViewProjectionMatrix = camera.ViewProjectionMatrix
+        Renderer.__CurrentSceneData.CameraPos            = camera.Position
+
+        Renderer.__CurrentSceneData.LightColor = lightColor
+        Renderer.__CurrentSceneData.LightPos   = lightPos
 
     @staticmethod
     def EndScene() -> None:
@@ -66,8 +68,14 @@ class Renderer:
 
     @staticmethod
     def SubmitMesh(mesh) -> None:
-        mesh.Bind()
+        mesh.Bind(
+            Renderer.__CurrentSceneData.LightColor,
+            Renderer.__CurrentSceneData.LightPos,
+            Renderer.__CurrentSceneData.CameraPos
+        )
+        
         mesh.Material.SetViewProjection(Renderer.__CurrentSceneData.ViewProjectionMatrix)
+        
         RenderCommand.DrawIndexed(mesh.VertexArray)
 
     @staticmethod

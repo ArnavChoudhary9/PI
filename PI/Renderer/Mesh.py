@@ -48,93 +48,29 @@ class Mesh:
         self.__VertexArray.Unbind()
 
     @staticmethod
-    def Load(path: str) -> list:
-        UnParsedStr: str
-        with open(path) as _file:
-            UnParsedStr = _file.read()
-        UnParsedStr: List[str] = UnParsedStr.splitlines()
+    def Load(path: str):
+        from ..Core   import OBJReader
+        objs = OBJReader.Read(path)
+        materials = objs.materials
+        meshes = objs.meshes
 
-        lastSlash = path.rfind("\\")
-        offset = 1
-        if lastSlash == -1:
-            lastSlash = path.rfind("/")
-            offset = 2
+        objects = []
 
-        DefaultMaterial = Material(
-            Material.Type.StandardUnlit,
-            pyrr.Vector4([ 0.8, 0.8, 0.8, 1.0 ]),
-            "DefaultMaterial"
-        )
-
-        Objects   : Dict[str, List[list, list, list, list, Material]] = {}
-        Materials : Dict[str, Material] = {}
-
-        currentobject : str
-
-        for _str in UnParsedStr:
-            _str : List[str] = _str.split(" ")
-
-            if _str[0] == "#" or _str == [""]: continue
-            elif _str[0] == "mtllib":
-                mats = Material.Load("{}{}".format(path[:lastSlash+offset], _str[1]))
-                for mat in mats:
-                    Materials[mat.Name] = mat
-
-            elif _str[0] == "o":
-                currentobject = _str[1]
-                Objects[currentobject] = [[], [], [], [], None]
-
-            elif _str[0] == "v":
-                Objects[currentobject][0].extend(( float(_str[1]), float(_str[2]), float(_str[3]) ))
-
-            elif _str[0] == "vt":
-                Objects[currentobject][1].extend(( float(_str[1]), float(_str[2]) ))
-
-            elif _str[0] == "vn":
-                Objects[currentobject][2].extend(( float(_str[1]), float(_str[2]), float(_str[3]) ))
-
-            elif _str[0] == "usemtl":
-                if _str[1] == "None":
-                    Objects[currentobject][4] = DefaultMaterial
-                    continue
-
-                Objects[currentobject][4] = Materials[_str[1]]
-
-            elif _str[0] == "f":
-                faces = (
-                    int( _str[1].split("/")[0] ) - 1,
-                    int( _str[2].split("/")[0] ) - 1,
-                    int( _str[3].split("/")[0] ) - 1
-                )
-                Objects[currentobject][3].extend(faces)
-
-            elif _str[0] == "s": continue
-            else:  continue
-
-        meshes: List[Mesh] = []
-        
-        for name, obj in Objects.items():
-            vertices = []
-            for index in range(0, len(obj[0]), 3):
-                vertices.extend((
-                    obj[0][index+0], obj[0][index+1], obj[0][index+2],
-                    0.0, 0.0,
-                    0.0, 0.0, 0.0
-                ))
-
-            meshes.append(Mesh(
-                vertices = vertices,
-                indicies = obj[3],
-                layout = BufferLayout(
-                    ( ShaderDataType.Float3, "a_Position" ),
+        for (nameMat, material), (nameMesh, mesh) in zip(materials.items(), meshes.items()):
+            mat = Material(Material.Type.StandardUnlit, albedo=pyrr.Vector4([ *material.diffuse ]), name=nameMat)
+            mesh = Mesh(
+                vertices=material.vertices, indicies=list(range(0, int(len(material.vertices)/8))),
+                layout=BufferLayout(
                     ( ShaderDataType.Float2, "a_TexCoord" ),
-                    ( ShaderDataType.Float3, "a_Normal" ),
+                    ( ShaderDataType.Float3, "a_Normal"   ),
+                    ( ShaderDataType.Float3, "a_Position" )
                 ),
-                material = obj[4],
-                name = name
-            ))
+                name=nameMesh, material=mat
+            )
 
-        return meshes
+            objects.append(mesh)
+
+        return objects
 
     @property
     def Name(self) -> str:
@@ -207,9 +143,9 @@ class Mesh:
     def Rotate(self, delta: pyrr.Vector3) -> None:
         self.__Rotation = self.__Rotation + delta
 
-    def Bind(self) -> None:
+    def Bind(self, lightColor: pyrr.Vector3, lightPos: pyrr.Vector3, cameraPos: pyrr.Vector3) -> None:
         self._RecalculateTransform()
 
         self.__Material.Bind()
-        self.__Material.SetFields(self)
+        self.__Material.SetFields(self, lightColor, lightPos, cameraPos)
         self.__VertexArray.Bind()
