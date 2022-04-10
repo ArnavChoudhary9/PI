@@ -14,8 +14,8 @@ class Sandbox(PI_Application):
         super().__init__(name, props)
         self._Camera = OrthographicCamera(self._Window.AspectRatio, 1)
 
-        self._LayerStack.PushLayer(ExampleLayer(self._Camera))
-        # self._LayerStack.PushLayer(Sandbox2D(self._Camera))
+        # self._LayerStack.PushLayer(ExampleLayer(self._Camera))
+        self._LayerStack.PushLayer(Sandbox2D(self._Camera))
 
     def Run(self) -> None:
         runTimer = PI_TIMER("Application::Run")
