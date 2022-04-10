@@ -6,7 +6,6 @@ from .Material import *
 import pyrr
 from math import radians
 from random import randrange
-from typing import Dict, List
 
 class Mesh:
     __slots__ = "__VertexArray", "__VertexBuffer", "__IndexBuffer", "__Material", \
@@ -57,11 +56,11 @@ class Mesh:
         objects = []
 
         for (nameMat, material), (nameMesh, mesh) in zip(materials.items(), meshes.items()):
-            specular = (material.specular[0] + material.specular[1] + material.specular[2]) / 3
             mat = Material(
                 Material.Type.StandardUnlit,
+                ambient=pyrr.Vector4([ *material.diffuse ]),
                 diffuse=pyrr.Vector4([ *material.diffuse ]),
-                specular=specular,
+                specular=pyrr.Vector4([ *material.specular ]),
                 name=nameMat
             )
 
@@ -150,9 +149,9 @@ class Mesh:
     def Rotate(self, delta: pyrr.Vector3) -> None:
         self.__Rotation = self.__Rotation + delta
 
-    def Bind(self, lightColor: pyrr.Vector3, lightPos: pyrr.Vector3, cameraPos: pyrr.Vector3) -> None:
+    def Bind(self, light: Light, cameraPos: pyrr.Vector3) -> None:
         self._RecalculateTransform()
 
         self.__Material.Bind()
-        self.__Material.SetFields(self, lightColor, lightPos, cameraPos)
+        self.__Material.SetFields(self, light, cameraPos)
         self.__VertexArray.Bind()

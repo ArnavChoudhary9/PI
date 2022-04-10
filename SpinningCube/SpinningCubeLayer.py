@@ -11,8 +11,7 @@ class CubeLayer(Layer):
     __AssetManager: AssetManager
     __CameraController: PerspectiveCameraController
 
-    __LightPos   : pyrr.Vector3
-    __LightColor : pyrr.Vector3
+    __Light : Light
 
     __AutoRotate  : bool
     
@@ -51,9 +50,8 @@ class CubeLayer(Layer):
         mesh: Mesh = self.__AssetManager.Load(AssetManager.AssetType.MeshAsset, ".\\Assets\\Meshes\\Torus.obj")
         mesh.Translate(pyrr.Vector3([ -7.5, -0.75, -10.0 ]))
         self.__Meshes.append(mesh.Name)
-
-        self.__LightPos   = pyrr.Vector3([ 0.0, 5.0, 10.0 ])
-        self.__LightColor = pyrr.Vector3([ 1.0, 1.0, 1.0 ])
+        
+        self.__Light = Light(position=pyrr.Vector3([ 0.0, 5.0, 10.0 ]))
 
         self.__AutoRotate  = False
         self.__Framerate   = 60
@@ -138,11 +136,14 @@ class CubeLayer(Layer):
 
             imgui.text("\nLight Transforms")
 
-            changed, lightPos   = imgui.drag_float3("LightLocation" , *self.__LightPos , change_speed=0.05 )
-            changed, lightColor = imgui.color_edit3("LightColor", *self.__LightColor)
+            changed, lightPos   = imgui.drag_float3("LightLocation" , *self.__Light.Position , change_speed=0.05 )
+            changed, lightColor = imgui.color_edit3("LightColor", *self.__Light.Diffuse)
 
-            self.__LightPos = pyrr.Vector3([ *lightPos ])
-            self.__LightColor = pyrr.Vector3([ *lightColor ])
+            color = pyrr.Vector3([ *lightColor ])
+
+            self.__Light.SetPosition(pyrr.Vector3([ *lightPos ]))
+            self.__Light.SetDiffuse(color)
+            self.__Light.SetAmbient(color * 0.15)
 
             if PI_DEBUG:
                 imgui.text("\nFPS: {}".format(round(self.__Framerate)))
@@ -165,7 +166,7 @@ class CubeLayer(Layer):
                 0.55 * timestep.Seconds
             ]))
 
-        with BeginRenderer(self.__CameraController.Camera, self.__LightColor, self.__LightPos):
+        with BeginRenderer(self.__CameraController.Camera, self.__Light):
             for mesh in self.__Meshes:
                 mesh = self.__AssetManager.Get(mesh)
                 Renderer.SubmitMesh(mesh)

@@ -4,12 +4,11 @@ from .RenderCommand import RenderCommand
 
 import pyrr
 from contextlib import contextmanager
-from multipledispatch import dispatch
 
 @contextmanager
-def BeginRenderer(camera, lightColor: pyrr.Vector3, lightPos: pyrr.Vector3):
+def BeginRenderer(camera, light):
     try:
-        Renderer.BeginScene(camera, lightColor, lightPos)
+        Renderer.BeginScene(camera, light)
         yield Renderer
 
     finally:
@@ -20,8 +19,7 @@ class Renderer:
         ViewProjectionMatrix : pyrr.Matrix44
         CameraPos            : pyrr.Vector3
 
-        LightColor : pyrr.Vector3
-        LightPos   : pyrr.Vector3
+        Light = None
 
     __slots__ = ("__CurrentSceneData",)
 
@@ -44,14 +42,13 @@ class Renderer:
         Texture.Init()
 
     @staticmethod
-    def BeginScene(camera, lightColor: pyrr.Vector3, lightPos: pyrr.Vector3) -> None:
+    def BeginScene(camera, light) -> None:
         Renderer.__CurrentSceneData = Renderer.SceneData()
 
         Renderer.__CurrentSceneData.ViewProjectionMatrix = camera.ViewProjectionMatrix
         Renderer.__CurrentSceneData.CameraPos            = camera.Position
 
-        Renderer.__CurrentSceneData.LightColor = lightColor
-        Renderer.__CurrentSceneData.LightPos   = lightPos
+        Renderer.__CurrentSceneData.Light = light
 
     @staticmethod
     def EndScene() -> None:
@@ -69,8 +66,7 @@ class Renderer:
     @staticmethod
     def SubmitMesh(mesh) -> None:
         mesh.Bind(
-            Renderer.__CurrentSceneData.LightColor,
-            Renderer.__CurrentSceneData.LightPos,
+            Renderer.__CurrentSceneData.Light,
             Renderer.__CurrentSceneData.CameraPos
         )
         

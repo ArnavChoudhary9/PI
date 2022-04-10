@@ -1,7 +1,7 @@
 from .Shader import Shader
+from .Light import Light
 from ..logger import PI_CORE_ASSERT
 
-from typing import Dict, List
 import pyrr
 from random import randrange
 
@@ -14,14 +14,18 @@ class Material:
 
     __Shader : Shader
 
+    __Ambient  : pyrr.Vector4
     __Diffuse  : pyrr.Vector4
-    __Specular : int
+    __Specular : pyrr.Vector4
+    __Shininess: float
 
     __Name   : str
 
     def __init__(self, _type: int, 
-        diffuse: pyrr.Vector4=pyrr.Vector4([ 1.0, 1.0, 1.0, 1.0 ]),
-        specular: float = 0.5,
+        ambient  : pyrr.Vector4=pyrr.Vector4([ 0.8, 0.8, 0.8, 1.0 ]),
+        diffuse  : pyrr.Vector4=pyrr.Vector4([ 0.8, 0.8, 0.8, 1.0 ]),
+        specular : pyrr.Vector4=pyrr.Vector4([ 0.5, 0.5, 0.5, 1.0 ]),
+        shininess: float=32,
         name: str="Material_{}".format(randrange(0, 10000))) -> None:
         if _type == Material.Type.StandardUnlit:
             self.__Shader : Shader = Shader.Create(".\\Assets\\Shaders\\StandardLitPhong_3D.glsl")
@@ -29,8 +33,11 @@ class Material:
         
         else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
 
+        self.__Ambient  = ambient
         self.__Diffuse  = diffuse
         self.__Specular = specular
+        self.__Shininess= shininess
+
         self.__Name     = name
 
     @property
@@ -44,11 +51,15 @@ class Material:
         self.__Shader.Bind()
         self.__Shader.SetMat4("u_ViewProjection", matrix)
 
-    def SetFields(self, mesh, lightColor: pyrr.Vector3, lightPos: pyrr.Vector3, cameraPos: pyrr.Vector3) -> None:
+    def SetFields(self, mesh, light: Light, cameraPos: pyrr.Vector3) -> None:
         self.__Shader.Bind()
         self.__Shader.SetMat4("u_Transform", mesh.Transform)
-        self.__Shader.SetFloat4("u_Color", self.__Diffuse)
-        self.__Shader.SetFloat("u_Specular", self.__Specular)
-        self.__Shader.SetFloat3("u_LightColor", lightColor)
-        self.__Shader.SetFloat3("u_LightPos", lightPos)
+
+        self.__Shader.SetFloat3("u_Material.Ambient", pyrr.Vector3.from_vector4(self.__Ambient)[0])
+        self.__Shader.SetFloat3("u_Material.Diffuse", pyrr.Vector3.from_vector4(self.__Diffuse)[0])
+        self.__Shader.SetFloat3("u_Material.Specular", pyrr.Vector3.from_vector4(self.__Specular)[0])
+        self.__Shader.SetFloat("u_Material.Shininess", self.__Shininess)
+
+        light.SetProperties(self.__Shader)
+
         self.__Shader.SetFloat3("u_CameraPos", cameraPos)

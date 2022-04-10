@@ -16,6 +16,7 @@ from .AssetManager    import *
 from .Camera          import *
 from .Mesh            import *
 from .Material        import *
+from .Light           import *
 
 from .Framebuffer     import *
 
