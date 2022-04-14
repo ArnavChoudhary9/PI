@@ -18,22 +18,19 @@ void main() {
 #type pixel
 #version 330 core
 
+struct Material {
+    sampler2D AlbedoMap;
+    vec3 Diffuse;
+    
+    float TilingFactor;
+};
+
 layout(location=0) out vec4 color;
 
 in vec2 v_TexCoord;
 
-uniform vec4 u_Color;
-uniform float u_Specular;
-uniform sampler2D u_Texture;
-
-uniform vec3 u_CameraPos;
-
-// This is so that we do not have to check in actual Material class
-// Light info
-uniform vec3 u_LightColor;
-uniform vec3 u_LightPos;
+uniform Material u_Material;
 
 void main() {
-    // color = texture(u_Texture, v_TexCoord) * u_Color;
-    color = u_Color;
+    color = texture(u_Material.AlbedoMap, v_TexCoord * u_Material.TilingFactor) * vec4(u_Material.Diffuse, 1.0);
 }

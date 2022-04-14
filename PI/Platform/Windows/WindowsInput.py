@@ -1,4 +1,4 @@
-from ...Input import Input
+from ...Core.Input import Input
 from typing import Tuple
 import glfw
 

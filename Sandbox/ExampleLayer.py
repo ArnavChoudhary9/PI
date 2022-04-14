@@ -17,9 +17,9 @@ class ExampleLayer(Layer):
     __Framerate: float
     vSync = PI_V_SYNC
 
-    def __init__(self, camera: Camera, name: str="ExampleLayer") -> None:
+    def __init__(self, name: str="ExampleLayer") -> None:
         super().__init__(name)
-        self.__CameraController = OrthogrphicCameraController(camera)
+        self.__CameraController = OrthogrphicCameraController(OrthographicCamera(Input.GetWindow().AspectRatio))
 
     def OnAttach(self) -> None:
         self.__AssetManager = AssetManager()

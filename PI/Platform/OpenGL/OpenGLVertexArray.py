@@ -1,5 +1,5 @@
 from ...Renderer import VertexArray, VertexBuffer, IndexBuffer
-from ...logger   import PI_CORE_ASSERT
+from ...Logging.logger   import PI_CORE_ASSERT
 
 from OpenGL.GL import \
     glGenVertexArrays, glDeleteVertexArrays, glDeleteBuffers, \

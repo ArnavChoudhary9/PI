@@ -1,4 +1,4 @@
-from .logger import PI_CORE_ASSERT
+from ..Logging.logger import PI_CORE_ASSERT
 from .Window import OS, Window
 from typing  import Tuple
 
@@ -12,7 +12,7 @@ class Input:
             Input.__NativeClass = None
 
         elif Window.GetOS() == OS.Windows:
-            from .Platform.Windows import WindowsInput
+            from ..Platform.Windows import WindowsInput
             Input.__NativeClass = WindowsInput
 
     @staticmethod

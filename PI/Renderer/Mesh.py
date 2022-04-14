@@ -1,4 +1,5 @@
-from ..logger import PI_CORE_TRACE
+from .Texture import Texture2D
+from ..Logging.logger import PI_CORE_TRACE
 from .VertexArray import *
 from .Buffer import *
 from .Material import *
@@ -39,8 +40,8 @@ class Mesh:
 
         if material is None:
             self.__Material: Material = Material(
-                Material.Type.StandardUnlit,
-                albedo=pyrr.Vector4([ 0.8, 0.8, 0.8, 1.0 ])
+                Material.Type.Standard,
+                diffuse=pyrr.Vector4([ 0.9, 0.1, 0.9, 1.0 ])
             )
 
         else: self.__Material = material
@@ -48,7 +49,7 @@ class Mesh:
 
     @staticmethod
     def Load(path: str):
-        from ..Core   import OBJReader
+        from ..Core import OBJReader
         objs = OBJReader.Read(path)
         materials = objs.materials
         meshes = objs.meshes
@@ -56,13 +57,33 @@ class Mesh:
         objects = []
 
         for (nameMat, material), (nameMesh, mesh) in zip(materials.items(), meshes.items()):
-            mat = Material(
-                Material.Type.StandardUnlit,
-                ambient=pyrr.Vector4([ *material.diffuse ]),
-                diffuse=pyrr.Vector4([ *material.diffuse ]),
-                specular=pyrr.Vector4([ *material.specular ]),
-                name=nameMat
-            )
+            mat: Material = None
+
+            if material.texture is not None:
+                if material.texture_specular_color is not None:
+                    mat = Material(
+                        Material.Type.Standard | Material.Type.Lit | Material.Type.Phong | Material.Type.Textured,
+                        textureAlbedo=Texture2D.Create(material.texture.path),
+                        textureSpecular=Texture2D.Create(material.texture_specular_color.path),
+                        tilingFactor=material.texture.options.s[0],
+                        name=nameMat
+                    )
+                
+                else:
+                    mat = Material(
+                        Material.Type.Standard | Material.Type.Lit | Material.Type.Phong | Material.Type.Textured,
+                        textureAlbedo=Texture2D.Create(material.texture.path),
+                        tilingFactor=material.texture.options.s[0],
+                        name=nameMat
+                    )
+
+            else:
+                mat = Material(
+                    Material.Type.Standard | Material.Type.Lit | Material.Type.Phong,
+                    diffuse=pyrr.Vector4([ *material.diffuse ]),
+                    specular=pyrr.Vector4([ *material.specular ]),
+                    name=nameMat
+                )
 
             mesh = Mesh(
                 vertices=material.vertices, indicies=list(range(0, int(len(material.vertices)/8))),
@@ -71,7 +92,8 @@ class Mesh:
                     ( ShaderDataType.Float3, "a_Normal"   ),
                     ( ShaderDataType.Float3, "a_Position" )
                 ),
-                name=nameMesh, material=mat
+                material=mat,
+                name=nameMesh
             )
 
             objects.append(mesh)

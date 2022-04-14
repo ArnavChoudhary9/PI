@@ -12,6 +12,8 @@ class OrthogrphicCameraController(CameraController):
         self.__CameraRotationSpeed : float = 135
 
     def OnEvent(self, e: Event) -> None:
+        super().OnEvent(e)
+
         e.Handled = EventDispatcher(e).Dispach(
             lambda event: self._Camera.SetScale( self._Camera.Scale - (event.OffsetY * 0.05) + 0.001 ),
             EventType.MouseScrolled

@@ -1,5 +1,5 @@
-from ..Window   import Window, OS
-from ..logger   import PI_CORE_ASSERT
+from ..Core.Window   import Window, OS
+from ..Logging.logger   import PI_CORE_ASSERT
 
 class RenderCommand:
     __slots__ = ("__RendererAPI",)

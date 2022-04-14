@@ -1,7 +1,7 @@
 from ...Events import EventDispatcher, EventType, \
     MouseButtonPressedEvent, MouseButtonReleasedEvent, MouseMovedEvent
-from ...Input import Input
-from ...MouseButtonCodes import PI_MOUSE_BUTTON_MIDDLE, PI_MOUSE_BUTTON_RIGHT
+from ...Core.Input import Input
+from ...ButtonCodes.MouseButtonCodes import PI_MOUSE_BUTTON_MIDDLE, PI_MOUSE_BUTTON_RIGHT
 
 from .PerspectiveCamera import PerspectiveCamera
 from .CameraController  import *
@@ -41,10 +41,12 @@ class PerspectiveCameraController(CameraController):
         return False
 
     def OnEvent(self, e: Event) -> None:
+        super().OnEvent(e)
+
         dispatcher = EventDispatcher(e)
 
-        dispatcher.Dispach(lambda e: \
-            self._Camera.SetFOV(self._Camera.FOV - e.OffsetY * 3),
+        dispatcher.Dispach(
+            lambda e: self._Camera.SetFOV(self._Camera.FOV - e.OffsetY * 3),
             EventType.MouseScrolled
         )
 

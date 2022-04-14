@@ -1,5 +1,5 @@
-from ..Window import Window, OS
-from ..logger import PI_CORE_ASSERT
+from ..Core.Window import Window, OS
+from ..Logging.logger import PI_CORE_ASSERT
 
 class RendererAPI:
     class API:
@@ -39,6 +39,10 @@ class RendererAPI:
 
     @staticmethod
     def EnableBlending() -> None:
+        pass
+
+    @staticmethod
+    def EnableCulling() -> None:
         pass
 
     @staticmethod

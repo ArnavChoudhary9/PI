@@ -8,12 +8,10 @@ layout(location=2) in vec3 a_Position;
 uniform mat4 u_Transform;
 uniform mat4 u_ViewProjection;
 
-out vec2 v_TexCoord;
 out vec3 v_Normal;
 out vec3 v_FragPos;
 
 void main() {
-    v_TexCoord = a_TexCoord;
     v_Normal = mat3(transpose(inverse(u_Transform))) * a_Normal;
     v_FragPos = vec3(u_Transform * vec4(a_Position, 1.0));
     gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
@@ -23,7 +21,6 @@ void main() {
 #version 330 core
 
 struct Material {
-    vec3 Ambient;
     vec3 Diffuse;
     vec3 Specular;
     float Shininess;
@@ -44,19 +41,13 @@ in vec3 v_Normal;
 in vec3 v_FragPos;
 
 uniform Material u_Material;
-uniform Light u_Light;
-
-uniform sampler2D u_Texture;
+uniform Light    u_Light;
 
 uniform vec3 u_CameraPos;
 
-// Light info
-uniform vec3 u_LightColor;
-uniform vec3 u_LightPos;
-
 void main() {
     // Ambient
-    vec3 ambient = u_Light.Ambient * u_Material.Ambient;
+    vec3 ambient = u_Light.Ambient * u_Material.Diffuse;
 
     // Diffuse
     vec3 norm = normalize(v_Normal);

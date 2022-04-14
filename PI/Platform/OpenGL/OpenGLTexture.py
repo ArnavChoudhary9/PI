@@ -106,7 +106,7 @@ class OpenGLTexture2D(Texture2D):
         )
 
     def Bind(self, slot: int=0) -> None:
-        glBindTextureUnit(0, self.__RendererID)
+        glBindTextureUnit(slot, self.__RendererID)
 
     def Unbind(self) -> None:
         glBindTextureUnit(0, 0)

@@ -16,10 +16,10 @@ class Sandbox2D(Layer):
     __Framerate: float
     vSync = PI_V_SYNC
 
-    def __init__(self, camera: OrthographicCamera, name: str="Sandbox2DLayer") -> None:
+    def __init__(self, name: str="Sandbox2DLayer") -> None:
         super().__init__(name)
-        self.__Camera = camera
-        self.__CameraController = OrthogrphicCameraController(camera)
+        self.__Camera = OrthographicCamera(Input.GetWindow().AspectRatio)
+        self.__CameraController = OrthogrphicCameraController(self.__Camera)
 
     def OnAttach(self) -> None:
         self.__AssetManager = AssetManager()
@@ -35,11 +35,9 @@ class Sandbox2D(Layer):
             changed, self.__Color = imgui.color_edit3("SquareColor", *self.__Color)
 
             if PI_DEBUG:
-                imgui.text("FPS: {}".format(round(self.__Framerate)))
-                
                 imgui.text("\n")
-
                 clicked, self.vSync = imgui.checkbox("VSync", self.vSync)
+                imgui.text("FPS: {}".format(round(self.__Framerate)))
 
                 if clicked:
                     Input.GetWindow().SetVSync(self.vSync)
@@ -55,30 +53,31 @@ class Sandbox2D(Layer):
 
         drawtimer = PI_TIMER("EditorLayer::Draw")        
         with BeginRenderer2D(self.__Camera):
-            Renderer2D.DrawQuad(
-                pos   = ( 0.0, 0.0, -0.1 ),
-                size  = ( 7.5, 7.5 ),
-                color = ( 0.25, 0.25, 0.25 ),
-                texture = self.__AssetManager.Get("Logo_HotShot"),
-                tilingFactor = 35.0
-            )
+            inverseColor = 1-self.__Color[0], 1-self.__Color[1], 1-self.__Color[2] # Inverse of self.__Color
 
-            Renderer2D.DrawQuad(
-                pos   = ( -0.5, 0.0 ),
-                size  = ( 0.5, 0.5 ),
-                color = self.__Color 
-            )
-            
-            color = 1-self.__Color[0], 1-self.__Color[1], 1-self.__Color[2]      # Inverse of self.__Color
-            Renderer2D.DrawQuad(
-                pos   = ( 0.5, -0.5 ),
-                size  = ( 0.5, 0.75 ),
-                rotation = 30,
-                color = color 
-            )
+            # Verb driven API
+            (
+                Renderer2D.DrawQuad (
+                    pos   = ( 0.0, 0.0, -0.1 ),
+                    size  = ( 6.0, 6.0 ),
+                    color = ( 0.25, 0.25, 0.25 ),
+                    texture = self.__AssetManager.Get("Logo_HotShot"),
+                    tilingFactor = 30.0
 
-            Renderer2D.DrawQuad(
-                pos   = ( 0.75, 0.65 ),
-                size  = ( 0.75, 0.75 ),
-                texture = self.__AssetManager.Get("Logo_Transperent")
+                ).DrawQuad (
+                    pos   = ( -0.5, 0.0 ),
+                    size  = ( 0.5, 0.5 ),
+                    color = self.__Color 
+
+                ).DrawQuad (
+                    pos   = ( 0.5, -0.5 ),
+                    size  = ( 0.5, 0.75 ),
+                    rotation = 30,
+                    color = inverseColor 
+
+                ).DrawQuad (
+                    pos   = ( 0.75, 0.65 ),
+                    size  = ( 0.75, 0.75 ),
+                    texture = self.__AssetManager.Get("Logo_Transperent")
+                )
             )

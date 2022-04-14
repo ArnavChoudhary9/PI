@@ -1,6 +1,6 @@
 from ...Core     import PI_VERSION, PI_V_SYNC, PI_CONFIG, PI_DEBUG
-from ...Window   import Window, WindowProperties
-from ...logger   import PI_CORE_ASSERT, PI_CORE_INFO
+from ...Core.Window   import Window, WindowProperties
+from ...Logging.logger   import PI_CORE_ASSERT, PI_CORE_INFO
 from ...Renderer import GraphicsContext
 from ...Events   import *
 

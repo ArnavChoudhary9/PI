@@ -1,4 +1,4 @@
-from ..logger  import PI_CORE_ASSERT
+from ..Logging.logger  import PI_CORE_ASSERT
 from .Buffer   import IndexBuffer, VertexBuffer
 from .Renderer import Renderer, RendererAPI
 

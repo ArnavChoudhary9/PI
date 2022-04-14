@@ -13,14 +13,13 @@ class Light:
 
     def __init__(self,
         position : pyrr.Vector3=pyrr.Vector3([ 0.0, 5.0, 10.0 ]),
-        ambient  : pyrr.Vector3=pyrr.Vector3([ 0.15, 0.15, 0.15 ]),
         diffuse  : pyrr.Vector3=pyrr.Vector3([ 1.0, 1.0, 1.0 ]),
         specular : pyrr.Vector3=pyrr.Vector3([ 1.0, 1.0, 1.0 ]),
         ) -> None:
 
         self.__Position = position
 
-        self.__Ambient  = ambient
+        self.__Ambient  = diffuse * 0.2
         self.__Diffuse  = diffuse
         self.__Specular = specular
 
@@ -48,6 +47,7 @@ class Light:
 
     def SetDiffuse(self, new: pyrr.Vector3) -> None:
         self.__Diffuse = new
+        self.SetAmbient(new * 0.2)
 
     def SetSpecular(self, new: pyrr.Vector3) -> None:
         self.__Specular = new

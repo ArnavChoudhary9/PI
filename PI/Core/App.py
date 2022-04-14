@@ -1,14 +1,14 @@
-from .core      import PI_INSTRUMENTATION_BEGIN_SESSION, PI_INSTRUMENTATION_END_SESSION, PI_IMGUI
+from .Base      import PI_INSTRUMENTATION_BEGIN_SESSION, PI_INSTRUMENTATION_END_SESSION, PI_IMGUI
 from ..Events   import *
-from ..Input    import Input
+from .Input     import Input
 from ..ImGui    import ImGuiLayer
 from ..Layers   import *
 from ..Platform import *
 from ..Renderer import RenderCommand, Renderer, Renderer2D
 from .Timestep  import Timestep
-from ..Window   import Window, WindowProperties
+from .Window   import Window, WindowProperties
 
-from .. import logger
+from ..Logging import logger
 
 from OpenGL.GL import glViewport    # Temp
 from abc import ABC
@@ -32,7 +32,7 @@ class PI_Application(ABC):
 
     __slots__ = "_Name", "_Window", "_Running", "_IsMinimised", \
         "_LayerStack", "__ImGuiLayer", \
-        "_Camera", "_LastFrameTime", "timestep"
+        "_LastFrameTime", "timestep"
 
     def __init__(self, name: str, props: WindowProperties=WindowProperties()) -> None:
         '''
@@ -97,7 +97,6 @@ class PI_Application(ABC):
 
         # glViewport(0, 0, event.Width, event.Height)
         Renderer.OnResize(event.Width, event.Height)
-        self._Camera.SetAspectRatio(self._Window.AspectRatio)
 
         return False
 
@@ -129,7 +128,7 @@ class PI_Application(ABC):
             self._LayerStack.OnImGuiRender()
             self.__ImGuiLayer.End()
 
-            self._Window.OnUpdate()
+        self._Window.OnUpdate()
     
 CreateApplication = None
 

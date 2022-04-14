@@ -1,8 +1,7 @@
-from ..Core   import PI_IMGUI_DOCKING
 from ..Events import Event, EventDispatcher, EventCategory, EventType
 from ..Layers import Layer
-from ..Input  import Input
-from ..KeyCodes import *
+from ..Core.Input  import Input
+from ..ButtonCodes.KeyCodes import *
 
 from imgui.integrations.glfw import *
 import imgui
@@ -21,19 +20,16 @@ class ImGuiLayer(Layer):
         self.__io = io
 
         io.config_flags |= imgui.CONFIG_NAV_ENABLE_KEYBOARD
-
-        if PI_IMGUI_DOCKING:
-            io.config_flags |= imgui.CONFIG_DOCKING_ENABLE
-            io.config_flags |= imgui.CONFIG_VIEWEPORTS_ENABLE
+        io.config_flags |= imgui.CONFIG_DOCKING_ENABLE
+        io.config_flags |= imgui.CONFIG_VIEWEPORTS_ENABLE
 
         io.fonts.add_font_from_file_ttf(".\\Assets\\Fonts\\opensans\\OpenSans-Regular.ttf", 18.0)
 
         imgui.style_colors_dark()
-
-        if PI_IMGUI_DOCKING:
-            style = imgui.get_style()
-            if io.config_flags & imgui.CONFIG_VIEWEPORTS_ENABLE:
-                style.window_rounding = 0.0
+        
+        style = imgui.get_style()
+        if io.config_flags & imgui.CONFIG_VIEWEPORTS_ENABLE:
+            style.window_rounding = 0.0
 
         window = Input.GetNativeWindow()
         self.__Renderer = GlfwRenderer(window, False)    
@@ -147,10 +143,9 @@ class ImGuiLayer(Layer):
         imgui.render()
         self.__Renderer.render(imgui.get_draw_data())
 
-        if PI_IMGUI_DOCKING:
-            io = imgui.get_io()
-            if io.config_flags & imgui.CONFIG_VIEWEPORTS_ENABLE:
-                backupCurrentContext = glfw.get_current_context()
-                imgui.update_platform_windows()
-                imgui.render_platform_windows_default()
-                glfw.make_context_current(backupCurrentContext)
+        io = imgui.get_io()
+        if io.config_flags & imgui.CONFIG_VIEWEPORTS_ENABLE:
+            backupCurrentContext = glfw.get_current_context()
+            imgui.update_platform_windows()
+            imgui.render_platform_windows_default()
+            glfw.make_context_current(backupCurrentContext)

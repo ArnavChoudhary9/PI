@@ -1,5 +1,5 @@
 from ..Renderer import Renderer, RendererAPI
-from ..logger   import PI_CORE_ASSERT
+from ..Logging.logger   import PI_CORE_ASSERT
 
 from OpenGL.GL import GL_FLOAT, GL_INT, GL_BOOL
 from ctypes    import c_void_p

@@ -41,6 +41,8 @@ class Renderer:
         from .Texture import Texture
         Texture.Init()
 
+        RendererAPI.EnableCulling()
+
     @staticmethod
     def BeginScene(camera, light) -> None:
         Renderer.__CurrentSceneData = Renderer.SceneData()

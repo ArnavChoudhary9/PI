@@ -1,5 +1,5 @@
 from ..Renderer import Renderer, RendererAPI
-from ..logger   import PI_CORE_ASSERT
+from ..Logging.logger   import PI_CORE_ASSERT
 
 class Framebuffer:
     class Specs:

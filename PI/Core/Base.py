@@ -1,13 +1,13 @@
 from ..Instrumentation import Instrumentor, InstrumentationTimer
 
-PI_VERSION: str = "0.7.1.dev"
+PI_VERSION: str = "0.8.1.dev"
 
 PI_LATEST_UPDATE: str = """
     x.x.0
-    Added Phong Shading
+    Added Texture Support in 3D Renderer
 
     x.x.1
-    Added Specular controll
+    Major refactoring in file structure
 """
 
 #-------------------------------------------------------------------
@@ -25,7 +25,6 @@ PI_DEBUG           : bool
 PI_LOGGING         : bool
 PI_INSTRUMENTATION : bool
 PI_IMGUI           : bool
-PI_IMGUI_DOCKING   : bool
 
 PI_V_SYNC: bool = True
 
@@ -60,9 +59,9 @@ if PI_CONFIG == "RELEASE_NO_IMGUI":
 try:
     # if Python is able to import this it means the docking branch is enabled
     from imgui import CONFIG_DOCKING_ENABLE
-    PI_IMGUI_DOCKING = True
 except:
-    PI_IMGUI_DOCKING = False
+    from ..Logging.logger import PI_CORE_ASSERT
+    PI_CORE_ASSERT(False, "ImGui-Docking branch is not present.")
 # -------------------------------------------------------------------
 
 #-------------------------------------------------------------------

@@ -1,4 +1,4 @@
-from ...logger   import PI_CORE_ASSERT, PI_CORE_INFO
+from ...Logging.logger   import PI_CORE_ASSERT, PI_CORE_INFO
 from ...Renderer import GraphicsContext
 
 from OpenGL.GL   import GL_RENDERER, GL_VENDOR, GL_VERSION, glGetString

@@ -10,8 +10,7 @@ from SpinningCubeLayer import CubeLayer
 class SpinningCube(PI_Application):
     def __init__(self, name: str, props: WindowProperties=WindowProperties()) -> None:
         super().__init__(name, props=props)
-        self._Camera = PerspectiveCamera(45, self._Window.AspectRatio)
-        self._LayerStack.PushLayer(CubeLayer(self._Camera))
+        self._LayerStack.PushLayer(CubeLayer())
 
     def Run(self) -> None:
         runTimer = PI_TIMER("Application::Run")

@@ -3,7 +3,7 @@ from .Shader  import Shader
 from .Texture import Texture2D
 from .Mesh    import Mesh
 
-from ..logger import PI_CORE_ASSERT
+from ..Logging.logger import PI_CORE_ASSERT
 
 class AssetManager:
     class AssetType:

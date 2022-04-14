@@ -1,4 +1,4 @@
-from .Core import *
+from ..Core import *
 import spdlog
 
 class Log:

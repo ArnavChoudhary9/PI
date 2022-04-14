@@ -1,4 +1,4 @@
-from .logger import PI_CORE_ASSERT
+from ..Logging.logger import PI_CORE_ASSERT
 
 class WindowProperties:
     __slots__ = "Title", "Width", "Height"
@@ -67,7 +67,7 @@ class Window:
             return None
 
         elif Window.__OS == OS.Windows:
-            from .Platform.Windows.WindowsWindow import WindowsWindow
+            from ..Platform.Windows.WindowsWindow import WindowsWindow
             return WindowsWindow.Create(props)
 
         PI_CORE_ASSERT(False, "Unknown OS!")

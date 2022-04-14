@@ -1,4 +1,4 @@
-from ..logger  import PI_CORE_ASSERT
+from ..Logging.logger  import PI_CORE_ASSERT
 from .Renderer import Renderer, RendererAPI
 
 import pyrr
@@ -39,6 +39,9 @@ class Shader:
         pass
 
     def SetInt(self, name: str, value: int) -> None:
+        pass
+
+    def SetBool(self, name: str, value: bool) -> None:
         pass
 
     @property

@@ -1,7 +1,8 @@
 from ...Renderer import Shader
 
 from OpenGL.GL import glDeleteProgram, glUseProgram,\
-    glGetUniformLocation, glUniformMatrix4fv, glUniform4f, glUniform3f, glUniform2f, glUniform1f, glUniform1i
+    glGetUniformLocation, \
+    glUniformMatrix4fv, glUniform4f, glUniform3f, glUniform2f, glUniform1f, glUniform1i
 from OpenGL.GL import GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_FALSE
 
 from OpenGL.GL.shaders import compileProgram, compileShader
@@ -107,3 +108,6 @@ class OpenGLShader(Shader):
     def SetInt(self, name: str, value: int) -> None:
         location = self._GetUniformLocation(name)
         glUniform1i(location, value)
+
+    def SetBool(self, name: str, value: bool) -> None:
+        self.SetInt(name, int(value))

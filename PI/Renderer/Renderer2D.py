@@ -7,7 +7,7 @@ from .Shader  import *
 from .Texture import *
 
 from ..Core import PI_TIMER
-from ..logger import PI_CORE_TRACE
+from ..Logging.logger import PI_CORE_TRACE
 
 import pyrr
 import numpy as np
@@ -75,7 +75,7 @@ class Renderer2D:
     # Primitives
     @staticmethod
     def DrawQuad(pos: tuple, size: tuple, rotation: float=0.0,\
-        color: tuple=None, texture: Texture=None, tilingFactor: float=1) -> None:
+        color: tuple=None, texture: Texture=None, tilingFactor: float=1):
         timer = PI_TIMER("Renderer2D::DrawQuad")
 
         if len(pos) == 2:
@@ -109,3 +109,5 @@ class Renderer2D:
 
         Renderer2D.__RendererData._QuadVertexArray.Bind()
         RenderCommand.DrawIndexed(Renderer2D.__RendererData._QuadVertexArray)
+
+        return Renderer2D
