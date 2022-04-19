@@ -29,6 +29,9 @@ class OpenGLVertexBuffer(VertexBuffer):
         glBindBuffer(GL_ARRAY_BUFFER, self.__RendererID)
         glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, ctypes.c_void_p(None), GL_DYNAMIC_DRAW)
 
+    def __del__(self) -> None:
+        glDeleteBuffers(1, [self.__RendererID])
+
     @property
     def itemsize(self) -> int:
         return self.__itemsize
@@ -65,6 +68,9 @@ class OpenGLIndexBuffer(IndexBuffer):
         self.__RendererID = glGenBuffers(1)
         self.Bind()
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
+
+    def __del__(self) -> None:
+        glDeleteBuffers(1, [self.__RendererID])
 
     @property
     def RendererID(self) -> int:

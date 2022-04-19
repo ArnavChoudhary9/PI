@@ -4,3 +4,5 @@ from .Base   import *
 from .App    import *
 from .Timestep import *
 from .ObjReader import OBJReader
+
+from .Constants import *

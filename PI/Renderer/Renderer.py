@@ -6,10 +6,9 @@ import pyrr
 from contextlib import contextmanager
 
 @contextmanager
-def BeginRenderer(camera, light):
+def BeginRenderer(camera):
     try:
-        Renderer.BeginScene(camera, light)
-        yield Renderer
+        yield Renderer.BeginScene(camera)
 
     finally:
         Renderer.EndScene()
@@ -18,8 +17,6 @@ class Renderer:
     class SceneData:
         ViewProjectionMatrix : pyrr.Matrix44
         CameraPos            : pyrr.Vector3
-
-        Light = None
 
     __slots__ = ("__CurrentSceneData",)
 
@@ -41,44 +38,56 @@ class Renderer:
         from .Texture import Texture
         Texture.Init()
 
+        from .Framebuffer import Framebuffer
+        Framebuffer.Init()
+
         RendererAPI.EnableCulling()
 
+        return Renderer
+
     @staticmethod
-    def BeginScene(camera, light) -> None:
+    def BeginScene(camera) -> None:
         Renderer.__CurrentSceneData = Renderer.SceneData()
 
         Renderer.__CurrentSceneData.ViewProjectionMatrix = camera.ViewProjectionMatrix
         Renderer.__CurrentSceneData.CameraPos            = camera.Position
 
-        Renderer.__CurrentSceneData.Light = light
+        return Renderer
 
     @staticmethod
-    def EndScene() -> None:
-        pass
+    def EndScene():
+        return Renderer
 
     @staticmethod
-    def Submit(shader, vertexArray, transform=pyrr.matrix44.create_identity()) -> None:
+    def Submit(shader, vertexArray, transform=pyrr.matrix44.create_identity()):
         shader.Bind()
         shader.SetMat4("u_ViewProjection", Renderer.__CurrentSceneData.ViewProjectionMatrix)
         shader.SetMat4("u_Transform", transform)
 
         vertexArray.Bind()
         RenderCommand.DrawIndexed(vertexArray)
+        
+        return Renderer
 
     @staticmethod
-    def SubmitMesh(mesh) -> None:
-        mesh.Bind(
-            Renderer.__CurrentSceneData.Light,
-            Renderer.__CurrentSceneData.CameraPos
-        )
-        
-        mesh.Material.SetViewProjection(Renderer.__CurrentSceneData.ViewProjectionMatrix)
-        
-        RenderCommand.DrawIndexed(mesh.VertexArray)
+    def SubmitScene(scene):
+        for mesh in scene.Meshes:
+            mesh.Bind(
+                scene.DirectionalLight,
+                scene.PointLights, scene.PointLightLen,
+                scene.SpotLights, scene.SpotLightLen,
+                Renderer.__CurrentSceneData.CameraPos
+            )
+
+            mesh.Material.SetViewProjection(Renderer.__CurrentSceneData.ViewProjectionMatrix)
+            RenderCommand.DrawIndexed(mesh.VertexArray)
+
+        return Renderer
 
     @staticmethod
-    def OnResize(width: int, height: int) -> None:
+    def OnResize(width: int, height: int):
         RenderCommand.Resize(0, 0, width, height)
+        return Renderer
 
     @staticmethod
     def GetAPI() -> int:

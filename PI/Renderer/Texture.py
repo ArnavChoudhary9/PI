@@ -1,4 +1,5 @@
-from ..Logging.logger  import PI_CORE_ASSERT
+from ..Logging.logger import PI_CORE_ASSERT
+from ..Core.Constants import *
 from .Renderer import Renderer, RendererAPI
 
 from multipledispatch import dispatch
@@ -56,9 +57,19 @@ class Texture2D(Texture):
     @staticmethod
     @dispatch(str)
     def Create(texturePath: str):
-        return Texture2D.__NativeAPI(texturePath)
+        return Texture2D.__NativeAPI(texturePath, PIConstants.RGBA)
+
+    @staticmethod
+    @dispatch(str, int)
+    def Create(texturePath: str, format: int):
+        return Texture2D.__NativeAPI(texturePath, format)
 
     @staticmethod
     @dispatch(int, int)
     def Create(width: int, height: int):
-        return Texture2D.__NativeAPI(width, height)
+        return Texture2D.__NativeAPI(width, height, PIConstants.RGBA)
+
+    @staticmethod
+    @dispatch(int, int, int)
+    def Create(width: int, height: int, format: int):
+        return Texture2D.__NativeAPI(width, height, format)

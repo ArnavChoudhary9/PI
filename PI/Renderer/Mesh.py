@@ -3,15 +3,17 @@ from ..Logging.logger import PI_CORE_TRACE
 from .VertexArray import *
 from .Buffer import *
 from .Material import *
+from .Light import DirectionalLight, PointLight, SpotLight
 
 import pyrr
 from math import radians
 from random import randrange
+from typing import List
 
 class Mesh:
     __slots__ = "__VertexArray", "__VertexBuffer", "__IndexBuffer", "__Material", \
         "__Translation", "__Rotation", "__Scale", \
-        "__Translation_Matrix", "__Rotation_Matrix", "__Scale_Matrix", "__Transform", \
+        "__Translation_Matrix", "__Rotation_Matrix", "__Scale_Matrix", "__Transform", "__Transformed", \
         "__Name"
 
     def __init__(self, vertices: list, indicies: list, layout: BufferLayout,
@@ -27,6 +29,8 @@ class Mesh:
         self.__Translation = translation
         self.__Rotation    = rotation
         self.__Scale       = scale
+
+        self.__Transformed: bool = False
 
         self._RecalculateTransform()
 
@@ -156,24 +160,62 @@ class Mesh:
 
         self.__Transform = self.__Scale_Matrix @ self.__Rotation_Matrix @ self.__Translation_Matrix
 
-    def SetTranslation(self, translation: pyrr.Vector3) -> None:
+    def SetTranslation(self, translation: pyrr.Vector3):
         self.__Translation = translation
+        self.__Transformed = True
+
+        return self
         
-    def SetRotation(self, rotation: pyrr.Vector3) -> None:
+    def SetRotation(self, rotation: pyrr.Vector3):
         self.__Rotation = rotation
+        self.__Transformed = True
+
+        return self
         
-    def SetScale(self, scale: pyrr.Vector3) -> None:
+    def SetScale(self, scale: pyrr.Vector3):
         self.__Scale = scale
+        self.__Transformed = True
 
-    def Translate(self, delta: pyrr.Vector3) -> None:
+        return self
+
+    def Translate(self, delta: pyrr.Vector3):
         self.__Translation = self.__Translation + delta
+        self.__Transformed = True
 
-    def Rotate(self, delta: pyrr.Vector3) -> None:
+        return self
+
+    def Rotate(self, delta: pyrr.Vector3):
         self.__Rotation = self.__Rotation + delta
+        self.__Transformed = True
 
-    def Bind(self, light: Light, cameraPos: pyrr.Vector3) -> None:
-        self._RecalculateTransform()
+        return self
+
+    def Bind(self,
+        directionalLight: DirectionalLight,
+        pointLights: List[PointLight], pointLightLen: int,
+        spotLights : List[SpotLight] , spotLightLen : int,
+        cameraPos: pyrr.Vector3
+        ) -> None:
+
+        if self.__Transformed:
+            self._RecalculateTransform()
+            self.__Transformed = False
 
         self.__Material.Bind()
-        self.__Material.SetFields(self, light, cameraPos)
+        self.__Material.SetFields(self, cameraPos)
+
+        # Light stuff
+        if Material.Type.Is(self.__Material.MatType, Material.Type.Lit):
+            directionalLight.UploadPropertiesToShader(self.__Material.Shader)
+        
+            for light in pointLights:
+                light.UploadPropertiesToShader(self.__Material.Shader)
+
+            self.__Material.Shader.SetInt("u_NumPointLights", pointLightLen)
+        
+            for light in spotLights:
+                light.UploadPropertiesToShader(self.__Material.Shader)
+
+            self.__Material.Shader.SetInt("u_NumSpotLights", spotLightLen)
+
         self.__VertexArray.Bind()

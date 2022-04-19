@@ -1,6 +1,7 @@
 from ..Instrumentation import Instrumentor, InstrumentationTimer
 
-PI_VERSION: str = "0.8.1.dev"
+PI_VERSION       : str   = "0.8.4.dev"
+PI_VERSION_TUPLE : tuple = (0,8,4)
 
 PI_LATEST_UPDATE: str = """
     x.x.0
@@ -8,6 +9,12 @@ PI_LATEST_UPDATE: str = """
 
     x.x.1
     Major refactoring in file structure
+
+    x.x.2
+    Added Light Casters
+
+    x.x.3
+    Added Support for multiple Light casters in one Scene
 """
 
 #-------------------------------------------------------------------
@@ -59,7 +66,7 @@ if PI_CONFIG == "RELEASE_NO_IMGUI":
 try:
     # if Python is able to import this it means the docking branch is enabled
     from imgui import CONFIG_DOCKING_ENABLE
-except:
+except ImportError:
     from ..Logging.logger import PI_CORE_ASSERT
     PI_CORE_ASSERT(False, "ImGui-Docking branch is not present.")
 # -------------------------------------------------------------------
@@ -86,4 +93,36 @@ if PI_INSTRUMENTATION:
     PI_INSTRUMENTATION_BEGIN_SESSION = _BeginSession
     PI_INSTRUMENTATION_END_SESSION   = _EndSession
     PI_TIMER = _Timer
+#-------------------------------------------------------------------
+
+#-------------------------------------------------------------------
+# Other basic utility functions and classes
+import numpy as _np
+
+class Random:
+    __slots__ = "__BaseAPI"
+
+    def __init__(self) -> None:
+        Random.__BaseAPI = _np.random
+
+    @staticmethod
+    def Init() -> None:
+        Random.__BaseAPI = _np.random
+
+    @staticmethod
+    def Random(size=None) -> float:
+        return Random.__BaseAPI.random(size)
+
+    @staticmethod
+    def RandomInt(begin: int, end: int) -> int:
+        return Random.__BaseAPI.randint(begin, end)
+
+    @staticmethod
+    def GenerateName(base: str="") -> str:
+        prevNames = []
+        while True:
+            name = "{}{}".format(base, Random.RandomInt(0, 10000))
+            if name not in prevNames:
+                prevNames.append(name)
+                yield name
 #-------------------------------------------------------------------

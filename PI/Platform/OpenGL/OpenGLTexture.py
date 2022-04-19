@@ -1,7 +1,10 @@
+from ...Logging import PI_CORE_ASSERT
 from ...Renderer import Texture2D, RenderCommand
+from ...Core.Constants import *
 
 from OpenGL.GL import glGenTextures, glBindTextureUnit, glTextureSubImage2D, glTextureParameteri, glTextureStorage2D,\
-                      glBindTexture
+                      glBindTexture, glTexImage2D, glTexStorage2D, glDeleteTextures
+
 from OpenGL.GL import GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T, GL_REPEAT, GL_LINEAR, \
                       GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER, \
                       GL_RGB8, GL_RGB, GL_RGBA, GL_SRGB, GL_RGBA8, \
@@ -13,10 +16,11 @@ from PIL import Image
 
 class OpenGLTexture2D(Texture2D):
     __slots__ = "__RendererID", "__Width", "__Height", \
+        "__Format", "__DataType", \
         "__Path", "__Name"
 
-    @dispatch(str)
-    def __init__(self, path: str) -> None:
+    @dispatch(str, int)
+    def __init__(self, path: str, format: int) -> None:
         self.__Path = path
         image = Image.open(path)
         image = image.transpose(Image.FLIP_TOP_BOTTOM)
@@ -38,7 +42,24 @@ class OpenGLTexture2D(Texture2D):
         self.__RendererID = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.__RendererID)
 
-        glTextureStorage2D(self.__RendererID, 1, GL_RGBA8, image.width, image.height)
+        format = PIConstants.ToOpenGLConstant(format)
+        _type = GL_RGB8
+        dataType = GL_UNSIGNED_BYTE
+
+        if   format == GL_RGBA : _type = GL_RGBA8
+        elif format == GL_RGB  : _type = GL_RGB8
+        elif format == GL_DEPTH_STENCIL: _type = GL_DEPTH24_STENCIL8
+        else: PI_CORE_ASSERT(False, "Invalid texture format.")
+
+        if   format == GL_RGBA : dataType = GL_UNSIGNED_BYTE
+        elif format == GL_RGB  : dataType = GL_UNSIGNED_BYTE
+        elif format == GL_DEPTH_STENCIL: _type = GL_UNSIGNED_INT_24_8
+        else: PI_CORE_ASSERT(False, "Invalid texture format.")
+
+        self.__DataType : int = dataType
+        self.__Format   : int = format
+
+        glTextureStorage2D(self.__RendererID, 1, _type, image.width, image.height)
 
         glTextureParameteri(self.__RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTextureParameteri(self.__RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT)
@@ -48,16 +69,16 @@ class OpenGLTexture2D(Texture2D):
 
         glTextureSubImage2D(
             self.__RendererID,
-            0, 0, 0, image.width, image.height, GL_RGBA, 
-            GL_UNSIGNED_BYTE, imageByte
+            0, 0, 0, image.width, image.height, format, 
+            dataType, imageByte
         )
 
         RenderCommand.EnableBlending()
 
         glBindTexture(GL_TEXTURE_2D, 0)
 
-    @dispatch(int, int)
-    def __init__(self, width: int, height: int) -> None:
+    @dispatch(int, int, int)
+    def __init__(self, width: int, height: int, format: int) -> None:
         self.__Width = width
         self.__Height = height
 
@@ -67,7 +88,24 @@ class OpenGLTexture2D(Texture2D):
         self.__RendererID = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.__RendererID)
 
-        glTextureStorage2D(self.__RendererID, 1, GL_RGBA8, width, height)
+        format = PIConstants.ToOpenGLConstant(format)
+        _type = GL_RGB8
+        dataType = GL_UNSIGNED_BYTE
+
+        if   format == GL_RGBA : _type = GL_RGBA8
+        elif format == GL_RGB  : _type = GL_RGB8
+        elif format == GL_DEPTH_STENCIL: _type = GL_DEPTH24_STENCIL8
+        else: PI_CORE_ASSERT(False, "Invalid texture format.")
+
+        if   format == GL_RGBA : dataType = GL_UNSIGNED_BYTE
+        elif format == GL_RGB  : dataType = GL_UNSIGNED_BYTE
+        elif format == GL_DEPTH_STENCIL: dataType = GL_UNSIGNED_INT_24_8
+        else: PI_CORE_ASSERT(False, "Invalid texture format.")
+
+        self.__DataType : int = dataType
+        self.__Format   : int = format
+
+        glTextureStorage2D(self.__RendererID, 1, _type, width, height)
 
         glTextureParameteri(self.__RendererID, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTextureParameteri(self.__RendererID, GL_TEXTURE_WRAP_T, GL_REPEAT)
@@ -77,6 +115,9 @@ class OpenGLTexture2D(Texture2D):
 
     def __repr__(self) -> str:
         return self.__Name
+
+    def __del__(self) -> None:
+        glDeleteTextures(1, [self.__RendererID])
 
     @property
     def RendererID(self) -> int:
@@ -101,8 +142,8 @@ class OpenGLTexture2D(Texture2D):
     def SetData(self, data, size) -> None:
         glTextureSubImage2D(
             self.__RendererID,
-            0, 0, 0, self.__Width, self.__Height, GL_RGBA, 
-            GL_UNSIGNED_BYTE, data
+            0, 0, 0, self.__Width, self.__Height, self.__Format, 
+            self.__DataType, data
         )
 
     def Bind(self, slot: int=0) -> None:

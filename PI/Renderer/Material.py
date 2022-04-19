@@ -1,7 +1,6 @@
 from re import S
 from .Shader import Shader
 from .Texture import Texture2D
-from .Light import Light
 from ..Logging.logger import PI_CORE_ASSERT
 
 import pyrr
@@ -104,6 +103,14 @@ class Material:
     def Name(self) -> str:
         return self.__Name
 
+    @property
+    def MatType(self) -> int:
+        return self.__Type
+
+    @property
+    def Shader(self) -> Shader:
+        return self.__Shader
+
     def Bind(self) -> None:
         self.__Shader.Bind()
 
@@ -111,7 +118,7 @@ class Material:
         self.__Shader.Bind()
         self.__Shader.SetMat4("u_ViewProjection", matrix)
 
-    def SetFields(self, mesh, light: Light, cameraPos: pyrr.Vector3) -> None:
+    def SetFields(self, mesh, cameraPos: pyrr.Vector3) -> None:
         self.__Shader.Bind()
         self.__Shader.SetMat4("u_Transform", mesh.Transform)
 
@@ -119,8 +126,6 @@ class Material:
 
         if Material.Type.Is(self.__Type, Material.Type.Lit) \
             and Material.Type.Is(self.__Type, Material.Type.Phong):
-
-            light.SetProperties(self.__Shader)
             self.__Shader.SetFloat3("u_CameraPos", cameraPos)
 
         if Material.Type.Is(self.__Type, Material.Type.Phong):

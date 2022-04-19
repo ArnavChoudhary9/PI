@@ -1,4 +1,4 @@
-from ..Renderer import Renderer, RendererAPI
+from ..Renderer import Renderer, RendererAPI, Texture2D
 from ..Logging.logger   import PI_CORE_ASSERT
 
 class Framebuffer:
@@ -29,15 +29,16 @@ class Framebuffer:
         PI_CORE_ASSERT(False, "Unknown RendererAPI!!")
         return None
 
-    def Bind(self) -> None:
-        pass
-    
-    def Unbind(self) -> None:
-        pass
-
     @property
-    def Spec(self):
-        return self.__Specs
+    def ColorAttachment0(self) -> Texture2D: ...
+    @property
+    def DepthAttachment(self) -> Texture2D: ...
+    @property
+    def Spec(self) -> Specs: ...
+
+    def Bind(self) -> None: ...
+    def Unbind(self) -> None: ...
+    def Resize(self, width: int, height: int) -> None: ...
 
     @staticmethod
     def Create(specs):

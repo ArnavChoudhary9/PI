@@ -90,9 +90,7 @@ class Renderer2D:
         else:
             transform = size @ pos
 
-        # Renderer2D.__RendererData._TextureShader.Bind()
         Renderer2D.__RendererData._TextureShader.SetMat4("u_Transform", transform)
-
         Renderer2D.__RendererData._TextureShader.SetFloat("u_TilingFactor", tilingFactor)
 
         if color is None:

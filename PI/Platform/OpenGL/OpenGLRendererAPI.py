@@ -29,7 +29,7 @@ class OpenGLRendererAPI(RendererAPI):
 
     @staticmethod
     def Resize(x: int, y: int, width: int, height: int) -> None:
-        glViewport(x, y, width, height)
+        glViewport(int(x), int(y), int(width), int(height))
 
     @staticmethod
     def EnableDepth() -> None:
