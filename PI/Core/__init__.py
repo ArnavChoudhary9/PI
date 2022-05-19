@@ -6,3 +6,6 @@ from .Timestep import *
 from .ObjReader import OBJReader
 
 from .Constants import *
+
+from .StateManager import *
+StateManager = PI.State

@@ -1,20 +1,21 @@
 from ..Instrumentation import Instrumentor, InstrumentationTimer
 
-PI_VERSION       : str   = "0.8.4.dev"
-PI_VERSION_TUPLE : tuple = (0,8,4)
+from typing import Tuple as _Tuple
+PI_VERSION       : str         = "0.9.4.dev"
+PI_VERSION_TUPLE : _Tuple[int] = (0,9,4)
 
 PI_LATEST_UPDATE: str = """
     x.x.0
-    Added Texture Support in 3D Renderer
+    Improved Visuals
 
     x.x.1
-    Major refactoring in file structure
+    Improved Framebuffer API
 
     x.x.2
-    Added Light Casters
+    Added ECS & Panels
 
     x.x.3
-    Added Support for multiple Light casters in one Scene
+    Improved Material System
 """
 
 #-------------------------------------------------------------------
@@ -62,7 +63,10 @@ if PI_CONFIG == "RELEASE_NO_IMGUI":
     PI_LOGGING : bool = False
     PI_IMGUI   : bool = False
     PI_INSTRUMENTATION: bool = False
+# -------------------------------------------------------------------
 
+# -------------------------------------------------------------------
+# Checks the imports
 try:
     # if Python is able to import this it means the docking branch is enabled
     from imgui import CONFIG_DOCKING_ENABLE
@@ -73,12 +77,12 @@ except ImportError:
 
 #-------------------------------------------------------------------
 # Instrumentation
-def EmptyFunc(name: str=""):
+def _Ins_EmptyFunc(name: str=""):
     pass
 
-PI_INSTRUMENTATION_BEGIN_SESSION = EmptyFunc
-PI_INSTRUMENTATION_END_SESSION   = EmptyFunc
-PI_TIMER = EmptyFunc
+PI_INSTRUMENTATION_BEGIN_SESSION = _Ins_EmptyFunc
+PI_INSTRUMENTATION_END_SESSION   = _Ins_EmptyFunc
+PI_TIMER = _Ins_EmptyFunc
 
 if PI_INSTRUMENTATION:
     def _BeginSession(name: str) -> None:
@@ -97,6 +101,8 @@ if PI_INSTRUMENTATION:
 
 #-------------------------------------------------------------------
 # Other basic utility functions and classes
+# Base PI class
+# In-Built Random module
 import numpy as _np
 
 class Random:

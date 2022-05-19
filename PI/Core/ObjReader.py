@@ -1,11 +1,11 @@
 import pywavefront
-from ..Logging import Log as _Log
+from ..Logging import PI_CORE_WARN
 
 class OBJReader:
     class __CustomLoggerForPyWavefront:
         @staticmethod
         def warning(msg: str) -> None:
-            _Log.GetCoreLogger().warn(msg)
+            PI_CORE_WARN(msg)
 
     @staticmethod
     def Read(path: str):

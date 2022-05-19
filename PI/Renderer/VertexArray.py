@@ -2,28 +2,24 @@ from ..Logging.logger  import PI_CORE_ASSERT
 from .Buffer   import IndexBuffer, VertexBuffer
 from .Renderer import Renderer, RendererAPI
 
-class VertexArray:
+from abc import ABC, abstractmethod
+
+class VertexArray(ABC):
     __slots__ = ("__NativeAPI",)
 
-    def Bind(self) -> None:
-        pass
-    
-    def Unbind(self) -> None:
-        pass
-
-    def AddVertexBuffer(self, buffer: VertexBuffer) -> None:
-        pass
-
-    def SetIndexBuffer(self, buffer: IndexBuffer) -> None:
-        pass
+    @abstractmethod
+    def Bind(self) -> None: ...
+    @abstractmethod
+    def Unbind(self) -> None: ...
+    @abstractmethod
+    def AddVertexBuffer(self, buffer: VertexBuffer) -> None: ...
+    @abstractmethod
+    def SetIndexBuffer(self, buffer: IndexBuffer) -> None: ...
 
     @property
-    def VertexBuffers(self) -> list:
-        pass
-
+    def VertexBuffers(self) -> list: ...
     @property
-    def IndexBuffer(self) -> IndexBuffer:
-        pass
+    def IndexBuffer(self) -> IndexBuffer: ...
 
     @staticmethod
     def Init() -> None:

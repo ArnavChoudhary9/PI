@@ -6,6 +6,10 @@ from ctypes    import c_void_p
 
 from multipledispatch import dispatch
 
+from dataclasses import dataclass
+from abc import ABC, abstractmethod
+
+dataclass(frozen=True)
 class ShaderDataType:
     Null,                          \
     Float, Float2, Float3, Float4, \
@@ -30,6 +34,7 @@ def ShaderDataTypeSize(_type: ShaderDataType) -> int:
     PI_CORE_ASSERT(False, "Unknown ShaderDataType!")
     return 0
 
+dataclass(frozen=True)
 class BufferElement:
     __slots__ = "Name", "Type", \
         "Offset", "Size", \
@@ -82,6 +87,7 @@ class BufferElement:
         PI_CORE_ASSERT(False, "Unknown ShaderDataType!")
         return 0
 
+dataclass(frozen=True)
 class BufferLayout:
     __slots__ = "__Elements", "__Stride"
 
@@ -109,24 +115,20 @@ class BufferLayout:
             offset += element.Size
             self.__Stride += element.Size
 
-class VertexBuffer:
+class VertexBuffer(ABC):
     __slots__ = ("__NativeAPI",)
 
-    def Bind(self) -> None:
-        pass
-    
-    def Unbind(self) -> None:
-        pass
-
-    def SetLayout(self, layout: BufferLayout) -> None:
-        pass
-
-    def SetData(self, data) -> None:
-        pass
+    @abstractmethod
+    def Bind(self) -> None: ...
+    @abstractmethod
+    def Unbind(self) -> None: ...
+    @abstractmethod
+    def SetLayout(self, layout: BufferLayout) -> None: ...
+    @abstractmethod
+    def SetData(self, data) -> None: ...
 
     @property
-    def Layout(self) -> BufferLayout:
-        pass
+    def Layout(self) -> BufferLayout: ...
 
     @staticmethod
     def Init() -> None:
@@ -155,11 +157,10 @@ class VertexBuffer:
 class IndexBuffer:
     __slots__ = ("__NativeAPI",)
 
-    def Bind(self) -> None:
-        pass
-    
-    def Unbind(self) -> None:
-        pass
+    @abstractmethod
+    def Bind(self) -> None: ...
+    @abstractmethod
+    def Unbind(self) -> None: ...
 
     @staticmethod
     def Init() -> None:

@@ -1,12 +1,13 @@
 from ..Logging.logger  import PI_CORE_ASSERT
 from .Renderer import Renderer, RendererAPI
 
-class GraphicsContext:
-    def Init(self) -> None:
-        pass
+from abc import ABC, abstractmethod
 
-    def SwapBuffers(self) -> None:
-        pass
+class GraphicsContext(ABC):
+    @abstractmethod
+    def Init(self) -> None: ...
+    @abstractmethod
+    def SwapBuffers(self) -> None: ...
 
     @staticmethod
     def Create(window):

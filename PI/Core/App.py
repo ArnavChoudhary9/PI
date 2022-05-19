@@ -1,4 +1,4 @@
-from .Base      import PI_INSTRUMENTATION_BEGIN_SESSION, PI_INSTRUMENTATION_END_SESSION, PI_IMGUI
+from .Base      import PI_INSTRUMENTATION_BEGIN_SESSION, PI_INSTRUMENTATION_END_SESSION, PI_IMGUI, PI_DEBUG
 from ..Events   import *
 from .Input     import Input
 from ..ImGui    import ImGuiLayer
@@ -7,6 +7,7 @@ from ..Platform import *
 from ..Renderer import RenderCommand, Renderer, Renderer2D
 from .Timestep  import Timestep
 from .Window   import Window, WindowProperties
+from .StateManager import StateManager
 
 from ..Logging import logger
 
@@ -52,7 +53,8 @@ class PI_Application(ABC):
 
         self._Window = Window.Create(props)
         self._Window.SetEventCallback(self.OnEvent)
-        Input.SetWindow(self._Window)
+
+        StateManager.SetContext(self)
 
         # Renderer 2D can only be initialized after Rendering API is Initializd
         # i.e. After window is created
@@ -81,9 +83,14 @@ class PI_Application(ABC):
         '''The Window it created'''
         return self._Window
 
+    @property
+    def ImGuiLayer(self) -> ImGuiLayer:
+        '''Returns the ImGui Layer of the current application'''
+        return self.__ImGuiLayer
+
     def OnWindowClose(self, event: WindowCloseEvent):
         '''This will be called to to terminate the application.'''
-        self._Running = False
+        self.Close()
         return True
 
     def OnWindowResize(self, event: WindowResizeEvent):
@@ -116,8 +123,8 @@ class PI_Application(ABC):
         self._LastFrameTime = _time
 
         if not self._IsMinimised:
-            Input.SetWindow(self._Window)
-            
+            StateManager.SetContext(self)
+
             RenderCommand.SetClearColor(0.1, 0.1, 0.1, 1)
             RenderCommand.Clear()
 
@@ -129,13 +136,16 @@ class PI_Application(ABC):
             self.__ImGuiLayer.End()
 
         self._Window.OnUpdate()
+
+    def Close(self) -> None:
+        self._Running = False
     
 CreateApplication = None
 
-def main():
+def _main():
     '''The Entry point fore the code'''
     PI_INSTRUMENTATION_BEGIN_SESSION("PI_Init")
-    app = CreateApplication()
+    app: PI_Application = CreateApplication()
     PI_INSTRUMENTATION_END_SESSION()
 
     PI_INSTRUMENTATION_BEGIN_SESSION("PI_Runtime")
@@ -145,3 +155,19 @@ def main():
     PI_INSTRUMENTATION_BEGIN_SESSION("PI_Shutdown")
     del app
     PI_INSTRUMENTATION_END_SESSION()
+
+def main():
+    if PI_DEBUG:
+        # Only for Detailed Profiling
+        import cProfile
+        import pstats
+
+        with cProfile.Profile() as pr:
+            _main()
+
+        stats = pstats.Stats(pr)
+        stats.sort_stats(pstats.SortKey.TIME)
+        stats.dump_stats(filename="profile.prof")
+
+    else:
+        _main()

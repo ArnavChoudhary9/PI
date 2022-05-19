@@ -3,10 +3,10 @@ from .Camera import Camera
 import pyrr
 
 class OrthographicCamera(Camera):
-    __slots__ = ("__Scale",)
+    __slots__ = ("_Scale",)
 
     def __init__(self, aspectRatio: float, scale: float=1) -> None:
-        self.__Scale = scale
+        self._Scale = scale
         self._AspectRatio = aspectRatio
 
         viewMatrix = pyrr.matrix44.create_identity()
@@ -19,7 +19,7 @@ class OrthographicCamera(Camera):
     def SetAspectRatio(self, newRatio: float) -> None:
         self._AspectRatio = newRatio
         self._ProjectionMatrix = pyrr.matrix44.create_orthogonal_projection_matrix(
-            -newRatio * self.__Scale, newRatio * self.__Scale, -self.__Scale, self.__Scale, -1, 1
+            -newRatio * self._Scale, newRatio * self._Scale, -self._Scale, self._Scale, -1, 1
         )
 
         self._RecalculateViewMatrix()
@@ -34,10 +34,10 @@ class OrthographicCamera(Camera):
 
     @property
     def Scale(self) -> float:
-        return self.__Scale
+        return self._Scale
 
     def SetScale(self, newScale: float) -> None:
-        self.__Scale = newScale
+        self._Scale = newScale
         self._ProjectionMatrix = pyrr.matrix44.create_orthogonal_projection_matrix(
             -self._AspectRatio * newScale, self._AspectRatio * newScale, -newScale, newScale, -1, 1
         )
@@ -45,4 +45,4 @@ class OrthographicCamera(Camera):
         self._RecalculateViewMatrix()
 
     def GetSpeed(self) -> float:
-        return self.__Scale * 1.25
+        return self._Scale * 1.25

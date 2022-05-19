@@ -1,11 +1,11 @@
-from time import time_ns
+from time import time_ns, perf_counter_ns
 import io
 
 from multiprocessing import current_process
 from threading import current_thread
 
 def Time_MicroSec() -> float:
-    return time_ns() / 1000
+    return perf_counter_ns() / 1000
 
 class ProfileResult:
     __slots__ = "Name", "Start", "End"

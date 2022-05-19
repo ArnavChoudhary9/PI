@@ -24,8 +24,8 @@ class Sandbox2D(Layer):
     def OnAttach(self) -> None:
         self.__AssetManager = AssetManager()
 
-        self.__AssetManager.Load(AssetManager.AssetType.Texture2DAsset, ".\\Assets\\Images\\Logo_Transperent.png")
-        self.__AssetManager.Load(AssetManager.AssetType.Texture2DAsset, ".\\Assets\\Images\\Logo_HotShot.png")
+        self.__AssetManager.Load(AssetManager.AssetType.Texture2DAsset, ".\\Assets\\Internal\\Images\\Logo_Transperent.png")
+        self.__AssetManager.Load(AssetManager.AssetType.Texture2DAsset, ".\\Assets\\Internal\\Images\\Logo_HotShot.png")
 
         self.__Color = (0.8, 0.2, 0.2)
         self.__Framerate = 60

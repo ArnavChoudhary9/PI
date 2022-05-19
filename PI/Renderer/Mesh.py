@@ -7,17 +7,16 @@ from .Light import DirectionalLight, PointLight, SpotLight
 
 import pyrr
 from math import radians
-from random import randrange
 from typing import List
 
 class Mesh:
     __slots__ = "__VertexArray", "__VertexBuffer", "__IndexBuffer", "__Material", \
         "__Translation", "__Rotation", "__Scale", \
         "__Translation_Matrix", "__Rotation_Matrix", "__Scale_Matrix", "__Transform", "__Transformed", \
-        "__Name"
+        "__Name", "__Path"
 
     def __init__(self, vertices: list, indicies: list, layout: BufferLayout,
-        name: str="Mesh_{}".format(randrange(0, 10000)),
+        name: str=Random.GenerateName("Mesh"),
         translation : pyrr.Vector3=pyrr.Vector3([ 0, 0, 0 ]),
         rotation    : pyrr.Vector3=pyrr.Vector3([ 0, 0, 0 ]),
         scale       : pyrr.Vector3=pyrr.Vector3([ 1, 1, 1 ]),
@@ -25,6 +24,7 @@ class Mesh:
         ) -> None:
 
         self.__Name = name
+        self.__Path = "Internally Created Mesh"
 
         self.__Translation = translation
         self.__Rotation    = rotation
@@ -99,50 +99,34 @@ class Mesh:
                 material=mat,
                 name=nameMesh
             )
+            mesh.__Path = path
 
             objects.append(mesh)
 
         return objects
 
     @property
-    def Name(self) -> str:
-        return self.__Name
-
+    def Name(self) -> str: return self.__Name
     @property
-    def Transform(self) -> pyrr.Matrix44:
-        return self.__Transform
-
+    def Path(self) -> str: return self.__Path
     @property
-    def Translation(self) -> pyrr.Vector3:
-        return self.__Translation
-
+    def Transform(self) -> pyrr.Matrix44: return self.__Transform
     @property
-    def Rotation(self) -> pyrr.Vector3:
-        return self.__Rotation
-
+    def Translation(self) -> pyrr.Vector3: return self.__Translation
     @property
-    def Scale(self) -> pyrr.Vector3:
-        return self.__Scale
-
+    def Rotation(self) -> pyrr.Vector3: return self.__Rotation
     @property
-    def Material(self) -> Material:
-        return self.__Material
-
+    def Scale(self) -> pyrr.Vector3: return self.__Scale
     @property
-    def TranslationMatrix(self) -> pyrr.Vector3:
-        return self.__Translation_Matrix
-
+    def Material(self) -> Material: return self.__Material
     @property
-    def RotationMatrix(self) -> pyrr.Vector3:
-        return self.__Rotation_Matrix
-
+    def TranslationMatrix(self) -> pyrr.Vector3: return self.__Translation_Matrix
     @property
-    def ScaleMatrix(self) -> pyrr.Vector3:
-        return self.__Scale_Matrix
-
+    def RotationMatrix(self) -> pyrr.Vector3: return self.__Rotation_Matrix
     @property
-    def VertexArray(self) -> VertexArray:
-        return self.__VertexArray
+    def ScaleMatrix(self) -> pyrr.Vector3: return self.__Scale_Matrix
+    @property
+    def VertexArray(self) -> VertexArray: return self.__VertexArray
 
     def _RecalculateTransform(self) -> None:
         self.__Translation_Matrix = pyrr.matrix44.create_from_translation(self.__Translation)

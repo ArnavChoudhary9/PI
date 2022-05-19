@@ -18,7 +18,7 @@ from .Mesh            import *
 from .Material        import *
 from .Light           import *
 
-from .Scene           import *
+# from .Scene           import *
 
 from .Framebuffer     import *
 

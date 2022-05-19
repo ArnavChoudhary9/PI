@@ -1,9 +1,10 @@
+from PI.Logging.logger import PI_CORE_ASSERT, PI_CORE_WARN
 from ...Renderer import Shader
 
 from OpenGL.GL import glDeleteProgram, glUseProgram,\
     glGetUniformLocation, \
     glUniformMatrix4fv, glUniform4f, glUniform3f, glUniform2f, glUniform1f, glUniform1i
-from OpenGL.GL import GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_FALSE
+from OpenGL.GL import GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_FALSE
 
 from OpenGL.GL.shaders import compileProgram, compileShader
 import pyrr
@@ -13,70 +14,78 @@ class OpenGLShader(Shader):
 
     def __init__(self, shaderFile: str) -> None:
         src = ""
+        with open(shaderFile, 'r') as file: src = file.read()
+        src = src.split('\n')
 
         slashIndex = shaderFile.rfind("\\")
         if slashIndex == -1: slashIndex = shaderFile.rfind("/")
 
         dotIndex = shaderFile.rfind(".")
 
-        if dotIndex != -1:
-            self.__Name = shaderFile[slashIndex+1:dotIndex]
-        else:
-            self.__Name = shaderFile[slashIndex+1:]
+        if   dotIndex != -1: self.__Name = shaderFile [ slashIndex+1:dotIndex ]  # Has file extension
+        else               : self.__Name = shaderFile [ slashIndex+1:         ]  # Does not have file extension
 
-        with open(shaderFile, 'r') as file:
-            src = file.read()
+        currentShaderType = -1
+        currentCode = []
+        codes = []
+        version = 450
+        shaderVersionType: str = "core"
+        for nextLine in src:
+            nextLineList = nextLine.split(" ")
 
-        src = src.split('\n')
+            if nextLineList[0] == "#type":
+                if currentShaderType == -1: currentShaderType = OpenGLShader.StrToGLShaderType(nextLineList[1])
+                else:
+                    code = "\n".join(currentCode)
+                    currentCode = []
+                    codes.append(compileShader(code, currentShaderType))
 
-        vertexSrc   : list = []
-        fragmentSrc : list = []
+                    currentShaderType = OpenGLShader.StrToGLShaderType(nextLineList[1])
 
-        index = 0
-        while (len(src) > index):
-            shaderType = src[index].split(" ")[1].lower()
+            elif nextLineList[0] == "#version":
+                version = min(int(nextLineList[1]), version)   
+                shaderVersionType = nextLineList[2]                 
+                currentCode.append(nextLine)
 
-            if shaderType == "vertex" or shaderType == "vert":
-                index += 1
-                while (len(src) > index and src[index].find("#type") < 0):
-                    vertexSrc.append(f"{src[index]}\n")
-                    index += 1
-                    
-            if shaderType == "pixel" or shaderType == "frag" or shaderType == "fragment":
-                index += 1
-                while (len(src) > index and src[index].find("#type") < 0):
-                    fragmentSrc.append(f"{src[index]}\n")
-                    index += 1
+            else: currentCode.append(nextLine)
+        
+        if len(currentCode) != 0:
+            code = "\n".join(currentCode)
+            currentCode = []
+            codes.append(compileShader(code, currentShaderType))
+            currentShaderType = -1
 
-        vertexSrc   = "".join(vertexSrc)
-        fragmentSrc = "".join(fragmentSrc)
+        if version < 450:
+            PI_CORE_ASSERT(version >= 330, "GLSL version too old.")
 
-        self.__RendererID = compileProgram(
-            compileShader(vertexSrc, GL_VERTEX_SHADER),
-            compileShader(fragmentSrc, GL_FRAGMENT_SHADER)
-        )
+            PI_CORE_WARN("Older version of GLSL ({1} {2}) used in Shader: {0}", shaderFile, version, shaderVersionType)
+            PI_CORE_WARN("Use GLSL version 450 core or higher")
 
+        self.__RendererID = compileProgram(*codes)
         self.__UniformLocations: dict = {}
 
-    def __repr__(self) -> str:
-        return self.__Name
+    @staticmethod
+    def StrToGLShaderType(_str: str) -> int:
+        _str = _str.lower()
+
+        vertNames = [ "vertex"   , "vert" ]
+        geomNames = [ "geometry" , "tess" ]
+        fragNames = [ "fragment" , "frag" , "pixel" ]
+
+        if   _str in vertNames: return GL_VERTEX_SHADER
+        elif _str in geomNames: return GL_GEOMETRY_SHADER
+        elif _str in fragNames: return GL_FRAGMENT_SHADER
+        else: PI_CORE_ASSERT(False, "Invalid shader type.")
 
     @property
-    def RendererID(self) -> int:
-        return self.__RendererID
-
+    def RendererID(self) -> int: return self.__RendererID
     @property
-    def Name(self) -> int:
-        return self.__Name
+    def Name(self) -> str: return self.__Name
 
-    def __del__(self) -> None:
-        glDeleteProgram(self.__RendererID)
-
-    def Bind(self) -> None:
-        glUseProgram(self.__RendererID)
-
-    def Unbind(self) -> None:
-        glUseProgram(0)
+    def __repr__(self) -> str: return self.__Name
+    def __del__ (self) -> None: glDeleteProgram(self.__RendererID)
+    def Bind    (self) -> None: glUseProgram(self.__RendererID)
+    def Unbind  (self) -> None: glUseProgram(0)
 
     def _GetUniformLocation(self, name: str) -> int:
         location = self.__UniformLocations.get(name, False)

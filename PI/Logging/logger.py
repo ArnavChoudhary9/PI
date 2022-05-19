@@ -1,27 +1,27 @@
 from ..Core import PI_LOGGING
 from .Log  import Log
 
-def DoNothingFunc(msg: str, *args) -> None:
+def _LOG_DoNothingFunc(msg: str, *args) -> None:
     pass
 
 # Core Logging
-PI_CORE_TRACE = DoNothingFunc
-PI_CORE_INFO  = DoNothingFunc
-PI_CORE_DEBUG = DoNothingFunc
-PI_CORE_WARN  = DoNothingFunc
-PI_CORE_ERROR = DoNothingFunc
-PI_CORE_CRITICAL = DoNothingFunc
+PI_CORE_TRACE = _LOG_DoNothingFunc
+PI_CORE_INFO  = _LOG_DoNothingFunc
+PI_CORE_DEBUG = _LOG_DoNothingFunc
+PI_CORE_WARN  = _LOG_DoNothingFunc
+PI_CORE_ERROR = _LOG_DoNothingFunc
+PI_CORE_CRITICAL = _LOG_DoNothingFunc
 
 # Client Logging
-PI_CLIENT_TRACE = DoNothingFunc
-PI_CLIENT_INFO  = DoNothingFunc
-PI_CLIENT_DEBUG = DoNothingFunc
-PI_CLIENT_WARN  = DoNothingFunc
-PI_CLIENT_ERROR = DoNothingFunc
-PI_CLIENT_CRITICAL = DoNothingFunc
+PI_CLIENT_TRACE = _LOG_DoNothingFunc
+PI_CLIENT_INFO  = _LOG_DoNothingFunc
+PI_CLIENT_DEBUG = _LOG_DoNothingFunc
+PI_CLIENT_WARN  = _LOG_DoNothingFunc
+PI_CLIENT_ERROR = _LOG_DoNothingFunc
+PI_CLIENT_CRITICAL = _LOG_DoNothingFunc
 
 # # Assert
-PI_CORE_ASSERT = DoNothingFunc
+PI_CORE_ASSERT = _LOG_DoNothingFunc
 
 # ------------------------------------------------- #
 if PI_LOGGING:

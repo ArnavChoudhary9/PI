@@ -26,7 +26,7 @@ class ExampleLayer(Layer):
         
         self.__AssetManager.Load(
             AssetManager.AssetType.Texture2DAsset,
-            ".\\Assets\\Images\\Logo_Transperent.png"
+            ".\\Assets\\Internal\\Images\\Logo_Transperent.png"
         )
 
         self.__Color = ( 0.8, 0.2, 0.2 )

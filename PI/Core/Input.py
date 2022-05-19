@@ -3,7 +3,7 @@ from .Window import OS, Window
 from typing  import Tuple
 
 class Input:
-    __slots__ = "__NativeClass", "__CurrentWindow", "__CurrentNativeWindow"
+    __slots__ = ("__NativeClass",)
     
     @staticmethod
     def Init():
@@ -14,19 +14,6 @@ class Input:
         elif Window.GetOS() == OS.Windows:
             from ..Platform.Windows import WindowsInput
             Input.__NativeClass = WindowsInput
-
-    @staticmethod
-    def SetWindow(window) -> None:
-        Input.__CurrentWindow = window
-        Input.__CurrentNativeWindow = window.NativeWindow
-
-    @staticmethod
-    def GetWindow() -> Window:
-        return Input.__CurrentWindow
-
-    @staticmethod
-    def GetNativeWindow() -> Window:
-        return Input.__CurrentNativeWindow
 
     @staticmethod
     def IsKeyPressed(keyCode: int) -> bool:

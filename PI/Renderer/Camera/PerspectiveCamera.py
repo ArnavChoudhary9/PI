@@ -4,13 +4,13 @@ from ..RenderCommand import RenderCommand
 import pyrr
 
 class PerspectiveCamera(Camera):
-    __slots__ = "__Fov", "__Near", "__Far"
+    __slots__ = "_Fov", "_Near", "_Far"
 
     def __init__(self, fov: float, aspectRatio: float, near: float=0.01, far: float=1000) -> None:
-        self.__Fov = fov
+        self._Fov = fov
         self._AspectRatio = aspectRatio
-        self.__Near = near
-        self.__Far = far
+        self._Near = near
+        self._Far = far
 
         viewMatrix = pyrr.matrix44.create_identity()
         projectionMatrix = pyrr.matrix44.create_perspective_projection_matrix(
@@ -25,23 +25,23 @@ class PerspectiveCamera(Camera):
         self._AspectRatio = newRatio
 
         self._ProjectionMatrix = pyrr.matrix44.create_perspective_projection_matrix(
-            self.__Fov, self._AspectRatio, self.__Near, self.__Far
+            self._Fov, self._AspectRatio, self._Near, self._Far
         )
 
         self._RecalculateViewMatrix()
 
     @property
     def FOV(self) -> float:
-        return self.__Fov
+        return self._Fov
 
     def GetSpeed(self) -> float:
-        return self.__Fov / 15
+        return self._Fov / 15
 
     def SetFOV(self, fov: float) -> None:
-        self.__Fov = fov + 0.001
+        self._Fov = fov + 0.001
         
         self._ProjectionMatrix = pyrr.matrix44.create_perspective_projection_matrix(
-            fov, self._AspectRatio, self.__Near, self.__Far
+            fov, self._AspectRatio, self._Near, self._Far
         )
 
         self._RecalculateViewMatrix()

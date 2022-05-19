@@ -9,6 +9,10 @@ class Timestep:
         '''Returns time in seconds'''
         return self.__Time
 
+    def __float__(self) -> float:
+        '''Returns time in seconds'''
+        return self.__Time
+
     @property
     def Seconds(self) -> float:
         '''Returns time in seconds'''

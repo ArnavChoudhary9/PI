@@ -22,6 +22,9 @@ class PointLight(Light):
     def Index(self) -> int:
         return self.__Index
 
+    def SetIndex(self, index: int) -> None:
+        self.__Index = index
+
     def SetIntensity(self, new: float):
         self._Intensity = new
 

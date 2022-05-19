@@ -1,7 +1,9 @@
 from ..Events import Event, EventDispatcher, EventCategory, EventType
 from ..Layers import Layer
-from ..Core.Input  import Input
+from ..Core.Input import Input
 from ..ButtonCodes.KeyCodes import *
+
+from ..Core.StateManager import StateManager
 
 from imgui.integrations.glfw import *
 import imgui
@@ -23,19 +25,26 @@ class ImGuiLayer(Layer):
         io.config_flags |= imgui.CONFIG_DOCKING_ENABLE
         io.config_flags |= imgui.CONFIG_VIEWEPORTS_ENABLE
 
-        io.fonts.add_font_from_file_ttf(".\\Assets\\Fonts\\opensans\\OpenSans-Regular.ttf", 18.0)
+        io.fonts.add_font_from_file_ttf(".\\Assets\\Internal\\Fonts\\opensans\\OpenSans-Regular.ttf", 18.0)
 
         imgui.style_colors_dark()
         
         style = imgui.get_style()
         if io.config_flags & imgui.CONFIG_VIEWEPORTS_ENABLE:
             style.window_rounding = 0.0
+            bgColor = style.colors[imgui.COLOR_WINDOW_BACKGROUND]
+            style.colors[imgui.COLOR_WINDOW_BACKGROUND] = imgui.Vec4( bgColor.x, bgColor.y, bgColor.z, 1.0 )
 
-        window = Input.GetNativeWindow()
+        self.SetDarkThemeColors()
+
+        window = StateManager.GetCurrentNativeWindow()
         self.__Renderer = GlfwRenderer(window, False)    
 
     def OnDetach(self) -> None:
         self.__Renderer.shutdown()
+
+    def BlockEvents(self, block: bool) -> None:
+        self.__BlockEvents = block
 
     #-----------------EVENTS-----------------
     def OnEvent(self, event: Event) -> None:
@@ -149,3 +158,35 @@ class ImGuiLayer(Layer):
             imgui.update_platform_windows()
             imgui.render_platform_windows_default()
             glfw.make_context_current(backupCurrentContext)
+
+    def SetDarkThemeColors(self) -> None:
+        colors = imgui.get_style().colors
+        colors[imgui.COLOR_WINDOW_BACKGROUND] = imgui.Vec4( 0.1, 0.105, 0.11, 1.0 )
+
+        # Hederes
+        colors[imgui.COLOR_HEADER]         = imgui.Vec4( 0.2  , 0.205  , 0.21  , 1.0 )
+        colors[imgui.COLOR_HEADER_HOVERED] = imgui.Vec4( 0.3  , 0.305  , 0.31  , 1.0 )
+        colors[imgui.COLOR_HEADER_ACTIVE]  = imgui.Vec4( 0.15 , 0.1505 , 0.151 , 1.0 )
+
+        # Buttons
+        colors[imgui.COLOR_BUTTON]         = imgui.Vec4( 0.2  , 0.205  , 0.21  , 1.0 )
+        colors[imgui.COLOR_BUTTON_HOVERED] = imgui.Vec4( 0.3  , 0.305  , 0.31  , 1.0 )
+        colors[imgui.COLOR_BUTTON_ACTIVE]  = imgui.Vec4( 0.15 , 0.1505 , 0.151 , 1.0 )
+
+        # Frame BG
+        colors[imgui.COLOR_FRAME_BACKGROUND]         = imgui.Vec4( 0.2  , 0.205  , 0.21  , 1.0 )
+        colors[imgui.COLOR_FRAME_BACKGROUND_HOVERED] = imgui.Vec4( 0.3  , 0.305  , 0.31  , 1.0 )
+        colors[imgui.COLOR_FRAME_BACKGROUND_ACTIVE]  = imgui.Vec4( 0.15 , 0.1505 , 0.151 , 1.0 )
+
+        # Tabs
+        colors[imgui.COLOR_TAB]         = imgui.Vec4( 0.15 , 0.1505 , 0.151 , 1.0 )
+        colors[imgui.COLOR_TAB_HOVERED] = imgui.Vec4( 0.38 , 0.3805 , 0.381 , 1.0 )
+        colors[imgui.COLOR_TAB_ACTIVE]  = imgui.Vec4( 0.28 , 0.2805 , 0.281 , 1.0 )
+
+        colors[imgui.COLOR_TAB_UNFOCUSED]         = imgui.Vec4( 0.15 , 0.1505 , 0.151 , 1.0 )
+        colors[imgui.COLOR_TAB_UNFOCUSED_ACTIVE]  = imgui.Vec4( 0.2  , 0.205  , 0.21  , 1.0 )
+
+        # Title
+        colors[imgui.COLOR_TITLE_BACKGROUND]           = imgui.Vec4( 0.15 , 0.1505 , 0.151 , 1.0 )
+        colors[imgui.COLOR_TITLE_BACKGROUND_ACTIVE]    = imgui.Vec4( 0.15 , 0.1505 , 0.151 , 1.0 )
+        colors[imgui.COLOR_TITLE_BACKGROUND_COLLAPSED] = imgui.Vec4( 0.15 , 0.1505 , 0.151 , 1.0 )

@@ -1,7 +1,7 @@
-from re import S
 from .Shader import Shader
 from .Texture import Texture2D
 from ..Logging.logger import PI_CORE_ASSERT
+from ..Core.Base import Random
 
 import pyrr
 from random import randrange
@@ -65,27 +65,29 @@ class Material:
         tilingFactor : float = 1.0,
 
         shininess: float=32,
-        name: str="Material_{}".format(randrange(0, 10000))
+        name: str=Random.GenerateName("Material")
         ) -> None:
 
         if Material.Type.Is(_type, Material.Type.Lit):
             if Material.Type.Is(_type, Material.Type.Phong):
                 if Material.Type.Is(_type, Material.Type.Textured):
-                    self.__Shader : Shader = Shader.Create(".\\Assets\\Shaders\\StandardLitPhong_Textured_3D.glsl")
+                    self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardLitPhong_Textured_3D.glsl")
                 elif not Material.Type.Is(_type, Material.Type.Textured):
-                    self.__Shader : Shader = Shader.Create(".\\Assets\\Shaders\\StandardLitPhong_NonTextured_3D.glsl")
+                    self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardLitPhong_NonTextured_3D.glsl")
                 else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
             
             else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
 
         elif not Material.Type.Is(_type, Material.Type.Lit):
             if Material.Type.Is(_type, Material.Type.Textured):
-                self.__Shader : Shader = Shader.Create(".\\Assets\\Shaders\\StandardUnlit_Textured_3D.glsl")
+                self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardUnlit_Textured_3D.glsl")
             elif not Material.Type.Is(_type, Material.Type.Textured):
-                self.__Shader : Shader = Shader.Create(".\\Assets\\Shaders\\StandardUnlit_NonTextured_3D.glsl")
+                self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardUnlit_NonTextured_3D.glsl")
             else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
 
         else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
+
+        # self.__Shader: Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\3D_Shader.glsl")
 
         self.__TextureAlbedo   : Texture2D = textureAlbedo
         self.__TextureSpecular : Texture2D = textureSpecular

@@ -2,23 +2,18 @@ from ..Core         import PI_TIMER
 from .RendererAPI   import RendererAPI
 from .RenderCommand import RenderCommand
 
+
 import pyrr
 from contextlib import contextmanager
-
-@contextmanager
-def BeginRenderer(camera):
-    try:
-        yield Renderer.BeginScene(camera)
-
-    finally:
-        Renderer.EndScene()
+from typing import Type as _Type
 
 class Renderer:
     class SceneData:
+        Scene                = None
         ViewProjectionMatrix : pyrr.Matrix44
         CameraPos            : pyrr.Vector3
 
-    __slots__ = ("__CurrentSceneData",)
+    __slots__ = "__CurrentSceneData", "CAM_COMP"
 
     @staticmethod
     def Init() -> None:
@@ -43,14 +38,27 @@ class Renderer:
 
         RendererAPI.EnableCulling()
 
+        from ..Scene.Components import CameraComponent
+        Renderer.CAM_COMP = CameraComponent
+        
         return Renderer
 
     @staticmethod
-    def BeginScene(camera) -> None:
+    def BeginScene(scene):
         Renderer.__CurrentSceneData = Renderer.SceneData()
+
+        if scene.PrimaryCameraEntity is None:
+            Renderer.__CurrentSceneData.ViewProjectionMatrix = None
+            Renderer.__CurrentSceneData.CameraPos            = None
+            Renderer.__CurrentSceneData.Scene                = None
+
+            return Renderer
+
+        camera = scene.PrimaryCameraEntity.GetComponent(Renderer.CAM_COMP).Camera.CameraObject
 
         Renderer.__CurrentSceneData.ViewProjectionMatrix = camera.ViewProjectionMatrix
         Renderer.__CurrentSceneData.CameraPos            = camera.Position
+        Renderer.__CurrentSceneData.Scene                = scene
 
         return Renderer
 
@@ -68,20 +76,49 @@ class Renderer:
         RenderCommand.DrawIndexed(vertexArray)
         
         return Renderer
+        
+    @staticmethod
+    def SubmitMesh(mesh, directionalLight, pointLights=[], spotLights =[]):
+        mesh.Bind(
+            directionalLight,
+            pointLights , len(pointLights),
+            spotLights  , len(spotLights),
+            Renderer.__CurrentSceneData.CameraPos
+        )
+
+        mesh.Material.SetViewProjection(Renderer.__CurrentSceneData.ViewProjectionMatrix)
+        
+        # from .Mesh import Mesh, Material
+        # from .Shader import Shader
+
+        # mesh: Mesh = mesh
+        # mat: Material = mesh.Material
+        # shader: Shader = mat.Shader
+        
+        # mat = mesh.Material
+        # shader = mat.Shader
+
+        # shader.Bind()
+        # shader.SetMat4("u_Camera.ViewProjection", Renderer.__CurrentSceneData.ViewProjectionMatrix)
+        # shader.SetFloat3("u_Camera.Position", Renderer.__CurrentSceneData.CameraPos)
+        
+        # shader.SetMat4("u_Transform.Transform", mesh.Transform)
+
+        RenderCommand.DrawIndexed(mesh.VertexArray)
+
+        return Renderer
 
     @staticmethod
-    def SubmitScene(scene):
-        for mesh in scene.Meshes:
-            mesh.Bind(
-                scene.DirectionalLight,
-                scene.PointLights, scene.PointLightLen,
-                scene.SpotLights, scene.SpotLightLen,
-                Renderer.__CurrentSceneData.CameraPos
-            )
+    def SubmitMeshes(meshes, directionalLight, pointLights=[], spotLights =[]):
+        for mesh in meshes:
+            Renderer.SubmitMesh(mesh, directionalLight, pointLights, spotLights)
 
-            mesh.Material.SetViewProjection(Renderer.__CurrentSceneData.ViewProjectionMatrix)
-            RenderCommand.DrawIndexed(mesh.VertexArray)
+        return Renderer
 
+    @staticmethod
+    def DrawScene():
+        if Renderer.__CurrentSceneData.Scene is None: return Renderer
+        Renderer.__CurrentSceneData.Scene.Draw()
         return Renderer
 
     @staticmethod
@@ -92,3 +129,8 @@ class Renderer:
     @staticmethod
     def GetAPI() -> int:
         return RendererAPI.GetAPI()
+
+@contextmanager
+def BeginRenderer(scene) -> _Type[Renderer]:
+    try     : yield Renderer.BeginScene(scene)
+    finally : Renderer.EndScene()

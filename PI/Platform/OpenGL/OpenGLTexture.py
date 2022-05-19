@@ -48,12 +48,14 @@ class OpenGLTexture2D(Texture2D):
 
         if   format == GL_RGBA : _type = GL_RGBA8
         elif format == GL_RGB  : _type = GL_RGB8
-        elif format == GL_DEPTH_STENCIL: _type = GL_DEPTH24_STENCIL8
+        elif format == GL_RED_INTEGER   : _type = GL_RED_INTEGER
+        elif format == GL_DEPTH_STENCIL : _type = GL_DEPTH24_STENCIL8
         else: PI_CORE_ASSERT(False, "Invalid texture format.")
 
         if   format == GL_RGBA : dataType = GL_UNSIGNED_BYTE
         elif format == GL_RGB  : dataType = GL_UNSIGNED_BYTE
-        elif format == GL_DEPTH_STENCIL: _type = GL_UNSIGNED_INT_24_8
+        elif format == GL_RED_INTEGER   : dataType = GL_R32I
+        elif format == GL_DEPTH_STENCIL : _type = GL_UNSIGNED_INT_24_8
         else: PI_CORE_ASSERT(False, "Invalid texture format.")
 
         self.__DataType : int = dataType
@@ -94,12 +96,14 @@ class OpenGLTexture2D(Texture2D):
 
         if   format == GL_RGBA : _type = GL_RGBA8
         elif format == GL_RGB  : _type = GL_RGB8
-        elif format == GL_DEPTH_STENCIL: _type = GL_DEPTH24_STENCIL8
+        elif format == GL_RED_INTEGER   : _type = GL_R32I
+        elif format == GL_DEPTH_STENCIL : _type = GL_DEPTH24_STENCIL8
         else: PI_CORE_ASSERT(False, "Invalid texture format.")
 
         if   format == GL_RGBA : dataType = GL_UNSIGNED_BYTE
         elif format == GL_RGB  : dataType = GL_UNSIGNED_BYTE
-        elif format == GL_DEPTH_STENCIL: dataType = GL_UNSIGNED_INT_24_8
+        elif format == GL_RED_INTEGER   : dataType = GL_R32I
+        elif format == GL_DEPTH_STENCIL : dataType = GL_UNSIGNED_INT_24_8
         else: PI_CORE_ASSERT(False, "Invalid texture format.")
 
         self.__DataType : int = dataType

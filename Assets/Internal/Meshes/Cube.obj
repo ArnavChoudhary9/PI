@@ -1,7 +1,5 @@
 # Blender v2.93.0 OBJ File: ''
 # www.blender.org
-# Vertexpos / TextureCoord / Normal
-
 mtllib Cube.mtl
 o Cube
 v -1.000000 -1.000000 1.000000

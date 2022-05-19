@@ -55,6 +55,9 @@ class SpotLight(PointLight):
         self.__OuterCutOff = new
         return self
 
+    def SetIndex(self, index: int) -> None:
+        self.__Index = index
+
     def UploadPropertiesToShader(self, shader: Shader) -> None:
         # NOTE: Accesses Light class
         super(PointLight, self).UploadPropertiesToShader(f"u_SpotLights[{self.__Index}]", shader)
