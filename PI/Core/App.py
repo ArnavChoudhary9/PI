@@ -14,6 +14,7 @@ from ..Logging import logger
 from OpenGL.GL import glViewport    # Temp
 from abc import ABC
 import glfw
+import gc
 
 class PI_Application(ABC):
     '''
@@ -136,6 +137,8 @@ class PI_Application(ABC):
             self.__ImGuiLayer.End()
 
         self._Window.OnUpdate()
+
+        # if PI_DEBUG: gc.collect()     # Safer but costs ~40 FPS
 
     def Close(self) -> None:
         self._Running = False

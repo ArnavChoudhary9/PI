@@ -14,14 +14,21 @@ class SceneCamera():
 
     def __init__(self, projectionType: int=ProjectionTypeEnum.Orthographic) -> None:
         self.__ProjectionType = projectionType
-        self.__RecalculateCamera()
+        self._RecalculateCamera()
 
     @property
     def ProjectionType (self) -> int    : return self.__ProjectionType
     @property 
     def CameraObject   (self) -> Camera : return self.__Camera
     
-    def __RecalculateCamera(self) -> None:
+    def SetProjection(self, projection: int) -> None:
+        self.__ProjectionType = projection
+        aspectRatio = self.__Camera.AspectRatio
+        self.__Camera = None
+        self._RecalculateCamera()
+        self.__Camera.SetAspectRatio(aspectRatio)
+
+    def _RecalculateCamera(self) -> None:
         if self.__Camera is None:
             if   self.__ProjectionType == SceneCamera.ProjectionTypeEnum.Orthographic : self.__Camera = OrthographicCamera (  1 , 1 )
             elif self.__ProjectionType == SceneCamera.ProjectionTypeEnum.Perspective  : self.__Camera = PerspectiveCamera  ( 45 , 1 )

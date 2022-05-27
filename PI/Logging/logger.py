@@ -22,6 +22,7 @@ PI_CLIENT_CRITICAL = _LOG_DoNothingFunc
 
 # # Assert
 PI_CORE_ASSERT = _LOG_DoNothingFunc
+PI_CLIENT_ASSERT = _LOG_DoNothingFunc
 
 # ------------------------------------------------- #
 if PI_LOGGING:

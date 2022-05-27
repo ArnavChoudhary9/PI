@@ -18,7 +18,7 @@ class Sandbox2D(Layer):
 
     def __init__(self, name: str="Sandbox2DLayer") -> None:
         super().__init__(name)
-        self.__Camera = OrthographicCamera(Input.GetWindow().AspectRatio)
+        self.__Camera = OrthographicCamera(StateManager.GetCurrentWindow().AspectRatio)
         self.__CameraController = OrthogrphicCameraController(self.__Camera)
 
     def OnAttach(self) -> None:
@@ -40,7 +40,7 @@ class Sandbox2D(Layer):
                 imgui.text("FPS: {}".format(round(self.__Framerate)))
 
                 if clicked:
-                    Input.GetWindow().SetVSync(self.vSync)
+                    StateManager.GetCurrentWindow().SetVSync(self.vSync)
                     PI_V_SYNC = self.vSync
 
     def OnEvent(self, event: Event) -> None:

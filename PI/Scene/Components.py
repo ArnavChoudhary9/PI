@@ -1,14 +1,15 @@
-from pathlib import Path
 from ..Logging.logger import PI_CORE_ASSERT
 from ..Renderer.Mesh  import Mesh
 from ..Renderer.Light import *
-import pyrr
 from .SceneCamera import SceneCamera
+from ..Scripting  import ImportClass
 
+import pyrr
+from modulefinder import Module
 from multipledispatch import dispatch
 from dataclasses import dataclass
 
-from typing import TypeVar as _TypeVar
+from typing import Callable, TypeVar, Dict, Any
 
 # They are applied to all Entities
 class TagComponent:
@@ -73,17 +74,25 @@ class MeshComponent:
     Name       : str
     Path       : str
 
+    Initialized: bool = False
+
     @dispatch(Mesh)
     def __init__(self, mesh: Mesh) -> None:
         self.MeshObject = mesh
         self.Name       = mesh.Name
         self.Path       = mesh.Path
+        self.Initialized= True
 
     @dispatch(str)
     def __init__(self, path: str) -> None:
-        self.MeshObject : Mesh = Mesh.Load(path)[0]
-        self.Name       : str  = self.MeshObject.Name
-        self.Path       : str  = path
+        self.Path: str  = path
+
+    def Init(self) -> None:
+        if self.Path != "" and not self.Initialized:
+            self.MeshObject: Mesh = Mesh.Load(self.Path)[0]
+            self.Name = self.MeshObject.Name
+
+            self.Initialized = True
 
     def __str__(self) -> str: return self.Name
 class LightComponent:
@@ -103,7 +112,48 @@ class LightComponent:
         else: PI_CORE_ASSERT(False, "Wrong light type!")
 
         self.LightType = _type
+class ScriptComponent:
+    Bound  : bool = False
 
-CTV = _TypeVar("CTV",
-        TagComponent, TransformComponent, CameraComponent, MeshComponent, LightComponent
+    Entity = None
+    Script : Module
+
+    Path   : str
+    _Path  : str
+    Name   : str
+
+    @property
+    def Variables(self) -> Dict[str, Any]:
+        return { name: instance for name, instance in self.Script.__dict__.items() if not name.startswith("_") }
+
+    OnAttach: Callable[[], None]
+    OnDetach: Callable[[], None]
+    OnUpdate: Callable[[float], None]
+
+    def __init__(self, pathToScript: str, entity) -> None:
+        self.Entity = entity
+        self.Path  = pathToScript
+        self._Path = pathToScript
+
+    def ImportModule(self) -> None:
+        self.Name = "Script not set"
+        if self.Path == ".": return
+        
+        self.Name, self.Script = ImportClass(self.Path, False)
+        self.Bind()
+
+    def Bind(self) -> None:
+        if self.Bound: return
+
+        self.Script = self.Script(self.Entity)
+        self.OnAttach: Callable[[], None] = self.Script.OnAttach
+        self.OnDetach: Callable[[], None] = self.Script.OnDetach
+        self.OnUpdate: Callable[[float], None] = self.Script.OnUpdate
+
+        self.OnAttach()
+
+        self.Bound = True
+
+CTV = TypeVar("CTV",
+        TagComponent, TransformComponent, CameraComponent, MeshComponent, LightComponent, ScriptComponent
     )

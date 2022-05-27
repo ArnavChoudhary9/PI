@@ -1,4 +1,4 @@
-from ..Events import Event, EventDispatcher, EventCategory, EventType
+from ..Events import Event, KeyEvent, MouseScrolledEvent, WindowResizeEvent, EventDispatcher, EventCategory, EventType
 from ..Layers import Layer
 from ..Core.Input import Input
 from ..ButtonCodes.KeyCodes import *
@@ -62,11 +62,10 @@ class ImGuiLayer(Layer):
             return
 
         event.Handled = False        
-
-    def __KeyboardPressCallback(self, event: Event) -> None:
+    def __KeyboardPressCallback    ( self, e: KeyEvent           ) -> None:
         io = self.__io
 
-        io.keys_down[event.KeyCode] = True
+        io.keys_down[e.KeyCode] = True
 
         Input.IsKeyPressed(PI_KEY_LEFT_CONTROL)
         io.key_ctrl = (
@@ -91,11 +90,10 @@ class ImGuiLayer(Layer):
 
         if self.__BlockEvents: return True
         return False
-
-    def __KeyboardReleasedCallback(self, event: Event) -> None:
+    def __KeyboardReleasedCallback ( self, e: KeyEvent           ) -> None:
         io = self.__io
 
-        io.keys_down[event.KeyCode] = False
+        io.keys_down[e.KeyCode] = False
 
         Input.IsKeyPressed(PI_KEY_LEFT_CONTROL)
         io.key_ctrl = (
@@ -120,8 +118,7 @@ class ImGuiLayer(Layer):
 
         if self.__BlockEvents: return True
         return False
-
-    def __CharInputCallback(self, e: Event) -> None:
+    def __CharInputCallback        ( self, e: KeyEvent           ) -> None:
         io = self.__io
 
         if 0 < e.Char < 0x10000:
@@ -129,14 +126,12 @@ class ImGuiLayer(Layer):
             if self.__BlockEvents: return True
 
         return False
-
-    def __WindowResizeCallback(self, e: Event) -> None:
+    def __WindowResizeCallback     ( self, e: WindowResizeEvent  ) -> None:
         self.__io.display_size = e.Width, e.Height
 
         if self.__BlockEvents: return True
         return False
-
-    def __MouseScrollCallback(self, e: Event) -> None:
+    def __MouseScrollCallback      ( self, e: MouseScrolledEvent ) -> None:
         self.__io.mouse_wheel_horizontal = e.OffsetX
         self.__io.mouse_wheel = e.OffsetY
         

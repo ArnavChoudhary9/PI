@@ -1,10 +1,38 @@
+from PI import *
+
 import os
-from typing import Tuple
-from PI.ButtonCodes.KeyCodes import PI_KEY_ENTER
-from PI.Core.Input import Input
-from PI.Scene import *
-from PI.Logging import PI_CLIENT_WARN
+from typing import List
 import imgui
+
+_ScriptFiles: List[str] = []
+def _SearchForScripts(basePath: str=".\\Scripts", filter: str=".py", currentPath: list=[]) -> None:
+    global _ScriptFiles
+    currentPath.append(basePath)
+
+    dir: list
+    try: dir = os.listdir(basePath)
+    except NotADirectoryError:
+        if basePath.endswith(filter): _ScriptFiles.append(basePath)
+        return
+
+    for subDir in dir: _SearchForScripts(basePath + "/" + subDir, filter, currentPath)
+
+    currentPath.pop()
+
+def _ProcessScriptFiles(basePath: str, search: bool=False) -> List[str]:
+    global _ScriptFiles
+    
+    if search:
+        _ScriptFiles = ["."]
+        _SearchForScripts(basePath)
+    
+    _scripts = []
+
+    for script in _ScriptFiles:
+        _scripts.append(script.replace("/", "\\"))
+    
+    if search: _ScriptFiles = _scripts
+    return _scripts
 
 class SceneHierarchyPanel:
     __Context: Scene
@@ -13,6 +41,8 @@ class SceneHierarchyPanel:
     def __init__(self) -> None:
         self.__Context = Scene()
         self.__SelectionContext = None
+
+        _ProcessScriptFiles(".\\Assets", True)
 
     def OnImGuiRender(self) -> None:
         with imgui.begin("Scene Heirarchy"):
@@ -53,80 +83,6 @@ class SceneHierarchyPanel:
             if self.__SelectionContext is entity: self.__SelectionContext = None
 
     @staticmethod
-    def DrawVector3Controls(lable: str, values: pyrr.Vector3, resetValue: float=0, columnWidth: float=100) -> Tuple[bool, pyrr.Vector3]:
-        imgui.push_id(lable)
-
-        imgui.columns(2)
-        imgui.set_column_width(0, columnWidth)
-        imgui.text(lable)
-        imgui.next_column()
-
-        imgui.push_item_width(imgui.calculate_item_width()/3)
-        imgui.push_item_width(imgui.calculate_item_width()/2.5*2)
-        imgui.push_item_width(imgui.calculate_item_width())
-
-        imgui.push_style_var(imgui.STYLE_ITEM_SPACING, imgui.Vec2( 0, 2 ))
-        lineHeight = 23.5
-
-        imgui.push_style_color(imgui.COLOR_BUTTON, 0.8, 0.1, 0.15, 1.0 )
-        imgui.push_style_color(imgui.COLOR_BUTTON_HOVERED, 0.9, 0.2, 0.2, 1.0 )
-        imgui.push_style_color(imgui.COLOR_BUTTON_ACTIVE, 0.8, 0.1, 0.15, 1.0 )
-        if imgui.button("X", lineHeight + 3.0, lineHeight): values.x = resetValue
-        imgui.pop_style_color(3)
-
-        imgui.same_line()
-        XHasChanged, XChanged = imgui.drag_float("##X", values.x, 0.1, 0.0, 0.0, format="%.2f")
-        imgui.pop_item_width()
-        imgui.same_line()
-
-        imgui.push_style_color(imgui.COLOR_BUTTON, 0.2, 0.7, 0.2, 1.0 )
-        imgui.push_style_color(imgui.COLOR_BUTTON_HOVERED, 0.3, 0.8, 0.3, 1.0 )
-        imgui.push_style_color(imgui.COLOR_BUTTON_ACTIVE, 0.2, 0.7, 0.2, 1.0 )
-        if imgui.button("Y", lineHeight + 3.0, lineHeight): values.y = resetValue
-        imgui.pop_style_color(3)
-
-        imgui.same_line()
-        YHasChanged, YChanged = imgui.drag_float("##Y", values.y, 0.1, 0.0, 0.0, format="%.2f")
-        imgui.pop_item_width()
-        imgui.same_line()
-
-        imgui.push_style_color(imgui.COLOR_BUTTON, 0.1, 0.25, 0.8, 1.0 )
-        imgui.push_style_color(imgui.COLOR_BUTTON_HOVERED, 0.2, 0.35, 0.9, 1.0 )
-        imgui.push_style_color(imgui.COLOR_BUTTON_ACTIVE, 0.1, 0.25, 0.8, 1.0 )
-        if imgui.button("Z", lineHeight + 3.0, lineHeight): values.z = resetValue
-        imgui.pop_style_color(3)
-
-        imgui.same_line()
-        ZHasChanged, ZChanged = imgui.drag_float("##Z", values.z, 0.1, 0.0, 0.0, format="%.2f")
-        imgui.pop_item_width()
-
-        imgui.pop_style_var()
-        imgui.columns(1)
-        imgui.pop_id()
-
-        if XHasChanged or YHasChanged or ZHasChanged: return True, pyrr.Vector3([ XChanged, YChanged, ZChanged ])
-        else: return False, pyrr.Vector3([ values.x, values.y, values.z ])
-
-    @staticmethod
-    def DrawTextFieldControls(lable: str, value: str, columnWidth: float=50) -> Tuple[bool, str]:
-        imgui.push_id(lable)
-
-        imgui.columns(2)
-        imgui.set_column_width(0, columnWidth)
-        imgui.text(lable)
-        imgui.next_column()
-        
-        imgui.push_item_width(imgui.calculate_item_width())
-        changed, newPath = imgui.input_text("##Filter", value, 512)
-        imgui.pop_item_width()
-
-        imgui.columns(1)
-        imgui.pop_id()
-
-        return changed, newPath
-
-
-    @staticmethod
     def DrawComponent(name: str, entity: Entity, componentType: CTV, UIfunction) -> None:
         flags = imgui.TREE_NODE_DEFAULT_OPEN | imgui.TREE_NODE_FRAMED | imgui.TREE_NODE_SPAN_AVAILABLE_WIDTH | \
             imgui.TREE_NODE_ALLOW_ITEM_OVERLAP | imgui.TREE_NODE_FRAME_PADDING
@@ -150,7 +106,7 @@ class SceneHierarchyPanel:
                 imgui.end_popup()
 
             if isOpen:
-                UIfunction(component)
+                UIfunction(entity, component)
                 imgui.tree_pop()
 
             if removeComponent: entity.RemoveComponent(componentType)
@@ -174,6 +130,12 @@ class SceneHierarchyPanel:
 
             # Meshes
             imgui.separator()
+            if imgui.menu_item("Mesh")[0]:
+                if not self.__SelectionContext.HasComponent(MeshComponent):
+                    self.__SelectionContext.AddComponent(MeshComponent, "")
+                else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                imgui.close_current_popup()
+
             if imgui.menu_item("Cube")[0]:
                 if not self.__SelectionContext.HasComponent(MeshComponent):
                     self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Cube.obj")
@@ -204,17 +166,24 @@ class SceneHierarchyPanel:
                 else: PI_CLIENT_WARN("Entity already has a Mesh Component")
                 imgui.close_current_popup()
 
+            imgui.separator()
+            if imgui.menu_item("Script")[0]:
+                if not self.__SelectionContext.HasComponent(ScriptComponent):
+                    self.__SelectionContext.AddComponent(ScriptComponent, ".")
+                else: PI_CLIENT_WARN("Entity already has a Script Component")
+                imgui.close_current_popup()
+
             imgui.end_popup()
 
         imgui.pop_item_width()
 
-        def _TransformUIFunction(component: TransformComponent) -> None:
-            component.SetTranslation ( SceneHierarchyPanel.DrawVector3Controls( "Translation" , component.Translation ) [1] )
-            component.SetRotation    ( SceneHierarchyPanel.DrawVector3Controls( "Rotation"    , component.Rotation    ) [1] )
-            component.SetScale       ( SceneHierarchyPanel.DrawVector3Controls( "Scale"       , component.Scale, 1    ) [1] )
+        def _TransformUIFunction(entity: Entity, component: TransformComponent) -> None:
+            component.SetTranslation ( UILib.DrawVector3Controls( "Translation" , component.Translation      ) [1] )
+            component.SetRotation    ( UILib.DrawVector3Controls( "Rotation"    , component.Rotation, 0, 0.5 ) [1] )
+            component.SetScale       ( UILib.DrawVector3Controls( "Scale"       , component.Scale, 1         ) [1] )
 
-        def _MeshUIFunction(component: MeshComponent) -> None:
-            changed, path = SceneHierarchyPanel.DrawTextFieldControls("Filter", component.Path)
+        def _MeshUIFunction(entity: Entity, component: MeshComponent) -> None:
+            changed, path = UILib.DrawTextFieldControls("Filter", component.Path)
 
             if changed: component.Path = path
             
@@ -224,11 +193,123 @@ class SceneHierarchyPanel:
                     component.Path = component.MeshObject.Path
                     return
 
-                component.MeshObject = Mesh.Load(component.Path)[0]
-                component.Name = component.MeshObject.Name
+                entity.RemoveComponent(MeshComponent)
+                entity.AddComponent(MeshComponent, component.Path).Init()
 
-        SceneHierarchyPanel.DrawComponent( "Transform", entity , TransformComponent , _TransformUIFunction )
-        SceneHierarchyPanel.DrawComponent( "Mesh"     , entity , MeshComponent      , _MeshUIFunction      )
+        def _ScriptUIFunction(entity: Entity, component: ScriptComponent) -> None:
+            scripts = _ProcessScriptFiles(".\\Assets")
+            
+            if component.Bound:
+                for name, instance in component.Variables.items():
+                    variableChanged, new = False, instance
+
+                    if isinstance(instance, pyrr.Vector3):
+                        variableChanged, new = UILib.DrawVector3Controls(name, instance, columnWidth=100)
+
+                    if isinstance(instance, str):
+                        variableChanged, new = UILib.DrawTextFieldControls(name, instance, columnWidth=100)
+                    
+                    if isinstance(instance, float):
+                        variableChanged, new = UILib.DrawFloatControls(name, instance, columnWidth=100)
+                    
+                    if isinstance(instance, int) and not isinstance(instance, bool):
+                        variableChanged, new = UILib.DrawIntControls(name, instance, columnWidth=100)
+
+                    if isinstance(instance, bool):
+                        variableChanged, new = UILib.DrawBoolControls(name, instance, columnWidth=100)
+                        new = bool(new)
+
+                    if isinstance(instance, Color4):
+                        variableChanged, new = UILib.DrawColor4Controls(name, instance, columnWidth=100)
+                        new = Color4(new)
+                    
+                    if variableChanged: setattr(component.Script, name, new)
+                if len(component.Variables) != 0: imgui.text("")
+
+            changed, index, path = UILib.DrawDropdown("Script", scripts.index(component.Path), scripts)
+
+            if changed:
+                _ProcessScriptFiles(".\\Assets", True)
+                entity.RemoveComponent(ScriptComponent)
+                entity.AddComponent(ScriptComponent, path)
+
+        def _LightUIFunction(entity: Entity, component: LightComponent) -> None:
+            lightTypes = ["Directional", "Point", "Spot"]
+            changed, lightType, lightTypeStr = UILib.DrawDropdown("Light Type", component.LightType, lightTypes, columnWidth=100)
+
+            changed, new = UILib.DrawFloatControls("Intensity", component.Light.Intensity, minValue=0.01, maxValue=1000)
+            if changed: component.Light.SetIntensity(new)
+            
+            imgui.separator()
+            isEqual = component.Light.Diffuse is component.Light.Ambient is component.Light.Specular
+            changed, lock = UILib.DrawBoolControls("Lock", isEqual)
+
+            if changed and not lock:
+                component.Light.SetAmbient(component.Light.Diffuse + (1 / 255))
+                component.Light.SetSpecular(component.Light.Diffuse + (1 / 255))
+
+            changed, new = UILib.DrawColor3Controls("Diffuse", component.Light.Diffuse)
+            if changed: component.Light.SetDiffuse(pyrr.Vector3(new))
+            
+            changed, new = UILib.DrawColor3Controls("Ambient", component.Light.Ambient)
+            if changed and not lock: component.Light.SetAmbient(pyrr.Vector3(new))
+            
+            changed, new = UILib.DrawColor3Controls("Specular", component.Light.Specular)
+            if changed and not lock: component.Light.SetSpecular(pyrr.Vector3(new))
+            
+            if lock:
+                component.Light.SetAmbient(component.Light.Diffuse)
+                component.Light.SetSpecular(component.Light.Diffuse)
+            imgui.separator()
+
+        def _CameraUIFunction(entity: Entity, component: CameraComponent) -> None:
+            camera = component.Camera
+            projections = ["Orthographic", "Perspective"]
+            
+            changed, new = UILib.DrawBoolControls("Primary", component.Primary)
+            if changed: component.Primary = new
+
+            projectionChanged, projection, projStr = UILib.DrawDropdown("Projection", camera.ProjectionType, projections, columnWidth=100)
+            if projectionChanged: camera.SetProjection(projection)
+
+            imgui.separator()
+            if projection is SceneCamera.ProjectionTypeEnum.Orthographic:
+                camera: OrthographicCamera = camera.CameraObject
+
+                changed, new = UILib.DrawFloatControls("Scale", camera.Scale)
+                if changed: camera.SetScale(new)
+
+                changed, camera._Near = UILib.DrawFloatControls("Near", camera._Near, minValue=0.01, maxValue=1000)
+                if changed: camera.SetScale(camera.Scale)
+
+                changed, camera._Far = UILib.DrawFloatControls("Far", camera._Far, minValue=0.01, maxValue=1000)
+                if changed: camera.SetScale(camera.Scale)
+
+                changed, component.FixedAspectRatio = UILib.DrawBoolControls(
+                    "Fixed Aspect Ratio", component.FixedAspectRatio, columnWidth=125
+                )
+
+            elif projection is SceneCamera.ProjectionTypeEnum.Perspective:
+                camera: PerspectiveCamera = camera.CameraObject
+
+                changed, new = UILib.DrawFloatControls("FOV", camera.FOV, minValue=0.01, maxValue=359.99)
+                if changed: camera.SetFOV(new)
+
+                changed, new = UILib.DrawFloatControls("Near", camera._Near, minValue=0.01, maxValue=1000)
+                if changed:
+                    camera._Near = new
+                    camera.RecalculateProjection()
+
+                changed, new = UILib.DrawFloatControls("Far", camera._Far, minValue=0.01, maxValue=1000)
+                if changed:
+                    camera._Far = new
+                    camera.RecalculateProjection()
+
+        SceneHierarchyPanel.DrawComponent( "Transform" , entity , TransformComponent , _TransformUIFunction )
+        SceneHierarchyPanel.DrawComponent( "Mesh"      , entity , MeshComponent      , _MeshUIFunction      )
+        SceneHierarchyPanel.DrawComponent( "Script"    , entity , ScriptComponent    , _ScriptUIFunction    )
+        SceneHierarchyPanel.DrawComponent( "Light"     , entity , LightComponent     , _LightUIFunction     )
+        SceneHierarchyPanel.DrawComponent( "Camera"    , entity , CameraComponent    , _CameraUIFunction    )
 
     def SetContext(self, scene: Scene) -> None: self.__Context = scene
     def SetSelectedEntity(self, entity: Entity) -> None: self.__SelectionContext = entity

@@ -1,9 +1,3 @@
-# Hackey Fix for relative path problem
-# TODO: Try to remove it later
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
-# Main Code starts from here
 from PI import *
 from Panels.SceneHierarchyPanel import *
 
@@ -45,63 +39,6 @@ class EditorLayer(Layer):
         self.__SceneHierarchyPanel = SceneHierarchyPanel()
         self.__SceneHierarchyPanel.SetContext(self.__Scene)
 
-        # Mesh Entities
-        entity = self.__Scene.CreateEntity("Sphere")
-        entity.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Sphere.obj")
-        entity.GetComponent(TransformComponent).Translate(pyrr.Vector3([ 3.0, 0.0, -7.0 ]))
-
-        entity = self.__Scene.CreateEntity("Cube")
-        entity.AddComponent(MeshComponent, ".\\Assets\\Meshes\\TexturedCube.obj")
-        entity.GetComponent(TransformComponent).Translate(pyrr.Vector3([ -3.0, 0.0, -7.0 ]))
-
-        entity = self.__Scene.CreateEntity("Monkey")
-        entity.AddComponent(MeshComponent, ".\\Assets\\Meshes\\Monkey.obj")
-        entity.GetComponent(TransformComponent).Translate(pyrr.Vector3([ 0.0, -0.8, -7.0 ]))
-
-        entity = self.__Scene.CreateEntity("Hut")
-        entity.AddComponent(MeshComponent, ".\\Assets\\Meshes\\Hut.obj")
-        entity.GetComponent(TransformComponent).Translate(pyrr.Vector3([ 7.5, 0.0, -10.0 ]))
-
-        entity = self.__Scene.CreateEntity("Torus")
-        entity.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Torus.obj")
-        entity.GetComponent(TransformComponent).Translate(pyrr.Vector3([ -7.5, -0.75, -10.0 ]))
-
-        entity = self.__Scene.CreateEntity("Plane")
-        entity.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Plane.obj")
-        entity.GetComponent(TransformComponent).Translate(pyrr.Vector3([ 0.0, -1.0, 0.0 ]))
-        entity.GetComponent(TransformComponent).SetScale(pyrr.Vector3([ 15.0, 1.0, 15.0 ]))
-
-        # Light Entities
-        entity = self.__Scene.CreateEntity("Directional Light")
-        entity.AddComponent(LightComponent, LightComponent.TypeEnum.Directional,
-            direction=pyrr.Vector3([ 0.0, -1.0, -2.0 ]), intensity=0.1
-        )
-
-        entity = self.__Scene.CreateEntity("Spot Light")
-        entity.AddComponent(LightComponent, LightComponent.TypeEnum.Spot,
-            direction=pyrr.Vector3([ 0.0, -1.0, 0.0 ]),
-            cutOff=30,
-            outerCutOff=32.5,
-            intensity=2
-        )
-        entity.GetComponent(TransformComponent).SetTranslation(pyrr.Vector3([ 0.0, 5.0, -7.0 ]))
-
-        entity = self.__Scene.CreateEntity("Point Light #1")
-        entity.AddComponent(LightComponent, LightComponent.TypeEnum.Point,
-            intensity=5
-        )
-        entity.GetComponent(TransformComponent).SetTranslation(pyrr.Vector3([ -7.0, 0.0, -7.0 ]))
-
-        entity = self.__Scene.CreateEntity("Point Light #2")
-        entity.AddComponent(LightComponent, LightComponent.TypeEnum.Point,
-            intensity=5
-        )
-        entity.GetComponent(TransformComponent).SetTranslation(pyrr.Vector3([ 7.0, 0.0, -7.0 ]))
-
-        # Camera entity
-        cameraEntity = self.__Scene.CreateEntity("Camera")
-        cameraEntity.AddComponent(CameraComponent, SceneCamera(SceneCamera.ProjectionTypeEnum.Perspective))
-
         specs = Framebuffer.Specs(1200, 600)
         specs.Attachments = (
             FramebufferAttachments.ColorAlpha, FramebufferAttachments.Depth
@@ -115,6 +52,24 @@ class EditorLayer(Layer):
         self.__ViewportFocused : bool = True
         self.__ViewportHovered : bool = True
 
+    def __NewScene(self) -> None:
+        newScene = Scene()
+        newScene.OnViewportResize(self.__Scene._ViewportWidth, self.__Scene._ViewportHeight)
+        del self.__Scene
+        self.__Scene = newScene
+        self.__SceneHierarchyPanel.SetContext(self.__Scene)
+
+    def __SaveScene(self) -> None:
+        cancelled, fileName = UILib.DrawFileSaveDialog( ( ("PI scene file (*.PI)", ".PI"), ) )
+        if not cancelled:
+            if not fileName.endswith(".PI"): fileName += ".PI"
+            Scene.Serialize(self.__Scene, fileName)
+
+    def __LoadScene(self) -> None:
+        cancelled, fileName = UILib.DrawFileLoadDialog( ( ("PI scene file (*.PI)", ".PI"), ) )
+        if not cancelled: self.__Scene = Scene.Deserialize(self.__Scene, fileName)
+        self.__SceneHierarchyPanel.SetContext(self.__Scene)
+
     def OnEvent(self, event: Event) -> None:
         self.__CameraController.OnEvent(event)
 
@@ -124,6 +79,18 @@ class EditorLayer(Layer):
 
             if event.KeyCode == PI_KEY_Q and control:
                 StateManager.GetCurrentApplication().Close()
+                return True
+
+            if event.KeyCode == PI_KEY_N and control:
+                self.__NewScene()
+                return True
+
+            if event.KeyCode == PI_KEY_S and control and shift:
+                self.__SaveScene()
+                return True
+
+            if event.KeyCode == PI_KEY_O and control:
+                self.__LoadScene()
                 return True
 
         EventDispatcher(event).Dispach(CheckKeys, EventType.KeyPressed)
@@ -164,7 +131,11 @@ class EditorLayer(Layer):
 
             with imgui.begin_menu_bar():
                 if imgui.begin_menu("File"):
+                    if imgui.menu_item("New", "Ctrl+N", False, True)[0]: self.__NewScene()
+                    if imgui.menu_item("Save As", "Ctrl+Shift+S", False, True)[0]: self.__SaveScene()
+                    if imgui.menu_item("Open", "Ctrl+O", False, True)[0]: self.__LoadScene()                        
                     if imgui.menu_item("Quit", "Ctrl+Q", False, True)[0]: StateManager.GetCurrentApplication().Close()
+                    
                     imgui.end_menu()
 
                 if imgui.begin_menu("Edit"):

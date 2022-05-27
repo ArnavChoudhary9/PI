@@ -1,0 +1,98 @@
+Entities:
+- Entity: 1234567890123456
+  MeshComponent:
+    Path: .\Assets\Internal\Meshes\Sphere.obj
+  TagComponent:
+    Tag: Sphere
+  TransformComponent:
+    Rotation: &id001 !<Vector3> [0.0, 0.0, 0.0]
+    Scale: &id002 !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [3.0, 0.0, -7.0]
+- Entity: 1234567890123456
+  MeshComponent:
+    Path: .\Assets\Meshes\TexturedCube.obj
+  TagComponent:
+    Tag: Cube
+  TransformComponent:
+    Rotation: *id001
+    Scale: *id002
+    Translation: !<Vector3> [-3.0, 0.0, -7.0]
+- Entity: 1234567890123456
+  MeshComponent:
+    Path: .\Assets\Meshes\Hut.obj
+  TagComponent:
+    Tag: Hut
+  TransformComponent:
+    Rotation: *id001
+    Scale: *id002
+    Translation: !<Vector3> [7.5, 0.0, -10.0]
+- Entity: 1234567890123456
+  MeshComponent:
+    Path: .\Assets\Internal\Meshes\Torus.obj
+  TagComponent:
+    Tag: Torus
+  TransformComponent:
+    Rotation: *id001
+    Scale: *id002
+    Translation: !<Vector3> [-7.5, -0.75, -10.0]
+- Entity: 1234567890123456
+  MeshComponent:
+    Path: .\Assets\Internal\Meshes\Plane.obj
+  TagComponent:
+    Tag: Plane
+  TransformComponent:
+    Rotation: *id001
+    Scale: !<Vector3> [15.0, 1.0, 15.0]
+    Translation: !<Vector3> [0.0, -1.0, 0.0]
+- Entity: 1234567890123456
+  LightComponent:
+    CutOff: 30
+    Diffuse: !<Vector3> [0.8, 0.8, 0.8]
+    Direction: !<Vector3> [0.0, -1.0, 0.0]
+    Intensity: 2
+    LightType: 2
+    OuterCutOff: 32.5
+    Specular: !<Vector3> [0.5, 0.5, 0.5]
+  TagComponent:
+    Tag: Spot Light
+  TransformComponent:
+    Rotation: *id001
+    Scale: *id002
+    Translation: !<Vector3> [0.0, 5.0, -7.0]
+- Entity: 1234567890123456
+  LightComponent:
+    Diffuse: &id003 !<Vector3> [0.8, 0.8, 0.8]
+    Intensity: 5
+    LightType: 1
+    Specular: &id004 !<Vector3> [0.8, 0.8, 0.8]
+  TagComponent:
+    Tag: 'Point Light #1'
+  TransformComponent:
+    Rotation: *id001
+    Scale: *id002
+    Translation: !<Vector3> [-7.0, 0.0, -7.0]
+- Entity: 1234567890123456
+  LightComponent:
+    Diffuse: *id003
+    Intensity: 5
+    LightType: 1
+    Specular: *id004
+  TagComponent:
+    Tag: 'Point Light #2'
+  TransformComponent:
+    Rotation: *id001
+    Scale: *id002
+    Translation: !<Vector3> [7.0, 0.0, -7.0]
+- CameraComponent:
+    Camera:
+      ProjectionType: 1
+    FixedAspectRatio: false
+    IsPrimary: true
+  Entity: 1234567890123456
+  TagComponent:
+    Tag: Camera
+  TransformComponent:
+    Rotation: *id001
+    Scale: *id002
+    Translation: !<Vector3> [0.0, 0.0, 0.0]
+Scene: Untitled

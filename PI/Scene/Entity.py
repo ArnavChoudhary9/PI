@@ -1,4 +1,4 @@
-from .Components import TransformComponent
+from . import Components
 from ..Logging import PI_CLIENT_ASSERT, PI_CLIENT_WARN
 
 from typing import TypeVar as _TypeVar
@@ -26,8 +26,10 @@ class Entity():
         PI_CLIENT_ASSERT(not self.HasComponent(componentType),
             "Enitiy: {} ({}), Already have component of type: {}", self, int(self), componentType
         )
+        if componentType is Components.ScriptComponent:
+            component = componentType(*args, entity=self, **kwargs)
+        else: component = componentType(*args, **kwargs)
 
-        component = componentType(*args, **kwargs)
         self.__Scene._Registry.add_component(self.__EntityHandle, component)
         self.__Scene._OnComponentAdded(self, component)
         return component
@@ -49,7 +51,7 @@ class Entity():
         PI_CLIENT_ASSERT(self.HasComponent(componentType),
             "Enitiy: {} ({}), Does not have component of type: {}", self, int(self), componentType
         )
-        if componentType is TransformComponent:
+        if componentType is Components.TransformComponent:
             PI_CLIENT_WARN("Trying to remove Transform Component from an Entity.")
             return
 

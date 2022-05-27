@@ -12,6 +12,7 @@ from .Platform import *
 from .Renderer import *
 
 from .Scene import *
+from .Scripting import *
 
 from .Logging import *
 
