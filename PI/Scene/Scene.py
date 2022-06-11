@@ -1,10 +1,11 @@
-from ..Core import PI_TIMER
+from ..Renderer  import Camera, EditorCamera
+from ..Core      import PI_TIMER, PI_VERSION
 from .Components import *
 from .Entity     import Entity
-
+from ..Scripting import Color4, Color3
 
 from ..Renderer import Renderer, DirectionalLight
-from ..Logging import PI_CORE_TRACE
+from ..Logging  import PI_CORE_TRACE
 
 import pyrr
 import esper
@@ -22,6 +23,30 @@ class PI_YAML:
         return pyrr.Vector3(loader.construct_sequence(node))
         
     @staticmethod
+    def EncodeColor3(dumper: yaml.Dumper, color: Color3) -> yaml.Dumper:
+        return dumper.represent_sequence(
+            "Color3",
+            [ float(color[0]), float(color[1]), float(color[2]) ],
+            flow_style=True
+        )
+
+    @staticmethod
+    def DecodeColor3(loader: yaml.Loader, node: yaml.Node) -> Color3:
+        return Color3(loader.construct_sequence(node))
+        
+    @staticmethod
+    def EncodeColor4(dumper: yaml.Dumper, color: Color4) -> yaml.Dumper:
+        return dumper.represent_sequence(
+            "Color4",
+            [ float(color[0]), float(color[1]), float(color[2]), float(color[3]) ],
+            flow_style=True
+        )
+
+    @staticmethod
+    def DecodeColor4(loader: yaml.Loader, node: yaml.Node) -> Color4:
+        return Color4(loader.construct_sequence(node))
+        
+    @staticmethod
     def EncodeVector4(dumper: yaml.Dumper, vector: pyrr.Vector4) -> yaml.Dumper:
         return dumper.represent_sequence(
             "Vector3",
@@ -30,8 +55,8 @@ class PI_YAML:
         )
 
     @staticmethod
-    def DecodeVector3(loader: yaml.Loader, node: yaml.Node) -> pyrr.Vector3:
-        return pyrr.Vector3(loader.construct_sequence(node))
+    def DecodeVector4(loader: yaml.Loader, node: yaml.Node) -> pyrr.Vector4:
+        return pyrr.Vector4(loader.construct_sequence(node))
 
 class Scene:
     _Registry: esper.World
@@ -44,14 +69,10 @@ class Scene:
     _PointLights : _Deque[PointLight] = []
     _SpotLights  : _Deque[SpotLight]  = []
 
+    _DrawCamera: Camera
+
     def __init__(self) -> None:
         self._Registry = esper.World()
-
-        class _ScriptProcessor(esper.Processor):
-            def process(self, dt: float):
-                timer = PI_TIMER("SctipoProcessor::process")
-                for entity, script in self.world.get_component(ScriptComponent):
-                    if script.Bound: script.OnUpdate(dt)
 
         class _TransformUpdater(esper.Processor):
             def process(self, dt: float):
@@ -71,19 +92,20 @@ class Scene:
                     camera = cameraComponent.Camera.CameraObject
                     camera.SetPosition( transform.Translation )
                     camera.SetRotation( transform.Rotation    )
-
-        self._Registry.add_processor(_ScriptProcessor())
         self._Registry.add_processor(_TransformUpdater())
 
     def __del__(self) -> None:
         for entityID in range(1, self._Registry._next_entity_id+1):
             if not self._Registry.entity_exists(entityID): continue
-            self.DestroyEntity(Entity(entityID, self))
+            entity = Entity(entityID, self)
+            entity.RemoveComponent(LightComponent)
+            self.DestroyEntity(entity)
 
     @staticmethod
     def Serialize(scene, path: str) -> None:
         data = {}
         data["Scene"] = "Untitled"
+        data["Version"] = PI_VERSION
 
         entities = []
         for entityID in range(1, scene._Registry._next_entity_id+1):
@@ -141,16 +163,26 @@ class Scene:
 
                 entityDict["LightComponent"] = lightDict
 
+            if entity.HasComponent(ScriptComponent):
+                component = entity.GetComponent(ScriptComponent)
+                entityDict["ScriptComponent"] = {"Path": component.Path, "Variables": component.Variables}
+
             entities.append(entityDict)
 
         data["Entities"] = entities
 
-        yaml.add_representer(pyrr.Vector3, PI_YAML.EncodeVector3)
+        yaml.add_representer( Color3       , PI_YAML.EncodeColor3  )
+        yaml.add_representer( pyrr.Vector3 , PI_YAML.EncodeVector3 )
+        yaml.add_representer( Color4       , PI_YAML.EncodeColor4  )
+        yaml.add_representer( pyrr.Vector4 , PI_YAML.EncodeVector4 )
         with open(path, 'w') as _file: yaml.dump(data, _file)
     
     @staticmethod
     def Deserialize(oldScene, path: str):
-        yaml.add_constructor("Vector3", PI_YAML.DecodeVector3)
+        yaml.add_constructor( "Color3"  , PI_YAML.DecodeColor3  )
+        yaml.add_constructor( "Vector3" , PI_YAML.DecodeVector3 )
+        yaml.add_constructor( "Color4"  , PI_YAML.DecodeColor4  )
+        yaml.add_constructor( "Vector4" , PI_YAML.DecodeVector4 )
         
         data = {}
         with open(path, 'r') as _file: data = yaml.load(_file, yaml.Loader)
@@ -162,7 +194,6 @@ class Scene:
         for entity in entities:
             uuid = entity["Entity"]
 
-            name = ""
             tagComponent = entity["TagComponent"]
             name = tagComponent["Tag"]
             PI_CORE_TRACE("Deserialized entity with ID = {}, name = {}", uuid, name)
@@ -213,6 +244,12 @@ class Scene:
                         specular=lightComponent["Specular"],
                         intensity=lightComponent["Intensity"]
                     )
+            
+            scriptComponent = entity.get("ScriptComponent", False)
+            if scriptComponent:
+                component = deserializedEntity.AddComponent(ScriptComponent, scriptComponent["Path"])
+                variables = scriptComponent.get("Variables", False)
+                if variables: component.SetVariables(variables)
 
         del oldScene
         return scene
@@ -227,15 +264,45 @@ class Scene:
         if entity.HasComponent(LightComponent):
             light = entity.GetComponent(LightComponent).Light
 
-            if   isinstance(light, DirectionalLight): self._DirectionalLight.SetIntensity(0)
-            elif isinstance(light, SpotLight): self._SpotLights.remove(light)
-            elif isinstance(light, PointLight): self._PointLights.remove(light)
+            if   isinstance(light, DirectionalLight) : self._DirectionalLight.SetIntensity(0)
+            
+            elif isinstance(light, SpotLight):
+                newLights = []
+
+                for _light in self._SpotLights:
+                    if _light is light: continue
+                    _light.SetIndex(len(newLights))
+                    newLights.append(_light)
+
+                self._SpotLights = newLights
+
+            elif isinstance(light, PointLight):
+                newLights = []
+
+                for _light in self._PointLights:
+                    if _light is light: continue
+                    _light.SetIndex(len(newLights))
+                    newLights.append(_light)
+
+                self._PointLights = newLights
 
         self._Registry.delete_entity(int(entity))
 
-    def OnUpdate(self, dt: float) -> None: self._Registry.process(dt)
+    def OnUpdateEditor(self, dt: float, camera: EditorCamera) -> None:
+        self._DrawCamera = camera
+        self._Registry.process(dt)
+
+    def OnUpdateRuntime(self, dt: float) -> None:
+        self._DrawCamera = None
+        timer = PI_TIMER("Scene::OnUpdateRuntime")
+        for entity, script in self._Registry.get_component(ScriptComponent):
+            if script.Bound: script.OnUpdate(dt)
+        self._Registry.process(dt)
         
     def Draw(self) -> None:
+        if self._DrawCamera is None and self.PrimaryCameraEntity is None: return
+
+        Renderer.BeginScene(self, self._DrawCamera)
         meshes = []
         for entity, meshComponent in self._Registry.get_component(MeshComponent):
             if not meshComponent.Initialized: continue
@@ -243,6 +310,7 @@ class Scene:
             meshes.append(mesh)
 
         Renderer.SubmitMeshes(meshes, self._DirectionalLight, self._PointLights, self._SpotLights)
+        Renderer.EndScene()
 
     def OnViewportResize(self, width: int, height: int) -> None:
         self._ViewportWidth, self._ViewportHeight = width, height
@@ -274,3 +342,29 @@ class Scene:
 
         elif isinstance(component, ScriptComponent) : component.ImportModule()
         elif isinstance(component, MeshComponent)   : component.Init()
+
+    def _OnComponentRemoved(self, entity: Entity, component: CTV) -> None:
+        if isinstance(component, LightComponent):
+            light = component.Light
+
+            if   isinstance(light, DirectionalLight): self._DirectionalLight.SetIntensity(0)
+            
+            elif isinstance(light, SpotLight):
+                newLights = []
+
+                for _light in self._SpotLights:
+                    if _light is light: continue
+                    _light.SetIndex(len(newLights))
+                    newLights.append(_light)
+
+                self._SpotLights = newLights
+            
+            elif isinstance(light, PointLight):
+                newLights = []
+
+                for _light in self._PointLights:
+                    if _light is light: continue
+                    _light.SetIndex(len(newLights))
+                    newLights.append(_light)
+
+                self._PointLights = newLights

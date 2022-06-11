@@ -154,6 +154,9 @@ class ScriptComponent:
 
         self.Bound = True
 
+    def SetVariables(self, map: Dict[str, Any]) -> None:
+        for name, value in map.items(): self.Script.__setattr__(name, value)
+
 CTV = TypeVar("CTV",
         TagComponent, TransformComponent, CameraComponent, MeshComponent, LightComponent, ScriptComponent
     )

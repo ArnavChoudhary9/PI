@@ -2,20 +2,34 @@ Entities:
 - Entity: 1234567890123456
   MeshComponent:
     Path: .\Assets\Internal\Meshes\Sphere.obj
+  ScriptComponent:
+    Path: .\Assets\Scripts\FallDown.py
+    Variables:
+      TestVariable: !<Vector3> [0.0, -0.5, 0.0]
   TagComponent:
     Tag: Sphere
   TransformComponent:
-    Rotation: &id001 !<Vector3> [0.0, 0.0, 0.0]
-    Scale: &id002 !<Vector3> [1.0, 1.0, 1.0]
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
     Translation: !<Vector3> [3.0, 0.0, -7.0]
 - Entity: 1234567890123456
   MeshComponent:
     Path: .\Assets\Meshes\TexturedCube.obj
+  ScriptComponent:
+    Path: .\Assets\Scripts\TestScript.py
+    Variables:
+      TestBool: true
+      TestColor: !<Color4> [0.6784382462501526, 0.7220077514648438, 0.2313769906759262,
+        1.0]
+      TestFloat: 6.75
+      TestInt: 2
+      TestStr: Test Str
+      TestVector: !<Vector3> [1.0, 0.0, 3.0]
   TagComponent:
     Tag: Cube
   TransformComponent:
-    Rotation: *id001
-    Scale: *id002
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
     Translation: !<Vector3> [-3.0, 0.0, -7.0]
 - Entity: 1234567890123456
   MeshComponent:
@@ -23,8 +37,8 @@ Entities:
   TagComponent:
     Tag: Monkey
   TransformComponent:
-    Rotation: *id001
-    Scale: *id002
+    Rotation: &id001 !<Vector3> [0.0, 0.0, 0.0]
+    Scale: &id002 !<Vector3> [1.0, 1.0, 1.0]
     Translation: !<Vector3> [0.0, -0.8, -7.0]
 - Entity: 1234567890123456
   MeshComponent:
@@ -118,3 +132,4 @@ Entities:
     Scale: *id002
     Translation: *id005
 Scene: Untitled
+Version: 0.9.4.dev

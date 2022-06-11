@@ -55,4 +55,6 @@ class Entity():
             PI_CLIENT_WARN("Trying to remove Transform Component from an Entity.")
             return
 
+        component = self.GetComponent(componentType)
         self.__Scene._Registry.remove_component(self.__EntityHandle, componentType)
+        self.__Scene._OnComponentRemoved(self, component)

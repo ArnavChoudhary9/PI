@@ -1,5 +1,6 @@
 from PI import *
 from Panels.SceneHierarchyPanel import *
+from Panels.ContentBrowserPanel import *
 
 INSTRUCTION_TEXT: str = \
 """Welcome to PI Engine Demo!
@@ -14,14 +15,25 @@ Left Click and Drag to rotate Camera.""" \
 class EditorLayer(Layer):
     __Scene : Scene
     __SceneHierarchyPanel: SceneHierarchyPanel
-    __CameraController: PerspectiveCameraController
+    __ContentBrowserPanel: ContentBrowserPanel
+    __EditorCamera: EditorCamera
 
     __Framebuffer: Framebuffer
     __ViewportSize: ImVec2
 
     __ViewportFocused : bool
     __ViewportHovered : bool
-    
+
+    __Panels: List = []
+
+    class SceneStateEnum:
+        Edit: int = 0
+        Play: int = 1
+
+    __SceneState: int
+    __PlayIcon: Texture2D
+    __StopIcon: Texture2D
+
     __Framerate: float
     __ShowDebugStats: bool
     vSync = PI_V_SYNC
@@ -29,15 +41,17 @@ class EditorLayer(Layer):
     def __init__(self, name: str = "EditorLayer") -> None:
         super().__init__(name=name)
         self.__ViewportSize = ImVec2( 0, 0 )
-        self.__CameraController = PerspectiveCameraController(
-            PerspectiveCamera(45, StateManager.GetCurrentWindow().AspectRatio)
-        )
+        self.__EditorCamera = EditorCamera(45, 1.778, 0.1, 1000)
+        # self.__EditorCamera = PerspectiveCameraController(PerspectiveCamera(45, 1.778, 0.1, 1000))
 
     def OnAttach(self) -> None:
         timer = PI_TIMER("EditorLayer::OnAttach")
         self.__Scene = Scene()
+
         self.__SceneHierarchyPanel = SceneHierarchyPanel()
         self.__SceneHierarchyPanel.SetContext(self.__Scene)
+
+        self.__ContentBrowserPanel = ContentBrowserPanel()
 
         specs = Framebuffer.Specs(1200, 600)
         specs.Attachments = (
@@ -52,6 +66,17 @@ class EditorLayer(Layer):
         self.__ViewportFocused : bool = True
         self.__ViewportHovered : bool = True
 
+        self.__Panels.append(self.__SceneHierarchyPanel)
+        self.__Panels.append(self.__ContentBrowserPanel)
+
+        self.__SceneState = EditorLayer.SceneStateEnum.Edit
+
+		# m_IconPlay = Texture2D::Create("Resources/Icons/PlayButton.png");
+		# m_IconStop = Texture2D::Create("Resources/Icons/StopButton.png");
+
+        self.__PlayIcon = Texture2D.Create(".\\Theta\\Resources\\Icons\\PlayButton.png")
+        self.__StopIcon = Texture2D.Create(".\\Theta\\Resources\\Icons\\StopButton.png")
+
     def __NewScene(self) -> None:
         newScene = Scene()
         newScene.OnViewportResize(self.__Scene._ViewportWidth, self.__Scene._ViewportHeight)
@@ -65,13 +90,15 @@ class EditorLayer(Layer):
             if not fileName.endswith(".PI"): fileName += ".PI"
             Scene.Serialize(self.__Scene, fileName)
 
-    def __LoadScene(self) -> None:
-        cancelled, fileName = UILib.DrawFileLoadDialog( ( ("PI scene file (*.PI)", ".PI"), ) )
-        if not cancelled: self.__Scene = Scene.Deserialize(self.__Scene, fileName)
+    def __LoadScene(self, filename: str=None) -> None:
+        cancelled = False
+        if not filename:
+            cancelled, filename = UILib.DrawFileLoadDialog( ( ("PI scene file (*.PI)", ".PI"), ) )
+        if not cancelled: self.__Scene = Scene.Deserialize(self.__Scene, filename)
         self.__SceneHierarchyPanel.SetContext(self.__Scene)
 
     def OnEvent(self, event: Event) -> None:
-        self.__CameraController.OnEvent(event)
+        self.__EditorCamera.OnEvent(event)
 
         def CheckKeys(event: KeyPressedEvent) -> bool:
             control = Input.IsKeyPressed(PI_KEY_LEFT_CONTROL) or Input.IsKeyPressed(PI_KEY_RIGHT_CONTROL)
@@ -146,7 +173,7 @@ class EditorLayer(Layer):
 
                     imgui.end_menu()
 
-            self.__SceneHierarchyPanel.OnImGuiRender()
+            for panel in self.__Panels: panel.OnImGuiRender()
 
             if self.__ShowDebugStats:   
                 with imgui.begin("DEBUG Settings"):
@@ -174,15 +201,53 @@ class EditorLayer(Layer):
                     self.__ViewportSize.x, self.__ViewportSize.y,
                     ( 0, 1 ), ( 1, 0 )
                 )
+
+                if imgui.begin_drag_drop_target():
+                    data: bytes = imgui.accept_drag_drop_payload("CONTENT_BROWSER_ITEM")
+                    if data: self.__LoadScene(data.decode('UTF-8'))
+                    imgui.end_drag_drop_target()
+
             imgui.pop_style_var()
 
             with imgui.begin("Instructions"):
                 imgui.text(INSTRUCTION_TEXT)
+            
+            self.UI_Toolbar()
+
+    def __OnScenePlay(self) -> None:
+        self.__SceneState = EditorLayer.SceneStateEnum.Play
+
+    def __OnScenePause(self) -> None: 
+        self.__SceneState = EditorLayer.SceneStateEnum.Edit
+
+    def UI_Toolbar(self) -> None:
+        imgui.push_style_var(imgui.STYLE_WINDOW_PADDING, ImVec2(0, 2))
+        imgui.push_style_var(imgui.STYLE_ITEM_INNER_SPACING, ImVec2(0, 0))
+        imgui.push_style_color(imgui.COLOR_BUTTON, 0, 0, 0, 0)
+
+        colors = imgui.get_style().colors
+        buttonHovered = colors[imgui.COLOR_BUTTON_HOVERED]
+        imgui.push_style_color(imgui.COLOR_BUTTON_HOVERED, buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5)
+        buttonActive = colors[imgui.COLOR_BUTTON_ACTIVE]
+        imgui.push_style_color(imgui.COLOR_BUTTON_ACTIVE, buttonActive.x, buttonActive.y, buttonActive.z, 0.5)
+
+        flags = imgui.WINDOW_NO_DECORATION | imgui.WINDOW_NO_SCROLLBAR | imgui.WINDOW_NO_SCROLL_WITH_MOUSE
+        with imgui.begin("##toolbar", flags=flags):
+            size = imgui.get_window_height() - 4.0
+            icon: Texture2D = self.__StopIcon if self.__SceneState == EditorLayer.SceneStateEnum.Play else self.__PlayIcon            
+            imgui.set_cursor_pos_x((imgui.get_window_content_region_max()[0] * 0.5) - (size * 0.5))
+
+            if imgui.image_button(icon.RendererID, size, size, (0, 0), (1, 1)):
+                if self.__SceneState == EditorLayer.SceneStateEnum.Edit: self.__OnScenePlay()
+                elif self.__SceneState == EditorLayer.SceneStateEnum.Play: self.__OnScenePause()
+
+        imgui.pop_style_var(2)
+        imgui.pop_style_color(3)
 
     def OnUpdate(self, timestep: Timestep) -> None: 
         timer = PI_TIMER("EditorLayer::OnUpdate")
         self.__Framerate = 1 / timestep.Seconds
-        if self.__ViewportFocused: self.__CameraController.OnUpdate(timestep.Seconds)
+        if self.__ViewportFocused: self.__EditorCamera.OnUpdate(timestep.Seconds)
 
         spec = self.__Framebuffer.Spec
         if self.__ViewportSize.x > 0.0 \
@@ -191,15 +256,13 @@ class EditorLayer(Layer):
             
             self.__Framebuffer.Resize(*self.__ViewportSize)
             Renderer.OnResize(*self.__ViewportSize)
-            self.__CameraController.Camera.SetAspectRatio(self.__ViewportSize.x / self.__ViewportSize.y)
+            self.__EditorCamera.SetAspectRatio(self.__ViewportSize.x / self.__ViewportSize.y)
             self.__Scene.OnViewportResize(*self.__ViewportSize)
 
         with BindFramebuffer(self.__Framebuffer) as fb:
-            self.__Scene.OnUpdate(float(timestep))
+            if self.__SceneState == EditorLayer.SceneStateEnum.Edit:
+                self.__Scene.OnUpdateEditor(float(timestep), self.__EditorCamera)
+            elif self.__SceneState == EditorLayer.SceneStateEnum.Play:
+                self.__Scene.OnUpdateRuntime(float(timestep))
 
-            (
-                Renderer
-                    .BeginScene (self.__Scene)
-                    .DrawScene  ()
-                    .EndScene   ()
-            )
+            self.__Scene.Draw()

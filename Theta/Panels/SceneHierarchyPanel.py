@@ -223,7 +223,7 @@ class SceneHierarchyPanel:
                         variableChanged, new = UILib.DrawColor4Controls(name, instance, columnWidth=100)
                         new = Color4(new)
                     
-                    if variableChanged: setattr(component.Script, name, new)
+                    if variableChanged: component.SetVariables({name: new})
                 if len(component.Variables) != 0: imgui.text("")
 
             changed, index, path = UILib.DrawDropdown("Script", scripts.index(component.Path), scripts)
@@ -236,11 +236,27 @@ class SceneHierarchyPanel:
         def _LightUIFunction(entity: Entity, component: LightComponent) -> None:
             lightTypes = ["Directional", "Point", "Spot"]
             changed, lightType, lightTypeStr = UILib.DrawDropdown("Light Type", component.LightType, lightTypes, columnWidth=100)
+            if changed:
+                entity.RemoveComponent(LightComponent)
+
+                if lightType is LightComponent.TypeEnum.Point : entity.AddComponent(LightComponent, lightType)
+                if lightType is LightComponent.TypeEnum.Spot  : entity.AddComponent(LightComponent, lightType) 
 
             changed, new = UILib.DrawFloatControls("Intensity", component.Light.Intensity, minValue=0.01, maxValue=1000)
             if changed: component.Light.SetIntensity(new)
             
             imgui.separator()
+            if isinstance(component.Light, SpotLight):
+                light = component.Light
+
+                changed, new = UILib.DrawFloatControls("Inner Angle", light.CutOff,
+                    speed=0.1, minValue=0.01, maxValue=light.OuterCutOff)
+                if changed: light.SetCutOff(new)
+                
+                changed, new = UILib.DrawFloatControls("Outer Angle", light.OuterCutOff,
+                    speed=0.1, minValue=light.CutOff, maxValue=359.99)
+                if changed: light.SetOuterCutOff(new)
+
             isEqual = component.Light.Diffuse is component.Light.Ambient is component.Light.Specular
             changed, lock = UILib.DrawBoolControls("Lock", isEqual)
 

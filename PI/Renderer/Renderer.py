@@ -1,3 +1,4 @@
+from ..Logging      import PI_CORE_ASSERT
 from ..Core         import PI_TIMER
 from .RendererAPI   import RendererAPI
 from .RenderCommand import RenderCommand
@@ -44,17 +45,14 @@ class Renderer:
         return Renderer
 
     @staticmethod
-    def BeginScene(scene):
+    def BeginScene(scene, camera=None):
         Renderer.__CurrentSceneData = Renderer.SceneData()
 
-        if scene.PrimaryCameraEntity is None:
-            Renderer.__CurrentSceneData.ViewProjectionMatrix = None
-            Renderer.__CurrentSceneData.CameraPos            = None
-            Renderer.__CurrentSceneData.Scene                = None
-
-            return Renderer
-
-        camera = scene.PrimaryCameraEntity.GetComponent(Renderer.CAM_COMP).Camera.CameraObject
+        if camera is None:
+            camera = scene.PrimaryCameraEntity
+            if camera is None: PI_CORE_ASSERT(False, "There is no camera to render.")
+            
+            camera = camera.GetComponent(Renderer.CAM_COMP).Camera.CameraObject
 
         Renderer.__CurrentSceneData.ViewProjectionMatrix = camera.ViewProjectionMatrix
         Renderer.__CurrentSceneData.CameraPos            = camera.Position
