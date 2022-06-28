@@ -124,49 +124,63 @@ class SceneHierarchyPanel:
         if imgui.begin_popup("AddComponent"):
             if imgui.menu_item("Camera")[0]:
                 if not self.__SelectionContext.HasComponent(CameraComponent):
-                    self.__SelectionContext.AddComponent(CameraComponent)
+                    self.__SelectionContext.AddComponent(CameraComponent, SceneCamera(SceneCamera.ProjectionTypeEnum.Perspective))
                 else: PI_CLIENT_WARN("Entity already has a Camera Component")
                 imgui.close_current_popup()
 
             # Meshes
-            imgui.separator()
-            if imgui.menu_item("Mesh")[0]:
-                if not self.__SelectionContext.HasComponent(MeshComponent):
-                    self.__SelectionContext.AddComponent(MeshComponent, "")
-                else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+            if imgui.begin_menu("Mesh"):
+                if imgui.menu_item("Empty Mesh")[0]:
+                    if not self.__SelectionContext.HasComponent(MeshComponent):
+                        self.__SelectionContext.AddComponent(MeshComponent, "")
+                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                    imgui.close_current_popup()
+
+                imgui.separator()
+                if imgui.menu_item("Cube")[0]:
+                    if not self.__SelectionContext.HasComponent(MeshComponent):
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Cube.obj")
+                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                    imgui.close_current_popup()
+                    
+                if imgui.menu_item("Sphere")[0]:
+                    if not self.__SelectionContext.HasComponent(MeshComponent):
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Sphere.obj")
+                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                    imgui.close_current_popup()
+                    
+                if imgui.menu_item("Cyliender")[0]:
+                    if not self.__SelectionContext.HasComponent(MeshComponent):
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Cylinder.obj")
+                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                    imgui.close_current_popup()
+                    
+                if imgui.menu_item("Plane")[0]:
+                    if not self.__SelectionContext.HasComponent(MeshComponent):
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Plane.obj")
+                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                    imgui.close_current_popup()
+                    
+                if imgui.menu_item("Cone")[0]:
+                    if not self.__SelectionContext.HasComponent(MeshComponent):
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Cone.obj")
+                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                    imgui.close_current_popup()
+                    
+                if imgui.menu_item("Torus")[0]:
+                    if not self.__SelectionContext.HasComponent(MeshComponent):
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Torus.obj")
+                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                    imgui.close_current_popup()
+
+                imgui.end_menu()
+
+            if imgui.menu_item("Light")[0]:
+                if not self.__SelectionContext.HasComponent(LightComponent):
+                    self.__SelectionContext.AddComponent(LightComponent, LightComponent.TypeEnum.Point)
+                else: PI_CLIENT_WARN("Entity already has a Light Component")
                 imgui.close_current_popup()
 
-            if imgui.menu_item("Cube")[0]:
-                if not self.__SelectionContext.HasComponent(MeshComponent):
-                    self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Cube.obj")
-                else: PI_CLIENT_WARN("Entity already has a Mesh Component")
-                imgui.close_current_popup()
-                
-            if imgui.menu_item("Sphere")[0]:
-                if not self.__SelectionContext.HasComponent(MeshComponent):
-                    self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Sphere.obj")
-                else: PI_CLIENT_WARN("Entity already has a Mesh Component")
-                imgui.close_current_popup()
-                
-            if imgui.menu_item("Cyliender")[0]:
-                if not self.__SelectionContext.HasComponent(MeshComponent):
-                    self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Cylinder.obj")
-                else: PI_CLIENT_WARN("Entity already has a Mesh Component")
-                imgui.close_current_popup()
-                
-            if imgui.menu_item("Cone")[0]:
-                if not self.__SelectionContext.HasComponent(MeshComponent):
-                    self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Cone.obj")
-                else: PI_CLIENT_WARN("Entity already has a Mesh Component")
-                imgui.close_current_popup()
-                
-            if imgui.menu_item("Torus")[0]:
-                if not self.__SelectionContext.HasComponent(MeshComponent):
-                    self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Torus.obj")
-                else: PI_CLIENT_WARN("Entity already has a Mesh Component")
-                imgui.close_current_popup()
-
-            imgui.separator()
             if imgui.menu_item("Script")[0]:
                 if not self.__SelectionContext.HasComponent(ScriptComponent):
                     self.__SelectionContext.AddComponent(ScriptComponent, ".")
@@ -183,14 +197,20 @@ class SceneHierarchyPanel:
             component.SetScale       ( UILib.DrawVector3Controls( "Scale"       , component.Scale, 1         ) [1] )
 
         def _MeshUIFunction(entity: Entity, component: MeshComponent) -> None:
-            changed, path = UILib.DrawTextFieldControls("Filter", component.Path)
+            changed, path, dragDrop = UILib.DrawTextFieldControls("Filter", component.Path, acceptDragDrop=True, filter=".obj")
 
             if changed: component.Path = path
-            
-            if Input.IsKeyPressed(PI_KEY_ENTER) and component.Path is not component.MeshObject.Path:
+
+            if (Input.IsKeyPressed(PI_KEY_ENTER) or dragDrop):
                 if not os.path.exists(component.Path):
-                    PI_CLIENT_WARN("Trying to load invalid Modle")
-                    component.Path = component.MeshObject.Path
+                    PI_CLIENT_WARN("Trying to load invalid Model")
+                    if hasattr(component, "MeshObject"): component.Path = component.MeshObject.Path
+                    else: component.Path = ""
+                    return
+
+                if not component.Path.endswith((".obj",)):
+                    if hasattr(component, "MeshObject"): component.Path = component.MeshObject.Path
+                    else: component.Path = ""
                     return
 
                 entity.RemoveComponent(MeshComponent)
@@ -207,7 +227,7 @@ class SceneHierarchyPanel:
                         variableChanged, new = UILib.DrawVector3Controls(name, instance, columnWidth=100)
 
                     if isinstance(instance, str):
-                        variableChanged, new = UILib.DrawTextFieldControls(name, instance, columnWidth=100)
+                        variableChanged, new, _ = UILib.DrawTextFieldControls(name, instance, columnWidth=100)
                     
                     if isinstance(instance, float):
                         variableChanged, new = UILib.DrawFloatControls(name, instance, columnWidth=100)

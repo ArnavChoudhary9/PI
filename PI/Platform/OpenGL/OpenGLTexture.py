@@ -5,7 +5,7 @@ from ...Core.Constants import *
 from OpenGL.GL import glGenTextures, glBindTextureUnit, glTextureSubImage2D, glTextureParameteri, glTextureStorage2D,\
                       glBindTexture, glTexImage2D, glTexStorage2D, glDeleteTextures
 
-from OpenGL.GL import GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T, GL_REPEAT, GL_LINEAR, \
+from OpenGL.GL import GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_TEXTURE_WRAP_T, GL_REPEAT, GL_LINEAR, GL_CLAMP_TO_EDGE, \
                       GL_TEXTURE_MIN_FILTER, GL_TEXTURE_MAG_FILTER, \
                       GL_RGB8, GL_RGB, GL_RGBA, GL_SRGB, GL_RGBA8, \
                       GL_UNSIGNED_BYTE, GL_NEAREST

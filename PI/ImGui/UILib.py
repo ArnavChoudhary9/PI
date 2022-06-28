@@ -1,3 +1,6 @@
+from ..Core    import Random
+from ..Logging import PI_CORE_WARN
+
 import imgui
 import pyrr
 from typing import Callable, Iterable, List, Tuple
@@ -81,7 +84,9 @@ class UILib:
         else: return False, pyrr.Vector3([ values.x, values.y, values.z ])
 
     @staticmethod
-    def DrawTextFieldControls(lable: str, value: str, columnWidth: float=50) -> Tuple[bool, str]:
+    def DrawTextFieldControls(
+        lable: str, value: str, columnWidth: float=50, acceptDragDrop: bool=False, filter: Tuple[str]=None
+    ) -> Tuple[bool, str]:
         imgui.push_id(lable)
 
         imgui.columns(2)
@@ -93,10 +98,22 @@ class UILib:
         changed, newText = imgui.input_text("##Filter", value, 512)
         imgui.pop_item_width()
 
+        dragDrop = False
+        if acceptDragDrop:
+            if imgui.begin_drag_drop_target():
+                data: bytes = imgui.accept_drag_drop_payload("CONTENT_BROWSER_ITEM")
+                if data:
+                    data = data.decode('utf-8')
+                    if not filter: changed, newText, dragDrop = True, data, True
+                    else:
+                        if data.lower().endswith(filter): changed, newText, dragDrop = True, data, True
+                        else: PI_CORE_WARN("This text field only accepts {} files", filter)
+                imgui.end_drag_drop_target()
+
         imgui.columns(1)
         imgui.pop_id()
 
-        return changed, newText
+        return changed, newText, dragDrop
 
     @staticmethod
     def DrawTextLable(lable: str, value: str, columnWidth: float=50) -> None:
@@ -196,7 +213,7 @@ class UILib:
         imgui.set_column_width(0, columnWidth)
         imgui.text(lable)
         imgui.next_column()
-        changed, value = imgui.color_edit3("##Value", value.x, value.y, value.z)
+        changed, value = imgui.color_edit3("##Value", value[0], value[1], value[2])
         imgui.columns(1)
         imgui.pop_id()
 

@@ -1,0 +1,45 @@
+Entities:
+- Entity: d21c54be-6daa-4f4e-93f7-74fe487e2ae6
+  MeshComponent:
+    Path: Assets\Internal\Meshes\Plane.obj
+  TagComponent:
+    Tag: Plane
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [15.0, 1.0, 15.0]
+    Translation: !<Vector3> [0.0, -1.0, 0.0]
+- Entity: c8cd567b-bca2-49d6-8f3d-9a061244d9bd
+  LightComponent:
+    Diffuse: !<Vector3> [0.8, 0.8, 0.8]
+    Intensity: 10.0
+    LightType: 1
+    Specular: !<Vector3> [0.41312742233276367, 0.4131232798099518, 0.4131232798099518]
+  TagComponent:
+    Tag: Main Point Light
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [0.0, 10.0, 0.0]
+- Entity: f6153aec-8503-431e-a3a7-ac3c971eac03
+  MeshComponent:
+    Path: Assets\Meshes\Monkey.obj
+  TagComponent:
+    Tag: Monkey
+  TransformComponent:
+    Rotation: !<Vector3> [6.5, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [0.0, -1.0, 0.0]
+- CameraComponent:
+    Camera:
+      ProjectionType: 1
+    FixedAspectRatio: false
+    IsPrimary: true
+  Entity: 83b8e4b9-acfa-4e3e-9d70-74c3393d069a
+  TagComponent:
+    Tag: Main Camera
+  TransformComponent:
+    Rotation: !<Vector3> [10.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [0.0, 1.75, 8.0]
+Scene: Untitled
+Version: 0.9.4.dev

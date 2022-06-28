@@ -1,5 +1,5 @@
-from ..Renderer  import Camera, EditorCamera
-from ..Core      import PI_TIMER, PI_VERSION
+from ..Renderer  import Camera, EditorCamera, RenderCommand
+from ..Core      import PI_TIMER, PI_VERSION, Cache, Random
 from .Components import *
 from .Entity     import Entity
 from ..Scripting import Color4, Color3
@@ -7,9 +7,11 @@ from ..Scripting import Color4, Color3
 from ..Renderer import Renderer, DirectionalLight
 from ..Logging  import PI_CORE_TRACE
 
+from copy import deepcopy
 import pyrr
 import esper
 import yaml
+import os
 
 from typing import Deque as _Deque
 
@@ -66,13 +68,18 @@ class Scene:
 
     _DirectionalLight: DirectionalLight = DirectionalLight(pyrr.Vector3([ 0, 0, 0 ]), intensity=0)
 
-    _PointLights : _Deque[PointLight] = []
-    _SpotLights  : _Deque[SpotLight]  = []
+    _PointLights : _Deque[PointLight]
+    _SpotLights  : _Deque[SpotLight]
 
     _DrawCamera: Camera
 
+    _Filepath : str = None
+
     def __init__(self) -> None:
         self._Registry = esper.World()
+
+        self._PointLights = []
+        self._SpotLights = []
 
         class _TransformUpdater(esper.Processor):
             def process(self, dt: float):
@@ -94,13 +101,6 @@ class Scene:
                     camera.SetRotation( transform.Rotation    )
         self._Registry.add_processor(_TransformUpdater())
 
-    def __del__(self) -> None:
-        for entityID in range(1, self._Registry._next_entity_id+1):
-            if not self._Registry.entity_exists(entityID): continue
-            entity = Entity(entityID, self)
-            entity.RemoveComponent(LightComponent)
-            self.DestroyEntity(entity)
-
     @staticmethod
     def Serialize(scene, path: str) -> None:
         data = {}
@@ -113,7 +113,7 @@ class Scene:
             entity = Entity(entityID, scene)
             
             entityDict = {}
-            entityDict["Entity"] = 1234567890123456
+            entityDict["Entity"] = str(entity.GetComponent(IDComponent))
 
             if entity.HasComponent(TagComponent):
                 entityDict["TagComponent"] = { "Tag": entity.GetComponent(TagComponent).Tag }
@@ -196,9 +196,8 @@ class Scene:
 
             tagComponent = entity["TagComponent"]
             name = tagComponent["Tag"]
-            PI_CORE_TRACE("Deserialized entity with ID = {}, name = {}", uuid, name)
 
-            deserializedEntity = scene.CreateEntity(name)
+            deserializedEntity = scene.CreateEntityWithUUID(UUID(uuid), name)
 
             transformComponent = entity["TransformComponent"]
             tc = deserializedEntity.GetComponent(TransformComponent)
@@ -251,11 +250,37 @@ class Scene:
                 variables = scriptComponent.get("Variables", False)
                 if variables: component.SetVariables(variables)
 
-        del oldScene
+        scene._Filepath = path
         return scene
 
-    def CreateEntity(self, name: str="Entity") -> Entity:
+    @staticmethod
+    def Copy(oldScene):
+        tempSceneName = "TempScene"
+        tempFileDir = f"{Cache.GetLocalTempDirectory()}\\{tempSceneName}.PI"
+
+        Scene.Serialize(oldScene, tempFileDir)
+        newScene = Scene.Deserialize(oldScene, tempFileDir)
+        os.remove(tempFileDir)
+
+        return newScene
+
+    @staticmethod
+    def CopyComponent(ComponentType: CTV, srcRegistry: esper.World, dstRegistry: esper.World, uuidEntityMap: Dict[UUID, int]) -> None:
+        for entity, (component, idComponent) in srcRegistry.get_components(ComponentType, IDComponent):
+            uuid = idComponent.ID
+
+            dstEntity = uuidEntityMap.get(uuid, None)
+            PI_CORE_ASSERT(dstEntity != None, "Cannot find entity with matching UUID.")
+
+            if ComponentType is MeshComponent: dstRegistry.add_component(dstEntity, component)
+            elif ComponentType is ScriptComponent: dstRegistry.add_component(dstEntity, component.Copy())
+            else: dstRegistry.add_component(dstEntity, deepcopy(component))
+
+    def CreateEntity(self, name: str="Entity") -> Entity: return self.CreateEntityWithUUID(UUIDGenerator(), name)
+
+    def CreateEntityWithUUID(self, uuid: UUID, name: str="Entity") -> Entity:
         entity = Entity(self._Registry.create_entity(), self)
+        entity.AddComponent(IDComponent, uuid)
         entity.AddComponent(TagComponent, name)
         entity.AddComponent(TransformComponent)
         return entity
@@ -302,15 +327,26 @@ class Scene:
     def Draw(self) -> None:
         if self._DrawCamera is None and self.PrimaryCameraEntity is None: return
 
-        Renderer.BeginScene(self, self._DrawCamera)
-        meshes = []
-        for entity, meshComponent in self._Registry.get_component(MeshComponent):
-            if not meshComponent.Initialized: continue
-            mesh = meshComponent.MeshObject
-            meshes.append(mesh)
+        with Renderer.BeginScene(self, self._DrawCamera):
+            for entity, meshComponent in self._Registry.get_component(MeshComponent):
+                if not meshComponent.Initialized: continue
+                mesh = meshComponent.MeshObject
+                camera = self._DrawCamera if self._DrawCamera else self.PrimaryCameraEntity.GetComponent(CameraComponent).Camera.CameraObject
+                
+                mesh.Bind(
+                    self._DirectionalLight,
+                    self._PointLights, len(self._PointLights),
+                    self._SpotLights , len(self._SpotLights),
+                    camera.Position
+                )
 
-        Renderer.SubmitMeshes(meshes, self._DirectionalLight, self._PointLights, self._SpotLights)
-        Renderer.EndScene()
+                mesh.Material.SetViewProjection(camera.ViewProjectionMatrix)
+
+                mesh.VertexArray.Bind()
+                RenderCommand.DrawIndexed(mesh.VertexArray)
+
+                mesh.VertexArray.Unbind()
+                mesh.Material.Shader.Unbind()
 
     def OnViewportResize(self, width: int, height: int) -> None:
         self._ViewportWidth, self._ViewportHeight = width, height

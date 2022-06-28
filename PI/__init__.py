@@ -38,6 +38,3 @@ if PI_LOGGING:
 # Cause this is all what The Cherno taught me.
 if (CURRENT_PLATFORM == "Windows"):
     Window.SetOS(OS.Windows)
-
-# Initializes the in-built Random module
-Random.Init()

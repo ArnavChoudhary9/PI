@@ -1,6 +1,10 @@
 from ..Instrumentation import Instrumentor, InstrumentationTimer
 
 from typing import Tuple as _Tuple
+
+import os
+from tempfile import gettempdir
+
 PI_VERSION       : str         = "0.9.4.dev"
 PI_VERSION_TUPLE : _Tuple[int] = (0,9,4)
 
@@ -102,18 +106,32 @@ if PI_INSTRUMENTATION:
 #-------------------------------------------------------------------
 # Other basic utility functions and classes
 # Base PI class
+
+class Cache:
+    __TempDirGenerated = False
+
+    @staticmethod
+    def InitLocalTempDirectory():
+        if not Cache.__TempDirGenerated:
+            os.makedirs(f"{gettempdir()}\\PI", exist_ok=True)
+            os.makedirs("C:\\ProgramData\\PI", exist_ok=True)
+            Cache.__TempDirGenerated = True
+
+    @staticmethod
+    def GetLocalTempDirectory():
+        Cache.InitLocalTempDirectory()
+        return f"{gettempdir()}\\PI"
+
+    @staticmethod
+    def GetLocalSaveDirectory():
+        Cache.InitLocalTempDirectory()
+        return "C:\\ProgramData\\PI"
+
 # In-Built Random module
 import numpy as _np
 
 class Random:
-    __slots__ = "__BaseAPI"
-
-    def __init__(self) -> None:
-        Random.__BaseAPI = _np.random
-
-    @staticmethod
-    def Init() -> None:
-        Random.__BaseAPI = _np.random
+    __BaseAPI = _np.random
 
     @staticmethod
     def Random(size=None) -> float:
@@ -124,11 +142,6 @@ class Random:
         return Random.__BaseAPI.randint(begin, end)
 
     @staticmethod
-    def GenerateName(base: str="") -> str:
-        prevNames = []
-        while True:
-            name = "{}{}".format(base, Random.RandomInt(0, 10000))
-            if name not in prevNames:
-                prevNames.append(name)
-                yield name
+    def GenerateName(base: str) -> str:
+        return "{}{}".format(base, Random.RandomInt(0, 100000))
 #-------------------------------------------------------------------

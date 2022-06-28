@@ -9,7 +9,7 @@ class PointLight(Light):
 
     def __init__(self,
         index: int,
-        position : pyrr.Vector3=pyrr.Vector3([ 0.8, 0.8, 0.8 ]),
+        position : pyrr.Vector3=pyrr.Vector3([ 0.0, 0.0, 0.0 ]),
         diffuse  : pyrr.Vector3=pyrr.Vector3([ 0.8, 0.8, 0.8 ]),
         specular : pyrr.Vector3=pyrr.Vector3([ 0.8, 0.8, 0.8 ]),
         intensity: float = 1

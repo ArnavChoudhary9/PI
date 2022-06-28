@@ -5,8 +5,6 @@ from .RenderCommand import RenderCommand
 
 
 import pyrr
-from contextlib import contextmanager
-from typing import Type as _Type
 
 class Renderer:
     class SceneData:
@@ -58,7 +56,7 @@ class Renderer:
         Renderer.__CurrentSceneData.CameraPos            = camera.Position
         Renderer.__CurrentSceneData.Scene                = scene
 
-        return Renderer
+        return _BeginEndRenderer.__new__(_BeginEndRenderer)
 
     @staticmethod
     def EndScene():
@@ -73,44 +71,6 @@ class Renderer:
         vertexArray.Bind()
         RenderCommand.DrawIndexed(vertexArray)
         
-        return Renderer
-        
-    @staticmethod
-    def SubmitMesh(mesh, directionalLight, pointLights=[], spotLights =[]):
-        mesh.Bind(
-            directionalLight,
-            pointLights , len(pointLights),
-            spotLights  , len(spotLights),
-            Renderer.__CurrentSceneData.CameraPos
-        )
-
-        mesh.Material.SetViewProjection(Renderer.__CurrentSceneData.ViewProjectionMatrix)
-        
-        # from .Mesh import Mesh, Material
-        # from .Shader import Shader
-
-        # mesh: Mesh = mesh
-        # mat: Material = mesh.Material
-        # shader: Shader = mat.Shader
-        
-        # mat = mesh.Material
-        # shader = mat.Shader
-
-        # shader.Bind()
-        # shader.SetMat4("u_Camera.ViewProjection", Renderer.__CurrentSceneData.ViewProjectionMatrix)
-        # shader.SetFloat3("u_Camera.Position", Renderer.__CurrentSceneData.CameraPos)
-        
-        # shader.SetMat4("u_Transform.Transform", mesh.Transform)
-
-        RenderCommand.DrawIndexed(mesh.VertexArray)
-
-        return Renderer
-
-    @staticmethod
-    def SubmitMeshes(meshes, directionalLight, pointLights=[], spotLights =[]):
-        for mesh in meshes:
-            Renderer.SubmitMesh(mesh, directionalLight, pointLights, spotLights)
-
         return Renderer
 
     @staticmethod
@@ -128,7 +88,6 @@ class Renderer:
     def GetAPI() -> int:
         return RendererAPI.GetAPI()
 
-@contextmanager
-def BeginRenderer(scene) -> _Type[Renderer]:
-    try     : yield Renderer.BeginScene(scene)
-    finally : Renderer.EndScene()
+class _BeginEndRenderer:
+    def __enter__(self): return self
+    def __exit__(self, exc_type, exc_value, traceback): Renderer.EndScene()

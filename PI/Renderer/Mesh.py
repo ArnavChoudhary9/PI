@@ -6,6 +6,7 @@ from .Material import *
 from .Light import DirectionalLight, PointLight, SpotLight
 
 import pyrr
+from multipledispatch import dispatch
 from math import radians
 from typing import List
 
@@ -15,6 +16,7 @@ class Mesh:
         "__Translation_Matrix", "__Rotation_Matrix", "__Scale_Matrix", "__Transform", "__Transformed", \
         "__Name", "__Path"
 
+    @dispatch(list, list, BufferLayout)
     def __init__(self, vertices: list, indicies: list, layout: BufferLayout,
         name: str=Random.GenerateName("Mesh"),
         translation : pyrr.Vector3=pyrr.Vector3([ 0, 0, 0 ]),
@@ -41,6 +43,39 @@ class Mesh:
         self.__VertexBuffer.SetLayout(layout)
         self.__VertexArray.AddVertexBuffer(self.__VertexBuffer)
         self.__VertexArray.SetIndexBuffer(self.__IndexBuffer)
+
+        if material is None:
+            self.__Material: Material = Material(
+                Material.Type.Standard,
+                diffuse=pyrr.Vector4([ 0.9, 0.1, 0.9, 1.0 ])
+            )
+
+        else: self.__Material = material
+        self.__VertexArray.Unbind()
+
+    @dispatch(VertexArray, VertexBuffer, IndexBuffer)
+    def __init__(self, vertexArray: VertexArray, vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer,
+        name: str=Random.GenerateName("Mesh"),
+        translation : pyrr.Vector3=pyrr.Vector3([ 0, 0, 0 ]),
+        rotation    : pyrr.Vector3=pyrr.Vector3([ 0, 0, 0 ]),
+        scale       : pyrr.Vector3=pyrr.Vector3([ 1, 1, 1 ]),
+        material    : Material = None
+        ) -> None:
+
+        self.__Name = name
+        self.__Path = "Internally Created Mesh"
+
+        self.__Translation = translation
+        self.__Rotation    = rotation
+        self.__Scale       = scale
+
+        self.__Transformed: bool = False
+
+        self._RecalculateTransform()
+
+        self.__VertexArray  : VertexArray  = vertexArray
+        self.__VertexBuffer : VertexBuffer = vertexBuffer
+        self.__IndexBuffer  : IndexBuffer  = indexBuffer
 
         if material is None:
             self.__Material: Material = Material(
@@ -90,8 +125,8 @@ class Mesh:
                 )
 
             mesh = Mesh(
-                vertices=material.vertices, indicies=list(range(0, int(len(material.vertices)/8))),
-                layout=BufferLayout(
+                material.vertices, list(range(0, int(len(material.vertices)/8))),
+                BufferLayout(
                     ( ShaderDataType.Float2, "a_TexCoord" ),
                     ( ShaderDataType.Float3, "a_Normal"   ),
                     ( ShaderDataType.Float3, "a_Position" )
@@ -127,6 +162,10 @@ class Mesh:
     def ScaleMatrix(self) -> pyrr.Vector3: return self.__Scale_Matrix
     @property
     def VertexArray(self) -> VertexArray: return self.__VertexArray
+    @property
+    def VertexBuffer(self) -> VertexBuffer: return self.__VertexBuffer
+    @property
+    def IndexBuffer(self) -> IndexBuffer: return self.__IndexBuffer
 
     def _RecalculateTransform(self) -> None:
         self.__Translation_Matrix = pyrr.matrix44.create_from_translation(self.__Translation)

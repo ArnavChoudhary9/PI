@@ -4,6 +4,7 @@
 **/.vscode
 **/dist
 **/releases
+**/ToIgnore
 
 *.json
 *.prof

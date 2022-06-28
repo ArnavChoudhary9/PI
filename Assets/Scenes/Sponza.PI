@@ -1,0 +1,37 @@
+Entities:
+- Entity: b37bd8b8-bcdd-4d74-be4c-47131ebb72dd
+  LightComponent:
+    Diffuse: !<Vector3> [1.0, 1.0, 1.0]
+    Direction: !<Vector3> [0.0, -1.0, -2.0]
+    Intensity: 1.0
+    LightType: 0
+    Specular: !<Vector3> [1.0, 1.0, 1.0]
+  TagComponent:
+    Tag: Directional Light
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [0.0, 0.0, 0.0]
+- CameraComponent:
+    Camera:
+      ProjectionType: 1
+    FixedAspectRatio: false
+    IsPrimary: true
+  Entity: 794a3742-d3f5-451e-9794-b46d9c4f3f10
+  TagComponent:
+    Tag: Camera
+  TransformComponent:
+    Rotation: !<Vector3> [10.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [6.650000095367432, 26.0, 0.0]
+- Entity: ec27c2a7-06f9-4a3e-bc9f-f64cb98712a9
+  MeshComponent:
+    Path: .\Assets\Meshes\Sponza\Sponza.obj
+  TagComponent:
+    Tag: Sponza
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 90.0, 0.0]
+    Scale: !<Vector3> [0.8999999761581421, 0.8999999761581421, 0.8999999761581421]
+    Translation: !<Vector3> [0.0, 0.0, 0.0]
+Scene: Untitled
+Version: 0.9.4.dev

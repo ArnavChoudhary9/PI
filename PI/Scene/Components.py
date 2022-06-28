@@ -5,13 +5,27 @@ from .SceneCamera import SceneCamera
 from ..Scripting  import ImportClass
 
 import pyrr
-from modulefinder import Module
+
+from uuid import UUID
+from uuid import uuid4 as UUIDGenerator
+
 from multipledispatch import dispatch
 from dataclasses import dataclass
 
 from typing import Callable, TypeVar, Dict, Any
 
 # They are applied to all Entities
+class IDComponent:
+    ID: UUID
+
+    def __init__ (self, id: UUID): self.ID = id
+
+    @property
+    def HEX(self) -> str: return self.ID.hex
+
+    def __int__  (self) -> int : return self.ID.int
+    def __str__  (self) -> str : return str(self.ID)
+    def __repr__ (self) -> str : return self.ID.__repr__()
 class TagComponent:
     Tag: str
 
@@ -56,6 +70,15 @@ class TransformComponent:
     def SetScale(self, scale: pyrr.Vector3) -> None:
         self.Scale = scale
 
+    def Copy(self):
+        component = TransformComponent()
+
+        component.Translation = self.Translation
+        component.Rotation = self.Rotation
+        component.Scale = self.Scale
+
+        return component
+
 # They are only appiled to selective Entities
 class CameraComponent:
     Camera: SceneCamera
@@ -69,6 +92,11 @@ class CameraComponent:
         self.FixedAspectRatio = isFixedAspectratio
 
     def __bool__(self) -> bool: return self.Primary
+
+    def Copy(self):
+        component = CameraComponent(SceneCamera(self.Camera.ProjectionType), self.Primary, self.FixedAspectRatio)
+        component.Camera.CameraObject.SetAspectRatio(self.Camera.CameraObject.AspectRatio)
+        return component
 class MeshComponent:
     MeshObject : Mesh
     Name       : str
@@ -95,6 +123,18 @@ class MeshComponent:
             self.Initialized = True
 
     def __str__(self) -> str: return self.Name
+
+    def Copy(self):
+        mesh = self.MeshObject
+        component = MeshComponent(Mesh(
+            mesh.VertexArray, mesh.VertexBuffer, mesh.IndexBuffer,
+            name=mesh.Name,
+            translation=mesh.Translation,
+            rotation=mesh.Rotation,
+            scale=mesh.Scale,
+            material=mesh.Material
+        ))
+        return component
 class LightComponent:
     @dataclass(frozen=True)
     class TypeEnum:
@@ -112,11 +152,27 @@ class LightComponent:
         else: PI_CORE_ASSERT(False, "Wrong light type!")
 
         self.LightType = _type
+
+    def Copy(self):
+        light = self.Light
+        
+        if self.LightType == LightComponent.TypeEnum.Directional:
+            return LightComponent(
+                LightComponent.TypeEnum.Directional, light.Direction, light.Diffuse, light.Specular, light.Intensity
+            )
+
+        elif self.LightType == LightComponent.TypeEnum.Point:
+            lightToReturn = LightComponent(
+                LightComponent.TypeEnum.Point, diffuse=light.Diffuse, specular=light.Specular, intensity=light.Intensity
+            )
+
+            lightToReturn.Light.SetIndex(light.Index)
+            return lightToReturn
 class ScriptComponent:
     Bound  : bool = False
 
     Entity = None
-    Script : Module
+    Script = None
 
     Path   : str
     _Path  : str
@@ -157,6 +213,14 @@ class ScriptComponent:
     def SetVariables(self, map: Dict[str, Any]) -> None:
         for name, value in map.items(): self.Script.__setattr__(name, value)
 
+    def Copy(self):
+        component = ScriptComponent(self.Path, self.Entity)
+        component.ImportModule()
+        component.SetVariables(self.Variables)
+
+        return component
+
 CTV = TypeVar("CTV",
-        TagComponent, TransformComponent, CameraComponent, MeshComponent, LightComponent, ScriptComponent
+        IDComponent, TagComponent, TransformComponent,
+        CameraComponent, MeshComponent, LightComponent, ScriptComponent
     )
