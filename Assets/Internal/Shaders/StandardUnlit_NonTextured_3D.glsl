@@ -20,9 +20,12 @@ struct Material {
 };
 
 layout(location=0) out vec4 color;
+layout(location=1) out int  entityID;
 
 uniform Material u_Material;
+uniform int u_EntityID;
 
 void main() {
     color = vec4(u_Material.Diffuse, 1.0);
+    entityID = u_EntityID;
 }

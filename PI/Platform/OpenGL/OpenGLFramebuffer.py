@@ -60,6 +60,7 @@ class Utils:
     def IsDepthFormat(format: Framebuffer.TextureFormat):
         if format == Framebuffer.TextureFormat.DEPTH24STENCIL8: return True
         else: return False
+
     def PIFBTextureFormatToGL(format: Framebuffer.TextureFormat):
         if   format == Framebuffer.TextureFormat.RGBA8       : return GL_RGBA8
         elif format == Framebuffer.TextureFormat.RED_INTEGER : return GL_RED_INTEGER
@@ -111,7 +112,6 @@ class OpenGLFramebuffer(Framebuffer):
 
         # Attachments
         if len(self.__ColorAttachmentsSpecs):
-            # self.__ColorAttachments = [0 for _ in len(self.__ColorAttachmentsSpecs)]
             self.__ColorAttachments = Utils.CreateTextures(multisample, len(self.__ColorAttachmentsSpecs))
 
             for attachment, spec in zip(self.__ColorAttachments, self.__ColorAttachmentsSpecs):
@@ -158,8 +158,8 @@ class OpenGLFramebuffer(Framebuffer):
     def ReadPixel(self, attachmentIndex: int, x: int, y: int) -> None:
         PI_CORE_ASSERT(attachmentIndex < len(self.__ColorAttachments), "Index must be less than attachments length")
         glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex)
-        # return glReadPixels(x, y, 1, 1, GL_RGBA, GL_INT)
-        return glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_BYTE)
+        return bytes(glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT))
+        # return glReadPixels(x, y, 1, 1, GL_RGBA, GL_BYTE)
 
     @property
     def Attachments(self) -> _List[int]: return self.__ColorAttachments

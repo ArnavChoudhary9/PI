@@ -127,6 +127,13 @@ class Cache:
         Cache.InitLocalTempDirectory()
         return "C:\\ProgramData\\PI"
 
+# Built-in Math Library
+class Math:
+    @staticmethod
+    def PythonInt32ToBytes( value: int   , byteorder='big' ) -> bytes: return value.to_bytes(4, byteorder)
+    @staticmethod
+    def BytesToPythonInt32( value: bytes , byteorder='big' ) -> bytes: return int.from_bytes(value, byteorder)
+
 # In-Built Random module
 import numpy as _np
 

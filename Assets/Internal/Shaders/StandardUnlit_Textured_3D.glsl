@@ -26,11 +26,14 @@ struct Material {
 };
 
 layout(location=0) out vec4 color;
+layout(location=1) out int  entityID;
 
 in vec2 v_TexCoord;
 
 uniform Material u_Material;
+uniform int u_EntityID;
 
 void main() {
     color = texture(u_Material.AlbedoMap, v_TexCoord * u_Material.TilingFactor) * vec4(u_Material.Diffuse, 1.0);
+    entityID = u_EntityID;
 }

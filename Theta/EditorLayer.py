@@ -12,6 +12,9 @@ Current Configuration: {1}
 Content Browser:
 -> Drag and drop scenes from ContentBrowser (./Scenes/*) to Viewport to load the scene.
 
+-> Click on any object to select it.
+-> Its properties will show up in the Properties panel.
+
 -> You can also drag and drop meshes from ContentBrowser into Filter section in Mesh Component.
 
 Editor Camera:
@@ -19,7 +22,10 @@ Use ALT to acitvate Camera movement.
 Then, you can use:
 Right mouse button -> Zoom,
 Left mouse button -> Rotate,
-Middle mouse -> Pan""" \
+Middle mouse -> Pan
+
+Theme Editor:
+-> You can open Theme Editor from Edit tab.""" \
     .format(PI_VERSION, PI_CONFIG)
 
 class EditorLayer(Layer):
@@ -33,6 +39,9 @@ class EditorLayer(Layer):
 
     __Framebuffer: Framebuffer
     __ViewportSize: ImVec2
+
+    __ViewportBounds : List[ImVec2]
+    __HoveredEntity  : Entity = 0
 
     __ThemePreset: str
     __CurrentTheme: ImGuiTheme
@@ -59,6 +68,7 @@ class EditorLayer(Layer):
     def __init__(self, name: str = "EditorLayer") -> None:
         super().__init__(name=name)
         self.__ViewportSize = ImVec2( 0, 0 )
+        self.__ViewportBounds = [ ImVec2( 0, 0 ) , ImVec2( 0, 0 ) ]
         self.__EditorCamera = EditorCamera(45, 1.778, 0.1, 1000)
 
     def OnAttach(self) -> None:
@@ -125,8 +135,15 @@ class EditorLayer(Layer):
 
         self.__SceneState = EditorLayer.SceneStateEnum.Edit
 
-        self.__PlayIcon = Texture2D.Create( ".\\Theta\\Resources\\Icons\\PlayButton.png" )
-        self.__StopIcon = Texture2D.Create( ".\\Theta\\Resources\\Icons\\StopButton.png" )
+        try:
+            self.__PlayIcon = Texture2D.Create( ".\\Theta\\Resources\\Icons\\PlayButton.png" )
+            self.__StopIcon = Texture2D.Create( ".\\Theta\\Resources\\Icons\\StopButton.png" )
+
+        # This is here for Building
+        # 'cause the Build looks for files in '.'
+        except FileNotFoundError:
+            self.__PlayIcon = Texture2D.Create( ".\\Resources\\Icons\\PlayButton.png" )
+            self.__StopIcon = Texture2D.Create( ".\\Resources\\Icons\\StopButton.png" )
 
     def __NewScene(self) -> None:
         self.__OnScenePause()
@@ -192,14 +209,16 @@ class EditorLayer(Layer):
                 self.__LoadScene()
                 return True
 
+            if event.KeyCode == PI_KEY_F5 and not control and not shift:
+                if self.__SceneState == EditorLayer.SceneStateEnum.Edit:
+                    self.__OnScenePlay()
+                else:
+                    self.__OnScenePause()
+
         def MouseButtonClick(event: MouseButtonPressedEvent) -> bool:
             if event.ButtonCode == PI_MOUSE_BUTTON_LEFT:
-                with self.__Framebuffer:
-                    mousePos = Input.GetMousePos()
-                    PI_CORE_DEBUG("Color of Pixel: {}, {}",
-                        bytes(self.__Framebuffer.ReadPixel(1, mousePos[0], mousePos[1])),
-                        bytes(self.__Framebuffer.ReadPixel(1, mousePos[0], mousePos[1])) == int(32).to_bytes(1, 'big')
-                    )
+                if self.__ViewportHovered and not Input.IsKeyPressed(PI_KEY_LEFT_ALT):
+                    self.__SceneHierarchyPanel.SetSelectedEntity(self.__HoveredEntity)
 
         dispatcher = EventDispatcher(event)
         dispatcher.Dispach(CheckKeys, EventType.KeyPressed)
@@ -272,11 +291,25 @@ class EditorLayer(Layer):
                         PI_V_SYNC = self.vSync
 
                     imgui.text("FPS: {}".format(round(self.__Framerate)))
+                    imgui.text("Hovered Entity: {}".format(int(self.__HoveredEntity) if self.__HoveredEntity else 0))
 
             if self.__ShowThemeEditor: self.ThemeEditor()
 
             imgui.push_style_var(imgui.STYLE_WINDOW_PADDING, ImVec2( 0, 0 ))
             with imgui.begin("Viewport"):
+                viewportMinRegion = imgui.get_window_content_region_min()
+                viewportMaxRegion = imgui.get_window_content_region_max()
+                viewportOffset    = imgui.get_window_position()
+
+                self.__ViewportBounds[0] = ImVec2(
+                    viewportMinRegion[0] + viewportOffset[0],
+                    viewportMinRegion[1] + viewportOffset[1]
+                )
+                self.__ViewportBounds[1] = ImVec2(
+                    viewportMaxRegion[0] + viewportOffset[0],
+                    viewportMaxRegion[1] + viewportOffset[1]
+                )
+
                 viewportPanelSize = imgui.get_content_region_available()
                 self.__ViewportSize = viewportPanelSize
 
@@ -495,11 +528,14 @@ class EditorLayer(Layer):
                 imgui.text("")
 
             imgui.set_cursor_pos_y(imgui.get_window_content_region_max()[1] - 25)
-            imgui.text("Your Theme Preferences will be saved locally.")
-            imgui.same_line()
-
             imgui.set_cursor_pos_x(imgui.get_window_content_region_max()[0] - 90)
+
             save = imgui.button("Save")
+            if imgui.is_item_hovered():
+                imgui.begin_tooltip()
+                imgui.text("Your Theme Preferences will be saved locally")
+                imgui.end_tooltip()
+
             imgui.same_line()
             if imgui.button("Close"): self.__ShowThemeEditor = False
 
@@ -547,6 +583,11 @@ class EditorLayer(Layer):
                 if   self.__SceneState == EditorLayer.SceneStateEnum.Edit: self.__OnScenePlay()
                 elif self.__SceneState == EditorLayer.SceneStateEnum.Play: self.__OnScenePause()
 
+            if imgui.is_item_hovered():
+                imgui.begin_tooltip()
+                imgui.text("You can hit F5 to Play/Pause")
+                imgui.end_tooltip()
+
         imgui.pop_style_var(2)
         imgui.pop_style_color(3)
 
@@ -567,11 +608,32 @@ class EditorLayer(Layer):
 
         with self.__Framebuffer:
             RenderCommand.Clear()
-            self.__Framebuffer.ClearAttachment(1, int(32).to_bytes(1, 'big'))
+
+            # Clear the 2nd Attachment to 0
+            # NOTE: 0 is not a valid i in esper
+            self.__Framebuffer.ClearAttachment(1, Math.PythonInt32ToBytes(0))
 
             if self.__SceneState == EditorLayer.SceneStateEnum.Edit:
                 self.__ActiveScene.OnUpdateEditor(float(timestep), self.__EditorCamera)
             elif self.__SceneState == EditorLayer.SceneStateEnum.Play:
                 self.__ActiveScene.OnUpdateRuntime(float(timestep))
-
+                
             self.__ActiveScene.Draw()
+
+            mx, my = Input.GetMousePos()
+            mx -= self.__ViewportBounds[0][0]
+            my -= self.__ViewportBounds[0][1]
+            viewportSize = ImVec2(
+                self.__ViewportBounds[1][0] - self.__ViewportBounds[0][0],
+                self.__ViewportBounds[1][1] - self.__ViewportBounds[0][1]
+            )
+            my = viewportSize[1] - my
+            mouseX = int(mx)
+            mouseY = int(my)
+
+            if mouseX >= 0 and mouseY >= 0 and mouseX < int(viewportSize[0]) and mouseY < int(viewportSize[1]):
+                pixelData = Math.BytesToPythonInt32(
+                    self.__Framebuffer.ReadPixel(1, mouseX, mouseY),
+                    byteorder='little'   # OpenGL retrives the values in reverse order
+                )
+                self.__HoveredEntity = Entity(pixelData, self.__ActiveScene) if pixelData != 0 else None

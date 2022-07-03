@@ -341,6 +341,7 @@ class Scene:
                 )
 
                 mesh.Material.SetViewProjection(camera.ViewProjectionMatrix)
+                mesh.Material.Shader.SetInt("u_EntityID", entity)
 
                 mesh.VertexArray.Bind()
                 RenderCommand.DrawIndexed(mesh.VertexArray)

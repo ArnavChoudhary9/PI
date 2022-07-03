@@ -15,8 +15,15 @@ class ContentBrowserPanel:
     __AdditionalImages: Dict[str, Texture2D]
 
     def __init__(self) -> None:
-        self.__DirectoryIcon = Texture2D.Create(".\\Theta\\Resources\\Icons\\ContentBrowser\\DirectoryIcon.png")
-        self.__FileIcon      = Texture2D.Create(".\\Theta\\Resources\\Icons\\ContentBrowser\\FileIcon.png")
+        try:
+            self.__DirectoryIcon = Texture2D.Create(".\\Theta\\Resources\\Icons\\ContentBrowser\\DirectoryIcon.png")
+            self.__FileIcon      = Texture2D.Create(".\\Theta\\Resources\\Icons\\ContentBrowser\\FileIcon.png")
+
+        # This is here for Building
+        # 'cause the Build looks for files in '.'
+        except FileNotFoundError:
+            self.__DirectoryIcon = Texture2D.Create(".\\Resources\\Icons\\ContentBrowser\\DirectoryIcon.png")
+            self.__FileIcon      = Texture2D.Create(".\\Resources\\Icons\\ContentBrowser\\FileIcon.png")
 
         self.__AdditionalImages = {}
 

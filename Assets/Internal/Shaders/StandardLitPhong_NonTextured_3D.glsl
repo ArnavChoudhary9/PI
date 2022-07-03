@@ -81,6 +81,7 @@ struct SpotLight {
 #define MAX_SPOT_LIGHTS  32
 
 layout(location=0) out vec4 color;
+layout(location=1) out int  entityID;
 
 in vec2 v_TexCoord;
 in vec3 v_Normal;
@@ -97,6 +98,7 @@ uniform int u_NumPointLights;      // This is just to save time not looping over
 uniform int u_NumSpotLights;       // This is just to save time not looping over all lights
 
 uniform vec3 u_CameraPos;
+uniform int  u_EntityID;
 
 vec3 CalculateDirectionalLight(vec3, vec3);
 vec3 CalculatePointLight(vec3, vec3);
@@ -122,6 +124,7 @@ void main() {
     result += ambient;
 
     color = vec4(result, 1.0);
+    entityID = u_EntityID;
 }
 
 vec3 CalculateDirectionalLight(vec3 norm, vec3 viewDir) {
