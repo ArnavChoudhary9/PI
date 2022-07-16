@@ -11,5 +11,5 @@ class OBJReader:
     def Read(path: str):
         pywavefront.parser.logger = OBJReader.__CustomLoggerForPyWavefront
         pywavefront.logger        = OBJReader.__CustomLoggerForPyWavefront
-        scene = pywavefront.Wavefront(path, collect_faces=True, create_materials=True)
+        scene = pywavefront.Wavefront(path, strict=True, collect_faces=True, create_materials=True, cache=False)
         return scene

@@ -63,31 +63,10 @@ class Material:
         textureSpecular : Texture2D=None,
 
         tilingFactor : float = 1.0,
-
         shininess: float=32,
+
         name: str=Random.GenerateName("Material")
         ) -> None:
-
-        if Material.Type.Is(_type, Material.Type.Lit):
-            if Material.Type.Is(_type, Material.Type.Phong):
-                if Material.Type.Is(_type, Material.Type.Textured):
-                    self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardLitPhong_Textured_3D.glsl")
-                elif not Material.Type.Is(_type, Material.Type.Textured):
-                    self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardLitPhong_NonTextured_3D.glsl")
-                else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
-            
-            else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
-
-        elif not Material.Type.Is(_type, Material.Type.Lit):
-            if Material.Type.Is(_type, Material.Type.Textured):
-                self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardUnlit_Textured_3D.glsl")
-            elif not Material.Type.Is(_type, Material.Type.Textured):
-                self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardUnlit_NonTextured_3D.glsl")
-            else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
-
-        else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
-
-        # self.__Shader: Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\3D_Shader.glsl")
 
         self.__TextureAlbedo   : Texture2D = textureAlbedo
         self.__TextureSpecular : Texture2D = textureSpecular
@@ -98,20 +77,55 @@ class Material:
         self.__Specular = specular
         self.__Shininess= shininess
 
-        self.__Name     = name
-        self.__Type     = _type
+        self.__Name = name
+        self.__Type = _type
+
+        self.ResetShader()
+
+    def ResetShader(self) -> None:
+        if Material.Type.Is(self.__Type, Material.Type.Lit):
+            if Material.Type.Is(self.__Type, Material.Type.Phong):
+                if Material.Type.Is(self.__Type, Material.Type.Textured):
+                    self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardLitPhong_Textured_3D.glsl")
+                elif not Material.Type.Is(self.__Type, Material.Type.Textured):
+                    self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardLitPhong_NonTextured_3D.glsl")
+                else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
+            
+            else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
+
+        elif not Material.Type.Is(self.__Type, Material.Type.Lit):
+            if Material.Type.Is(self.__Type, Material.Type.Textured):
+                self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardUnlit_Textured_3D.glsl")
+            elif not Material.Type.Is(self.__Type, Material.Type.Textured):
+                self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardUnlit_NonTextured_3D.glsl")
+            else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
+
+        else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
 
     @property
-    def Name(self) -> str:
-        return self.__Name
+    def Name    (self) -> str    : return self.__Name
+    @property
+    def MatType (self) -> int    : return self.__Type
+    @property
+    def Shader  (self) -> Shader : return self.__Shader
 
     @property
-    def MatType(self) -> int:
-        return self.__Type
+    def Diffuse   (self) -> pyrr.Vector4 : return self.__Diffuse
+    @property
+    def Specular  (self) -> pyrr.Vector4 : return self.__Specular
+    @property
+    def Shininess (self) -> float        : return self.__Shininess
 
     @property
-    def Shader(self) -> Shader:
-        return self.__Shader
+    def AlbedoMap (self) -> pyrr.Vector4 : return self.__TextureAlbedo
+
+    def SetDiffuse   (self, diffuse   : pyrr.Vector4) -> None: self.__Diffuse = diffuse
+    def SetSpecular  (self, specular  : pyrr.Vector4) -> None: self.__Specular = specular
+    def SetShininess (self, shininess : pyrr.Vector4) -> None: self.__Shininess = shininess
+
+    def SetType(self, _type: int) -> None:
+        self.__Type = _type
+        self.ResetShader()
 
     def Bind(self) -> None:
         self.__Shader.Bind()

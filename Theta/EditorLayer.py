@@ -293,6 +293,41 @@ class EditorLayer(Layer):
                     imgui.text("FPS: {}".format(round(self.__Framerate)))
                     imgui.text("Hovered Entity: {}".format(int(self.__HoveredEntity) if self.__HoveredEntity else 0))
 
+                    imgui.text("\nRenderer Stats:")
+                    imgui.separator()
+                    imgui.text("Draw Calls: {}".format(StateManager.Stats.DrawCalls))
+                    
+                    flags = imgui.TREE_NODE_OPEN_ON_ARROW | imgui.TREE_NODE_SPAN_AVAILABLE_WIDTH
+                    if imgui.tree_node("Shaders (Binded {} times)".format(StateManager.Stats.Shaders.ShadersBinded),
+                        flags=flags):
+                        
+                        imgui.text("Uniforms:")
+                        imgui.text("\tTotal Uniforms Uploaded : {}" \
+                            .format(StateManager.Stats.Shaders.Uniforms.TotalUniforms))
+
+                        imgui.text("")
+                        imgui.text("\tTotal Ints Uploaded : {}" \
+                            .format(StateManager.Stats.Shaders.Uniforms.Ints))
+
+                        imgui.text("\tTotal Floats Uploaded : {}" \
+                            .format(StateManager.Stats.Shaders.Uniforms.Floats))
+
+                        imgui.text("")
+                        imgui.text("\tTotal Vector3's Uploaded : {}" \
+                            .format(StateManager.Stats.Shaders.Uniforms.Vector3))
+
+                        imgui.text("\tTotal Vector4's Uploaded : {}" \
+                            .format(StateManager.Stats.Shaders.Uniforms.Vector4))
+
+                        imgui.text("")
+                        imgui.text("\tTotal Matrix 3x3 Uploaded : {}" \
+                            .format(StateManager.Stats.Shaders.Uniforms.Matrix_3x3))
+
+                        imgui.text("\tTotal Matrix 4x4 Uploaded : {}" \
+                            .format(StateManager.Stats.Shaders.Uniforms.Matrix_4x4))
+
+                        imgui.tree_pop()
+
             if self.__ShowThemeEditor: self.ThemeEditor()
 
             imgui.push_style_var(imgui.STYLE_WINDOW_PADDING, ImVec2( 0, 0 ))
@@ -604,13 +639,14 @@ class EditorLayer(Layer):
             self.__Framebuffer.Resize(*self.__ViewportSize)
             Renderer.OnResize(*self.__ViewportSize)
             self.__EditorCamera.SetAspectRatio(self.__ViewportSize.x / self.__ViewportSize.y)
+            self.__EditorScene.OnViewportResize(*self.__ViewportSize)
             self.__ActiveScene.OnViewportResize(*self.__ViewportSize)
 
         with self.__Framebuffer:
             RenderCommand.Clear()
 
             # Clear the 2nd Attachment to 0
-            # NOTE: 0 is not a valid i in esper
+            # NOTE: 0 is not a valid ID in esper
             self.__Framebuffer.ClearAttachment(1, Math.PythonInt32ToBytes(0))
 
             if self.__SceneState == EditorLayer.SceneStateEnum.Edit:

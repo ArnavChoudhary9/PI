@@ -11,7 +11,7 @@ from math import radians
 from typing import List
 
 class Mesh:
-    __slots__ = "__VertexArray", "__VertexBuffer", "__IndexBuffer", "__Material", \
+    __slots__ = "__VertexArray", "__VertexBuffer", "__IndexBuffer", \
         "__Translation", "__Rotation", "__Scale", \
         "__Translation_Matrix", "__Rotation_Matrix", "__Scale_Matrix", "__Transform", "__Transformed", \
         "__Name", "__Path"
@@ -21,8 +21,7 @@ class Mesh:
         name: str=Random.GenerateName("Mesh"),
         translation : pyrr.Vector3=pyrr.Vector3([ 0, 0, 0 ]),
         rotation    : pyrr.Vector3=pyrr.Vector3([ 0, 0, 0 ]),
-        scale       : pyrr.Vector3=pyrr.Vector3([ 1, 1, 1 ]),
-        material    : Material = None
+        scale       : pyrr.Vector3=pyrr.Vector3([ 1, 1, 1 ])
         ) -> None:
 
         self.__Name = name
@@ -41,16 +40,9 @@ class Mesh:
         self.__IndexBuffer  : IndexBuffer  = IndexBuffer.Create(indicies)
 
         self.__VertexBuffer.SetLayout(layout)
+
         self.__VertexArray.AddVertexBuffer(self.__VertexBuffer)
         self.__VertexArray.SetIndexBuffer(self.__IndexBuffer)
-
-        if material is None:
-            self.__Material: Material = Material(
-                Material.Type.Standard,
-                diffuse=pyrr.Vector4([ 0.9, 0.1, 0.9, 1.0 ])
-            )
-
-        else: self.__Material = material
         self.__VertexArray.Unbind()
 
     @dispatch(VertexArray, VertexBuffer, IndexBuffer)
@@ -58,8 +50,7 @@ class Mesh:
         name: str=Random.GenerateName("Mesh"),
         translation : pyrr.Vector3=pyrr.Vector3([ 0, 0, 0 ]),
         rotation    : pyrr.Vector3=pyrr.Vector3([ 0, 0, 0 ]),
-        scale       : pyrr.Vector3=pyrr.Vector3([ 1, 1, 1 ]),
-        material    : Material = None
+        scale       : pyrr.Vector3=pyrr.Vector3([ 1, 1, 1 ])
         ) -> None:
 
         self.__Name = name
@@ -76,14 +67,7 @@ class Mesh:
         self.__VertexArray  : VertexArray  = vertexArray
         self.__VertexBuffer : VertexBuffer = vertexBuffer
         self.__IndexBuffer  : IndexBuffer  = indexBuffer
-
-        if material is None:
-            self.__Material: Material = Material(
-                Material.Type.Standard,
-                diffuse=pyrr.Vector4([ 0.9, 0.1, 0.9, 1.0 ])
-            )
-
-        else: self.__Material = material
+        
         self.__VertexArray.Unbind()
 
     @staticmethod
@@ -131,12 +115,11 @@ class Mesh:
                     ( ShaderDataType.Float3, "a_Normal"   ),
                     ( ShaderDataType.Float3, "a_Position" )
                 ),
-                material=mat,
                 name=nameMesh
             )
             mesh.__Path = path
 
-            objects.append(mesh)
+            objects.append((mesh, mat))
 
         return objects
 
@@ -152,8 +135,6 @@ class Mesh:
     def Rotation(self) -> pyrr.Vector3: return self.__Rotation
     @property
     def Scale(self) -> pyrr.Vector3: return self.__Scale
-    @property
-    def Material(self) -> Material: return self.__Material
     @property
     def TranslationMatrix(self) -> pyrr.Vector3: return self.__Translation_Matrix
     @property

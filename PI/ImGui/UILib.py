@@ -85,7 +85,8 @@ class UILib:
 
     @staticmethod
     def DrawTextFieldControls(
-        lable: str, value: str, columnWidth: float=50, acceptDragDrop: bool=False, filter: Tuple[str]=None
+        lable: str, value: str, columnWidth: float=50,
+        acceptDragDrop: bool=False, filter: Tuple[str]=None, tooltip: str=None
     ) -> Tuple[bool, str]:
         imgui.push_id(lable)
 
@@ -97,6 +98,11 @@ class UILib:
         imgui.push_item_width(imgui.calculate_item_width() * 1.5)
         changed, newText = imgui.input_text("##Filter", value, 512)
         imgui.pop_item_width()
+
+        if tooltip and imgui.is_item_hovered():
+            imgui.begin_tooltip()
+            imgui.text(tooltip)
+            imgui.end_tooltip()
 
         dragDrop = False
         if acceptDragDrop:
@@ -168,13 +174,15 @@ class UILib:
         return changed, value
         
     @staticmethod
-    def DrawIntControls(lable: str, value: int, speed: float=0.05, columnWidth: float=100) -> Tuple[bool, int]:
+    def DrawIntControls(lable: str, value: int, speed: float=0.05,
+        minValue: int=0.0, maxValue: int=0.0,
+        columnWidth: float=100) -> Tuple[bool, int]:
         imgui.push_id(lable)
         imgui.columns(2)
         imgui.set_column_width(0, columnWidth)
         imgui.text(lable)
         imgui.next_column()
-        changed, value = imgui.drag_int("##Value", value, change_speed=speed)
+        changed, value = imgui.drag_int("##Value", value, change_speed=speed, min_value=minValue, max_value=maxValue)
         imgui.columns(1)
         imgui.pop_id()
 
@@ -200,7 +208,7 @@ class UILib:
         imgui.set_column_width(0, columnWidth)
         imgui.text(lable)
         imgui.next_column()
-        changed, value = imgui.color_edit4("##Value", value.x, value.y, value.z, value.w)
+        changed, value = imgui.color_edit4("##Value", value[0], value[1], value[2], value[3])
         imgui.columns(1)
         imgui.pop_id()
 

@@ -4,7 +4,7 @@ from .Input     import Input
 from ..ImGui    import ImGuiLayer
 from ..Layers   import *
 from ..Platform import *
-from ..Renderer import RenderCommand, Renderer, Renderer2D
+from ..Renderer import RenderCommand, Renderer, Renderer2D, Shader
 from .Timestep  import Timestep
 from .Window   import Window, WindowProperties
 from .StateManager import StateManager
@@ -60,6 +60,7 @@ class PI_Application(ABC):
         # Renderer 2D can only be initialized after Rendering API is Initializd
         # i.e. After window is created
         Renderer2D.Init()
+        Renderer.LineShader: Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\Line3D.glsl")
 
         self._IsMinimised = False
 

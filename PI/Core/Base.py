@@ -5,21 +5,11 @@ from typing import Tuple as _Tuple
 import os
 from tempfile import gettempdir
 
-PI_VERSION       : str         = "0.9.4.dev"
-PI_VERSION_TUPLE : _Tuple[int] = (0,9,4)
+PI_VERSION_TUPLE : _Tuple[int] = (1,0,0)
+PI_VERSION       : str         = f"{'.'.join([str(_) for _ in PI_VERSION_TUPLE])}.dev"
 
 PI_LATEST_UPDATE: str = """
-    x.x.0
-    Improved Visuals
-
-    x.x.1
-    Improved Framebuffer API
-
-    x.x.2
-    Added ECS & Panels
-
-    x.x.3
-    Improved Material System
+    New Material System
 """
 
 #-------------------------------------------------------------------

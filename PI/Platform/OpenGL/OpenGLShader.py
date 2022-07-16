@@ -1,5 +1,5 @@
-from PI.Logging.logger import PI_CORE_ASSERT, PI_CORE_WARN
-from ...Renderer import Shader
+from ...Logging import PI_CORE_ASSERT, PI_CORE_WARN
+from ...Renderer import PI_DEBUG, StateManager, Shader
 
 from OpenGL.GL import glDeleteProgram, glUseProgram,\
     glGetUniformLocation, \
@@ -84,8 +84,11 @@ class OpenGLShader(Shader):
 
     def __repr__(self) -> str: return self.__Name
     def __del__ (self) -> None: glDeleteProgram(self.__RendererID)
-    def Bind    (self) -> None: glUseProgram(self.__RendererID)
     def Unbind  (self) -> None: glUseProgram(0)
+    
+    def Bind    (self) -> None:
+        if PI_DEBUG: StateManager.Stats.Shaders.ShadersBinded += 1
+        glUseProgram(self.__RendererID)
 
     def _GetUniformLocation(self, name: str) -> int:
         location = self.__UniformLocations.get(name, False)
@@ -95,14 +98,26 @@ class OpenGLShader(Shader):
         return location
 
     def SetMat4(self, name: str, matrix: pyrr.Matrix44) -> None:
+        if PI_DEBUG:
+            StateManager.Stats.Shaders.Uniforms.TotalUniforms += 1
+            StateManager.Stats.Shaders.Uniforms.Matrix_4x4 += 1
+
         location = self._GetUniformLocation(name)
         glUniformMatrix4fv(location, 1, GL_FALSE, matrix)
 
     def SetFloat3(self, name: str, vector: pyrr.Vector3) -> None:
+        if PI_DEBUG:
+            StateManager.Stats.Shaders.Uniforms.TotalUniforms += 1
+            StateManager.Stats.Shaders.Uniforms.Vector3 += 1
+
         location = self._GetUniformLocation(name)
         glUniform3f(location, vector.x, vector.y, vector.z)
 
     def SetFloat4(self, name: str, vector: pyrr.Vector4) -> None:
+        if PI_DEBUG:
+            StateManager.Stats.Shaders.Uniforms.TotalUniforms += 1
+            StateManager.Stats.Shaders.Uniforms.Vector4 += 1
+
         location = self._GetUniformLocation(name)
         glUniform4f(location, vector.x, vector.y, vector.z, vector.w)
 
@@ -111,10 +126,18 @@ class OpenGLShader(Shader):
         glUniform2f(location, x, y)
 
     def SetFloat(self, name: str, value: float) -> None:
+        if PI_DEBUG:
+            StateManager.Stats.Shaders.Uniforms.TotalUniforms += 1
+            StateManager.Stats.Shaders.Uniforms.Floats += 1
+
         location = self._GetUniformLocation(name)
         glUniform1f(location, value)
 
     def SetInt(self, name: str, value: int) -> None:
+        if PI_DEBUG:
+            StateManager.Stats.Shaders.Uniforms.TotalUniforms += 1
+            StateManager.Stats.Shaders.Uniforms.Ints += 1
+
         location = self._GetUniformLocation(name)
         glUniform1i(location, value)
 

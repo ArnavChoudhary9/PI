@@ -3,7 +3,7 @@ import os
 def ImportClass(path: str, error: bool=True):
     '''
     This Function returns the class of matching name to filename.
-    NOTE: File shiuld be in some folder else it will not work.
+    NOTE: File should be in some folder else it will not work.
     '''
     if error and not os.path.exists(path): raise ImportError("Invalid path to file")
     path = path.replace("\\", "/")

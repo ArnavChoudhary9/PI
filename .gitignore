@@ -8,6 +8,7 @@
 
 *.json
 *.prof
+*.docx
 *.zip
 
 *.xcf

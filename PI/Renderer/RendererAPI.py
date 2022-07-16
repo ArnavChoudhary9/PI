@@ -22,33 +22,22 @@ class RendererAPI:
         return None
 
     @staticmethod
-    def SetClearColor(*args) -> None:
-        pass
+    def SetClearColor(*args) -> None: ...
+    @staticmethod
+    def Clear() -> None: ...
+    @staticmethod
+    def DrawIndexed(vertexArray, indices: int=None) -> None: ...
+    @staticmethod
+    def DrawLines(vertexArray, indices: int) -> None: ...
+    @staticmethod
+    def EnableDepth() -> None: ...
+    @staticmethod
+    def EnableBlending() -> None: ...
+    @staticmethod
+    def EnableCulling() -> None: ...
 
     @staticmethod
-    def Clear() -> None:
-        pass
+    def GetAPI() -> int: return RendererAPI.__API
 
     @staticmethod
-    def DrawIndexed(vertexArray) -> None:
-        pass
-
-    @staticmethod
-    def EnableDepth() -> None:
-        pass
-
-    @staticmethod
-    def EnableBlending() -> None:
-        pass
-
-    @staticmethod
-    def EnableCulling() -> None:
-        pass
-
-    @staticmethod
-    def GetAPI() -> int:
-        return RendererAPI.__API
-
-    @staticmethod
-    def SetAPI(api: int) -> None:
-        RendererAPI.__API = api
+    def SetAPI(api: int) -> None: RendererAPI.__API = api

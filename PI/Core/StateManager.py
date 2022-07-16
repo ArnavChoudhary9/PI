@@ -3,6 +3,35 @@ class PI:
         __slots__ = "__CurrentApplication", \
             "__CurrentWindow", "__CurrentNativeWindow"
 
+        class Stats:
+            DrawCalls: int = 0
+
+            class Shaders:
+                ShadersBinded: int = 0
+
+                class Uniforms:
+                    TotalUniforms: int = 0
+
+                    Ints: int = 0
+                    Floats: int = 0
+                    Vector3: int = 0
+                    Vector4: int = 0
+                    Matrix_3x3: int = 0
+                    Matrix_4x4: int = 0
+
+            @staticmethod
+            def Reset() -> None:
+                PI.State.Stats.DrawCalls = 0
+                PI.State.Stats.Shaders.ShadersBinded = 0
+
+                PI.State.Stats.Shaders.Uniforms.TotalUniforms = 0
+                PI.State.Stats.Shaders.Uniforms.Ints = 0
+                PI.State.Stats.Shaders.Uniforms.Floats = 0
+                PI.State.Stats.Shaders.Uniforms.Vector3 = 0
+                PI.State.Stats.Shaders.Uniforms.Vector4 = 0
+                PI.State.Stats.Shaders.Uniforms.Matrix_3x3 = 0
+                PI.State.Stats.Shaders.Uniforms.Matrix_4x4 = 0
+
         @staticmethod
         def SetContext(app):
             return (

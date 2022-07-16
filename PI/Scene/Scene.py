@@ -1,4 +1,4 @@
-from ..Renderer  import Camera, EditorCamera, RenderCommand
+from ..Renderer  import Camera, EditorCamera, RenderCommand, Mesh, Material
 from ..Core      import PI_TIMER, PI_VERSION, Cache, Random
 from .Components import *
 from .Entity     import Entity
@@ -328,26 +328,38 @@ class Scene:
         if self._DrawCamera is None and self.PrimaryCameraEntity is None: return
 
         with Renderer.BeginScene(self, self._DrawCamera):
-            for entity, meshComponent in self._Registry.get_component(MeshComponent):
+            for entity, (meshComponent, materialComponent) in self._Registry.get_components(MeshComponent, MaterialComponent):
                 if not meshComponent.Initialized: continue
                 mesh = meshComponent.MeshObject
-                camera = self._DrawCamera if self._DrawCamera else self.PrimaryCameraEntity.GetComponent(CameraComponent).Camera.CameraObject
+                camera = self._DrawCamera if self._DrawCamera else \
+                    self.PrimaryCameraEntity.GetComponent(CameraComponent).Camera.CameraObject
+
+                mesh._RecalculateTransform()
+
+                material: Material = materialComponent.MaterialObject
+                material.Bind()
+                material.SetFields(mesh, camera.Position)
+
+                # Light stuff
+                if Material.Type.Is(material.MatType, Material.Type.Lit):
+                    self._DirectionalLight.UploadPropertiesToShader(material.Shader)
                 
-                mesh.Bind(
-                    self._DirectionalLight,
-                    self._PointLights, len(self._PointLights),
-                    self._SpotLights , len(self._SpotLights),
-                    camera.Position
-                )
+                    for light in self._PointLights:
+                        light.UploadPropertiesToShader(material.Shader)
+                
+                    for light in self._SpotLights:
+                        light.UploadPropertiesToShader(material.Shader)
 
-                mesh.Material.SetViewProjection(camera.ViewProjectionMatrix)
-                mesh.Material.Shader.SetInt("u_EntityID", entity)
+                    material.Shader.SetInt("u_NumPointLights", len(self._PointLights))
+                    material.Shader.SetInt("u_NumSpotLights", len(self._SpotLights))
 
-                mesh.VertexArray.Bind()
+                material.SetViewProjection(camera.ViewProjectionMatrix)
+                material.Shader.SetInt("u_EntityID", entity)
+
                 RenderCommand.DrawIndexed(mesh.VertexArray)
 
+                material.Shader.Unbind()
                 mesh.VertexArray.Unbind()
-                mesh.Material.Shader.Unbind()
 
     def OnViewportResize(self, width: int, height: int) -> None:
         self._ViewportWidth, self._ViewportHeight = width, height
@@ -377,8 +389,13 @@ class Scene:
                 component.Light.SetIndex( len( self._SpotLights  ) )
                 self._SpotLights.append(component.Light)
 
-        elif isinstance(component, ScriptComponent) : component.ImportModule()
-        elif isinstance(component, MeshComponent)   : component.Init()
+        elif isinstance(component, ScriptComponent): component.ImportModule()
+
+        elif isinstance(component, MeshComponent):
+            component.Init()
+            if component.Path is not "": entity.AddComponent(MaterialComponent, component.Path)
+        
+        elif isinstance(component, MaterialComponent): component.Init()
 
     def _OnComponentRemoved(self, entity: Entity, component: CTV) -> None:
         if isinstance(component, LightComponent):

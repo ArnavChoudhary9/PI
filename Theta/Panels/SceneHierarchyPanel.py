@@ -175,6 +175,14 @@ class SceneHierarchyPanel:
 
                 imgui.end_menu()
 
+            if imgui.menu_item("Material")[0]:
+                if not self.__SelectionContext.HasComponent(MaterialComponent):
+                    self.__SelectionContext.AddComponent(MaterialComponent,
+                        Material(Material.Type.Standard | Material.Type.Lit | Material.Type.Phong)
+                    )
+                else: PI_CLIENT_WARN("Entity already has a Material Component")
+                imgui.close_current_popup()
+
             if imgui.menu_item("Light")[0]:
                 if not self.__SelectionContext.HasComponent(LightComponent):
                     self.__SelectionContext.AddComponent(LightComponent, LightComponent.TypeEnum.Point)
@@ -197,7 +205,9 @@ class SceneHierarchyPanel:
             component.SetScale       ( UILib.DrawVector3Controls( "Scale"       , component.Scale, 1         ) [1] )
 
         def _MeshUIFunction(entity: Entity, component: MeshComponent) -> None:
-            changed, path, dragDrop = UILib.DrawTextFieldControls("Filter", component.Path, acceptDragDrop=True, filter=".obj")
+            changed, path, dragDrop = UILib.DrawTextFieldControls(
+                "Filter", component.Path, acceptDragDrop=True,
+                filter=".obj", tooltip="You can drag drop meshes from Content Browser.")
 
             if changed: component.Path = path
 
@@ -214,7 +224,26 @@ class SceneHierarchyPanel:
                     return
 
                 entity.RemoveComponent(MeshComponent)
+                entity.RemoveComponent(MaterialComponent)
                 entity.AddComponent(MeshComponent, component.Path).Init()
+
+        def _MaterialUIFunction(entity: Entity, component: MaterialComponent) -> None:
+            changed, component.Textured = UILib.DrawBoolControls("Textured", component.Textured)
+
+            changed, color = UILib.DrawColor4Controls("Diffuse", component.MaterialObject.Diffuse)
+            if changed: component.MaterialObject.SetDiffuse(color)
+
+            if component.Textured:
+                pass
+            elif Material.Type.Is(component.MaterialObject.MatType, Material.Type.Textured):
+                component.MaterialObject.SetType(component.MaterialObject.MatType ^ Material.Type.Textured)
+            
+            changed, color = UILib.DrawColor4Controls("Specular", component.MaterialObject.Specular)
+            if changed: component.MaterialObject.SetSpecular(color)
+            
+            changed, shininess = UILib.DrawIntControls("Shininess", component.MaterialObject.Shininess,
+                minValue=0, maxValue=128)
+            if changed: component.MaterialObject.SetShininess(shininess)
 
         def _ScriptUIFunction(entity: Entity, component: ScriptComponent) -> None:
             scripts = _ProcessScriptFiles(".\\Assets")
@@ -343,6 +372,7 @@ class SceneHierarchyPanel:
 
         SceneHierarchyPanel.DrawComponent( "Transform" , entity , TransformComponent , _TransformUIFunction )
         SceneHierarchyPanel.DrawComponent( "Mesh"      , entity , MeshComponent      , _MeshUIFunction      )
+        SceneHierarchyPanel.DrawComponent( "Material"  , entity , MaterialComponent  , _MaterialUIFunction  )
         SceneHierarchyPanel.DrawComponent( "Script"    , entity , ScriptComponent    , _ScriptUIFunction    )
         SceneHierarchyPanel.DrawComponent( "Light"     , entity , LightComponent     , _LightUIFunction     )
         SceneHierarchyPanel.DrawComponent( "Camera"    , entity , CameraComponent    , _CameraUIFunction    )

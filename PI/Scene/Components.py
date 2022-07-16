@@ -1,5 +1,6 @@
 from ..Logging.logger import PI_CORE_ASSERT
 from ..Renderer.Mesh  import Mesh
+from ..Renderer.Material import Material
 from ..Renderer.Light import *
 from .SceneCamera import SceneCamera
 from ..Scripting  import ImportClass
@@ -117,7 +118,10 @@ class MeshComponent:
 
     def Init(self) -> None:
         if self.Path != "" and not self.Initialized:
-            self.MeshObject: Mesh = Mesh.Load(self.Path)[0]
+            meshes = Mesh.Load(self.Path)
+            PI_CORE_ASSERT(len(meshes), "Meshes not imported properly.")
+            mesh = meshes[0]
+            self.MeshObject: Mesh = mesh[0]
             self.Name = self.MeshObject.Name
 
             self.Initialized = True
@@ -131,10 +135,42 @@ class MeshComponent:
             name=mesh.Name,
             translation=mesh.Translation,
             rotation=mesh.Rotation,
-            scale=mesh.Scale,
-            material=mesh.Material
+            scale=mesh.Scale
         ))
         return component
+class MaterialComponent:
+    MaterialObject : Material
+    Textured       : bool = False
+    Name           : str
+    Path           : str
+
+    Initialized: bool = False
+
+    @dispatch(Material)
+    def __init__(self, material: Material) -> None:
+        self.MaterialObject = material
+        self.Name           = material.Name
+        self.Path           = ""
+
+        if self.MaterialObject.AlbedoMap is not None: self.Textured = True
+
+        self.Initialized = True
+
+    @dispatch(str)
+    def __init__(self, path: str) -> None:
+        self.Path: str = path
+
+    def Init(self) -> None:
+        if self.Path != "" and not self.Initialized:
+            mesh = Mesh.Load(self.Path)[0]
+            self.MaterialObject: Material = mesh[1]
+            self.Name = self.MaterialObject.Name
+
+            if self.MaterialObject.AlbedoMap is not None: self.Textured = True
+
+            self.Initialized = True
+
+    def __str__(self) -> str: return self.Name
 class LightComponent:
     @dataclass(frozen=True)
     class TypeEnum:
@@ -180,7 +216,22 @@ class ScriptComponent:
 
     @property
     def Variables(self) -> Dict[str, Any]:
-        return { name: instance for name, instance in self.Script.__dict__.items() if not name.startswith("_") }
+        if not self.Bound: return {}
+        variables: Dict[str, Any] = {}
+
+        # Annotation first, as variable declaration,
+        # should override the annotations
+        annotations: Dict[str, Any] = type(self.Script).__dict__.get("__annotations__", False)
+        if annotations:
+            for name, _type in annotations.items():
+                if name.startswith("_"): continue
+                variables[name] = _type()
+
+        for name, value in self.Script.__dict__.items():
+            if name.startswith("_"): continue
+            variables[name] = value
+
+        return variables
 
     OnAttach: Callable[[], None]
     OnDetach: Callable[[], None]
@@ -222,5 +273,5 @@ class ScriptComponent:
 
 CTV = TypeVar("CTV",
         IDComponent, TagComponent, TransformComponent,
-        CameraComponent, MeshComponent, LightComponent, ScriptComponent
+        CameraComponent, MeshComponent, MaterialComponent, LightComponent, ScriptComponent
     )

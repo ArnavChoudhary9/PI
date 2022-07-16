@@ -1,4 +1,6 @@
 from ..Logging.logger  import PI_CORE_ASSERT
+from ..Core.Base import PI_DEBUG
+from ..Core.StateManager import StateManager
 from .Renderer import Renderer, RendererAPI
 
 import pyrr
