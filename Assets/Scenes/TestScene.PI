@@ -3,7 +3,7 @@ Entities:
   MeshComponent:
     Path: .\Assets\Internal\Meshes\Sphere.obj
   ScriptComponent:
-    Path: .\Assets\Scripts\FallDown.py
+    Namespace: FallDown.FallDown
     Variables:
       TestVariable: !<Vector3> [0.0, -0.5, 0.0]
   TagComponent:
@@ -16,7 +16,7 @@ Entities:
   MeshComponent:
     Path: .\Assets\Meshes\TexturedCube.obj
   ScriptComponent:
-    Path: .\Assets\Scripts\TestScript.py
+    Namespace: TestScript.TestScript
     Variables:
       TestBool: true
       TestColor: !<Color4> [0.6784382462501526, 0.7220077514648438, 0.2313769906759262,
@@ -132,4 +132,4 @@ Entities:
     Scale: !<Vector3> [1.0, 1.0, 1.0]
     Translation: !<Vector3> [0.0, 0.0, -7.0]
 Scene: Untitled
-Version: 0.9.4.dev
+Version: 1.0.0.dev

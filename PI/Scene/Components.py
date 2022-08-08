@@ -3,7 +3,7 @@ from ..Renderer.Mesh  import Mesh
 from ..Renderer.Material import Material
 from ..Renderer.Light import *
 from .SceneCamera import SceneCamera
-from ..Scripting  import ImportClass
+from ..Scripting  import *
 
 import pyrr
 
@@ -210,63 +210,40 @@ class ScriptComponent:
     Entity = None
     Script = None
 
-    Path   : str
-    _Path  : str
     Name   : str
-
-    @property
-    def Variables(self) -> Dict[str, Any]:
-        if not self.Bound: return {}
-        variables: Dict[str, Any] = {}
-
-        # Annotation first, as variable declaration,
-        # should override the annotations
-        annotations: Dict[str, Any] = type(self.Script).__dict__.get("__annotations__", False)
-        if annotations:
-            for name, _type in annotations.items():
-                if name.startswith("_"): continue
-                variables[name] = _type()
-
-        for name, value in self.Script.__dict__.items():
-            if name.startswith("_"): continue
-            variables[name] = value
-
-        return variables
+    Module : str
 
     OnAttach: Callable[[], None]
     OnDetach: Callable[[], None]
     OnUpdate: Callable[[float], None]
 
-    def __init__(self, pathToScript: str, entity) -> None:
+    def __init__(self, module: str, name: str, entity) -> None:
         self.Entity = entity
-        self.Path  = pathToScript
-        self._Path = pathToScript
-
-    def ImportModule(self) -> None:
-        self.Name = "Script not set"
-        if self.Path == ".": return
-        
-        self.Name, self.Script = ImportClass(self.Path, False)
-        self.Bind()
+        self.Module = module
+        self.Name   = name
 
     def Bind(self) -> None:
         if self.Bound: return
+        if self.Name == "": return
 
-        self.Script = self.Script(self.Entity)
+        self.Script: Script = ScriptingEngine.ScanForModules("Assets")[self.Module].AllScripts[self.Name]
+        self.Script.Bind(self.Entity)
+        self.Script.BindFunctions("OnAttach", "OnDetach", "OnUpdate")
+
         self.OnAttach: Callable[[], None] = self.Script.OnAttach
         self.OnDetach: Callable[[], None] = self.Script.OnDetach
         self.OnUpdate: Callable[[float], None] = self.Script.OnUpdate
 
-        self.OnAttach()
-
         self.Bound = True
 
-    def SetVariables(self, map: Dict[str, Any]) -> None:
-        for name, value in map.items(): self.Script.__setattr__(name, value)
+    @property
+    def Variables(self) -> Dict[str, Any]: return self.Script.ExternalVariables
+    @property
+    def Namespace(self) -> str: return f"{self.Module}.{self.Name}"
+    def SetVariables(self, map: Dict[str, Any]) -> None: self.Script.SetVariables(map)
 
     def Copy(self):
-        component = ScriptComponent(self.Path, self.Entity)
-        component.ImportModule()
+        component = ScriptComponent(self.Module, self.Name, self.Entity)
         component.SetVariables(self.Variables)
 
         return component

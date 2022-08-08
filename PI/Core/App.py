@@ -61,6 +61,9 @@ class PI_Application(ABC):
         # i.e. After window is created
         Renderer2D.Init()
         Renderer.LineShader: Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\Line3D.glsl")
+  
+        from ..Scripting.ScriptingEngine import ScriptingEngine
+        ScriptingEngine.Init()
 
         self._IsMinimised = False
 

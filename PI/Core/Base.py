@@ -5,11 +5,11 @@ from typing import Tuple as _Tuple
 import os
 from tempfile import gettempdir
 
-PI_VERSION_TUPLE : _Tuple[int] = (1,0,0)
+PI_VERSION_TUPLE : _Tuple[int] = (1,0,1)
 PI_VERSION       : str         = f"{'.'.join([str(_) for _ in PI_VERSION_TUPLE])}.dev"
 
 PI_LATEST_UPDATE: str = """
-    New Material System
+    Debug Console Added
 """
 
 #-------------------------------------------------------------------

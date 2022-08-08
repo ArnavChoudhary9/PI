@@ -1,38 +1,7 @@
 from PI import *
 
 import os
-from typing import List
 import imgui
-
-_ScriptFiles: List[str] = []
-def _SearchForScripts(basePath: str=".\\Scripts", filter: str=".py", currentPath: list=[]) -> None:
-    global _ScriptFiles
-    currentPath.append(basePath)
-
-    dir: list
-    try: dir = os.listdir(basePath)
-    except NotADirectoryError:
-        if basePath.endswith(filter): _ScriptFiles.append(basePath)
-        return
-
-    for subDir in dir: _SearchForScripts(basePath + "/" + subDir, filter, currentPath)
-
-    currentPath.pop()
-
-def _ProcessScriptFiles(basePath: str, search: bool=False) -> List[str]:
-    global _ScriptFiles
-    
-    if search:
-        _ScriptFiles = ["."]
-        _SearchForScripts(basePath)
-    
-    _scripts = []
-
-    for script in _ScriptFiles:
-        _scripts.append(script.replace("/", "\\"))
-    
-    if search: _ScriptFiles = _scripts
-    return _scripts
 
 class SceneHierarchyPanel:
     __Context: Scene
@@ -42,7 +11,7 @@ class SceneHierarchyPanel:
         self.__Context = Scene()
         self.__SelectionContext = None
 
-        _ProcessScriptFiles(".\\Assets", True)
+        ScriptingEngine.ScanForModules("Assets")
 
     def OnImGuiRender(self) -> None:
         with imgui.begin("Scene Heirarchy"):
@@ -191,7 +160,7 @@ class SceneHierarchyPanel:
 
             if imgui.menu_item("Script")[0]:
                 if not self.__SelectionContext.HasComponent(ScriptComponent):
-                    self.__SelectionContext.AddComponent(ScriptComponent, ".")
+                    self.__SelectionContext.AddComponent(ScriptComponent, "", "")
                 else: PI_CLIENT_WARN("Entity already has a Script Component")
                 imgui.close_current_popup()
 
@@ -246,8 +215,6 @@ class SceneHierarchyPanel:
             if changed: component.MaterialObject.SetShininess(shininess)
 
         def _ScriptUIFunction(entity: Entity, component: ScriptComponent) -> None:
-            scripts = _ProcessScriptFiles(".\\Assets")
-            
             if component.Bound:
                 for name, instance in component.Variables.items():
                     variableChanged, new = False, instance
@@ -275,12 +242,18 @@ class SceneHierarchyPanel:
                     if variableChanged: component.SetVariables({name: new})
                 if len(component.Variables) != 0: imgui.text("")
 
-            changed, index, path = UILib.DrawDropdown("Script", scripts.index(component.Path), scripts)
+            modules = ScriptingEngine.ScanForModules(".\\Assets")
+            scripts = ['.']
+            for name, module in modules.items():
+                for script_name, script in module.AllScripts.items():
+                    if script.Extends == Behaviour: scripts.append(f"{name}.{script_name}")
+
+            changed, index, namespace = UILib.DrawDropdown("Script", scripts.index(component.Namespace), scripts)
 
             if changed:
-                _ProcessScriptFiles(".\\Assets", True)
                 entity.RemoveComponent(ScriptComponent)
-                entity.AddComponent(ScriptComponent, path)
+                module, script = namespace.split('.')
+                entity.AddComponent(ScriptComponent, module, script)
 
         def _LightUIFunction(entity: Entity, component: LightComponent) -> None:
             lightTypes = ["Directional", "Point", "Spot"]

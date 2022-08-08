@@ -165,7 +165,7 @@ class Scene:
 
             if entity.HasComponent(ScriptComponent):
                 component = entity.GetComponent(ScriptComponent)
-                entityDict["ScriptComponent"] = {"Path": component.Path, "Variables": component.Variables}
+                entityDict["ScriptComponent"] = {"Namespace": component.Namespace, "Variables": component.Variables}
 
             entities.append(entityDict)
 
@@ -246,7 +246,9 @@ class Scene:
             
             scriptComponent = entity.get("ScriptComponent", False)
             if scriptComponent:
-                component = deserializedEntity.AddComponent(ScriptComponent, scriptComponent["Path"])
+                namespace = scriptComponent["Namespace"]
+                module, script = namespace.split(".")
+                component = deserializedEntity.AddComponent(ScriptComponent, module, script)
                 variables = scriptComponent.get("Variables", False)
                 if variables: component.SetVariables(variables)
 
@@ -255,7 +257,7 @@ class Scene:
 
     @staticmethod
     def Copy(oldScene):
-        tempSceneName = "TempScene"
+        tempSceneName = str(UUIDGenerator())
         tempFileDir = f"{Cache.GetLocalTempDirectory()}\\{tempSceneName}.PI"
 
         Scene.Serialize(oldScene, tempFileDir)
@@ -312,6 +314,14 @@ class Scene:
                 self._PointLights = newLights
 
         self._Registry.delete_entity(int(entity))
+
+    def OnStartRuntime(self) -> None:
+        for entity, script in self._Registry.get_component(ScriptComponent):
+            if script.Bound: script.OnAttach()
+
+    def OnStopRuntime(self) -> None:
+        for entity, script in self._Registry.get_component(ScriptComponent):
+            if script.Bound: script.OnDetach()
 
     def OnUpdateEditor(self, dt: float, camera: EditorCamera) -> None:
         self._DrawCamera = camera
@@ -389,7 +399,7 @@ class Scene:
                 component.Light.SetIndex( len( self._SpotLights  ) )
                 self._SpotLights.append(component.Light)
 
-        elif isinstance(component, ScriptComponent): component.ImportModule()
+        elif isinstance(component, ScriptComponent): component.Bind()
 
         elif isinstance(component, MeshComponent):
             component.Init()

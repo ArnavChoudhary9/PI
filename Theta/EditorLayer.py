@@ -1,6 +1,8 @@
 from PI import *
+
 from Panels.SceneHierarchyPanel import *
 from Panels.ContentBrowserPanel import *
+from Panels.DebugLogger         import *
 
 import json
 
@@ -34,6 +36,7 @@ class EditorLayer(Layer):
 
     __SceneHierarchyPanel: SceneHierarchyPanel
     __ContentBrowserPanel: ContentBrowserPanel
+    __DebugLogger : DebugLogger
 
     __EditorCamera: EditorCamera
 
@@ -61,6 +64,8 @@ class EditorLayer(Layer):
     __StopIcon: Texture2D
 
     __Framerate: float
+    __LastFrameTime: float
+
     __ShowDebugStats: bool
     __ShowThemeEditor: bool
     vSync = PI_V_SYNC
@@ -81,6 +86,7 @@ class EditorLayer(Layer):
         self.__SceneHierarchyPanel.SetContext(self.__ActiveScene)
 
         self.__ContentBrowserPanel = ContentBrowserPanel()
+        self.__DebugLogger = DebugLogger()
 
         specs = Framebuffer.Specs()
         specs.Width = 1280
@@ -132,6 +138,7 @@ class EditorLayer(Layer):
 
         self.__Panels.append(self.__SceneHierarchyPanel)
         self.__Panels.append(self.__ContentBrowserPanel)
+        self.__Panels.append(self.__DebugLogger)
 
         self.__SceneState = EditorLayer.SceneStateEnum.Edit
 
@@ -291,6 +298,7 @@ class EditorLayer(Layer):
                         PI_V_SYNC = self.vSync
 
                     imgui.text("FPS: {}".format(round(self.__Framerate)))
+                    imgui.text("Last Frame Time: {}".format(round(self.__LastFrameTime, 5)))
                     imgui.text("Hovered Entity: {}".format(int(self.__HoveredEntity) if self.__HoveredEntity else 0))
 
                     imgui.text("\nRenderer Stats:")
@@ -381,10 +389,15 @@ class EditorLayer(Layer):
         self.__SceneHierarchyPanel.SetContext(self.__ActiveScene)
         self.__SceneHierarchyPanel.SetSelectedEntity(None)
 
+        DebugConsole.Clear()
+        self.__ActiveScene.OnStartRuntime()
+
         ImGuiLayer.SetTheme(self.__CurrentThemeActive)
 
     def __OnScenePause(self) -> None:
         self.__SceneState = EditorLayer.SceneStateEnum.Edit
+        self.__ActiveScene.OnStopRuntime()
+
         self.__ActiveScene = self.__EditorScene
         self.__SceneHierarchyPanel.SetContext(self.__EditorScene)
         self.__SceneHierarchyPanel.SetSelectedEntity(None)
@@ -629,6 +642,7 @@ class EditorLayer(Layer):
     def OnUpdate(self, timestep: Timestep) -> None: 
         timer = PI_TIMER("EditorLayer::OnUpdate")
         self.__Framerate = 1 / timestep.Seconds
+        self.__LastFrameTime = timestep.Seconds
         if self.__ViewportFocused: self.__EditorCamera.OnUpdate(timestep.Seconds)
 
         spec = self.__Framebuffer.Spec
@@ -673,3 +687,7 @@ class EditorLayer(Layer):
                     byteorder='little'   # OpenGL retrives the values in reverse order
                 )
                 self.__HoveredEntity = Entity(pixelData, self.__ActiveScene) if pixelData != 0 else None
+
+        if self.__SceneState == EditorLayer.SceneStateEnum.Play and self.__DebugLogger.ErrorOccurred:
+            self.__OnScenePause()
+            self.__DebugLogger.ErrorOccurred = False

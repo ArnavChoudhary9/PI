@@ -1,0 +1,23 @@
+Entities:
+- Entity: 86f0d359-8a09-44e1-ab7b-983111a90d1c
+  ScriptComponent:
+    Namespace: MultipleScriptTest.Script1
+    Variables: {}
+  TagComponent:
+    Tag: 'Logger #1'
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [0.0, 0.0, 0.0]
+- Entity: 4363ed5a-e63d-4c3e-892e-d59c6750fc24
+  ScriptComponent:
+    Namespace: MultipleScriptTest.Script2
+    Variables: {}
+  TagComponent:
+    Tag: 'Logger #2'
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [0.0, 0.0, 0.0]
+Scene: Untitled
+Version: 1.0.0.dev

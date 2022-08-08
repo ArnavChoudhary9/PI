@@ -1,4 +1,3 @@
-import numpy as np
 from ..Scene.Entity import Entity
 import pyrr
 
@@ -20,11 +19,10 @@ class Color3(pyrr.Vector3):
     @property
     def b(self) -> float: return self.z
 
+# Remember Annotations will pass down the class hierarchy
 class Behaviour:
-    _Entity: Entity
-
     def __init__(self, entity: Entity) -> None:
-        self._Entity = entity
+        self._Entity: Entity = entity
         from ..Scene.Components import TransformComponent
         self._Transform: TransformComponent = entity.GetComponent(TransformComponent)
 
