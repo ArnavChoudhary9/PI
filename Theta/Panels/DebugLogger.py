@@ -8,6 +8,8 @@ class DebugLogger:
 
     def __init__(self) -> None:
         self.__Icons = {}
+        self.__Filter = Settings.GetProperty('DebugConsole.Filter')
+
         try:
             self.__Icons["Info"]    = Texture2D.Create(".\\Theta\\Resources\\Icons\\Info.png")
             self.__Icons["Warning"] = Texture2D.Create(".\\Theta\\Resources\\Icons\\Warning.png")
@@ -21,7 +23,8 @@ class DebugLogger:
             self.__Icons["Error"]   = Texture2D.Create(".\\Resources\\Icons\\Error.png")
 
     def OnImGuiRender(self) -> None:
-        with imgui.begin("Console", flags=imgui.WINDOW_NO_FOCUS_ON_APPEARING):
+        flags = imgui.WINDOW_NO_FOCUS_ON_APPEARING if not self.ErrorOccurred else 0
+        with imgui.begin("Console", flags=flags):
             imgui.set_cursor_pos_y(22)
             imgui.set_cursor_pos_x(2)
 
@@ -62,24 +65,26 @@ class DebugLogger:
             imgui.pop_style_color()
 
             if includeErrors: self.__Filter ^= DebugConsole.Severity.ERROR
+            Settings.SetProperty("DebugConsole.Filter", self.__Filter)
 
             imgui.pop_style_var()
 
             imgui.set_cursor_pos_x(0)
-            imgui.text("")
+            imgui.separator()
+            
             for severity, log in DebugConsole.GetLogs(self.__Filter):
                 if severity == DebugConsole.Severity.TRACE:
                     imgui.image(self.__Icons["Info"].RendererID, 12, 12, (0, 1), (1, 0))
                     imgui.same_line()
 
-                    imgui.text(log)
+                    imgui.text_wrapped(log)
                 
                 elif severity == DebugConsole.Severity.WARN:
                     imgui.image(self.__Icons["Warning"].RendererID, 12, 12, (0, 1), (1, 0))
                     imgui.same_line()
 
                     imgui.push_style_color(imgui.COLOR_TEXT, 0.875, 0.8, 0.1, 1.0)
-                    imgui.text(log)
+                    imgui.text_wrapped(log)
                     imgui.pop_style_color()
                 
                 elif severity == DebugConsole.Severity.ERROR:
@@ -87,7 +92,9 @@ class DebugLogger:
                     imgui.same_line()
 
                     imgui.push_style_color(imgui.COLOR_TEXT, 0.875, 0.1, 0.1, 1.0)
-                    imgui.text(log)
+                    imgui.text_wrapped(log)
                     imgui.pop_style_color()
 
-                    self.ErrorOccurred = True
+                imgui.separator()
+
+            if DebugConsole.HasErrorOccurred(): self.ErrorOccurred = True

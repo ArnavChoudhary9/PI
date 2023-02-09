@@ -2,9 +2,6 @@ from ..Instrumentation import Instrumentor, InstrumentationTimer
 
 from typing import Tuple as _Tuple
 
-import os
-from tempfile import gettempdir
-
 PI_VERSION_TUPLE : _Tuple[int] = (1,0,1)
 PI_VERSION       : str         = f"{'.'.join([str(_) for _ in PI_VERSION_TUPLE])}.dev"
 
@@ -63,7 +60,7 @@ if PI_CONFIG == "RELEASE_NO_IMGUI":
 # Checks the imports
 try:
     # if Python is able to import this it means the docking branch is enabled
-    from imgui import CONFIG_DOCKING_ENABLE
+    from imgui import CONFIG_DOCKING_ENABLE as _IMPORT_TEST
 except ImportError:
     from ..Logging.logger import PI_CORE_ASSERT
     PI_CORE_ASSERT(False, "ImGui-Docking branch is not present.")
@@ -71,8 +68,7 @@ except ImportError:
 
 #-------------------------------------------------------------------
 # Instrumentation
-def _Ins_EmptyFunc(name: str=""):
-    pass
+def _Ins_EmptyFunc(name: str=""): pass
 
 PI_INSTRUMENTATION_BEGIN_SESSION = _Ins_EmptyFunc
 PI_INSTRUMENTATION_END_SESSION   = _Ins_EmptyFunc
@@ -96,26 +92,6 @@ if PI_INSTRUMENTATION:
 #-------------------------------------------------------------------
 # Other basic utility functions and classes
 # Base PI class
-
-class Cache:
-    __TempDirGenerated = False
-
-    @staticmethod
-    def InitLocalTempDirectory():
-        if not Cache.__TempDirGenerated:
-            os.makedirs(f"{gettempdir()}\\PI", exist_ok=True)
-            os.makedirs("C:\\ProgramData\\PI", exist_ok=True)
-            Cache.__TempDirGenerated = True
-
-    @staticmethod
-    def GetLocalTempDirectory():
-        Cache.InitLocalTempDirectory()
-        return f"{gettempdir()}\\PI"
-
-    @staticmethod
-    def GetLocalSaveDirectory():
-        Cache.InitLocalTempDirectory()
-        return "C:\\ProgramData\\PI"
 
 # Built-in Math Library
 class Math:

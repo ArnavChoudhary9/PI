@@ -6,6 +6,7 @@ from typing import List, Tuple
 
 class DebugConsole:
     __Logs: List[Tuple[int, str]] = []
+    __ErrorOccured: bool = False
 
     class Severity:
         TRACE : int = 0b00000001
@@ -29,7 +30,11 @@ class DebugConsole:
     @staticmethod
     def Clear():
         DebugConsole.__Logs.clear()
+        DebugConsole.__ErrorOccured = False
         return DebugConsole
+
+    @staticmethod
+    def HasErrorOccurred(): return DebugConsole.__ErrorOccured        
 
     @staticmethod
     def FormatString(string: str) -> str:
@@ -59,4 +64,6 @@ class DebugConsole:
     def Error(*args):
         if len(args) == 1: DebugConsole.__Logs.append((DebugConsole.Severity.ERROR, DebugConsole.FormatString(args[0])))
         else: DebugConsole.__Logs.append((DebugConsole.Severity.TRACE, DebugConsole.FormatString(" ".join(args))))
+
+        DebugConsole.__ErrorOccured = True
         return DebugConsole

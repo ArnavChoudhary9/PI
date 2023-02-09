@@ -11,10 +11,8 @@ from .StateManager import StateManager
 
 from ..Logging import logger
 
-from OpenGL.GL import glViewport    # Temp
 from abc import ABC
 import glfw
-import gc
 
 class PI_Application(ABC):
     '''
@@ -65,6 +63,10 @@ class PI_Application(ABC):
         from ..Scripting.ScriptingEngine import ScriptingEngine
         ScriptingEngine.Init()
 
+        from .DirectoryManager import Settings
+        Settings.Init()
+        Settings.LoadFields()
+
         self._IsMinimised = False
 
         self._LayerStack = LayerStack()
@@ -75,8 +77,7 @@ class PI_Application(ABC):
         self._LastFrameTime = 0.0
         self.timestep = Timestep(0)
 
-    def __del__(self) -> None:
-        pass
+    def __del__(self) -> None: pass
 
     @property
     def Name(self) -> str:
@@ -145,6 +146,14 @@ class PI_Application(ABC):
         # if PI_DEBUG: gc.collect()     # Safer but costs ~40 FPS
 
     def Close(self) -> None:
+        if not self._Running: return
+
+        from ..Scripting.ScriptingEngine import ScriptingEngine
+        ScriptingEngine.Shutdown()
+
+        from .DirectoryManager import Settings
+        Settings.Shutdown()
+
         self._Running = False
     
 CreateApplication = None
@@ -160,6 +169,7 @@ def _main():
     PI_INSTRUMENTATION_END_SESSION()
 
     PI_INSTRUMENTATION_BEGIN_SESSION("PI_Shutdown")
+    app.Close()
     del app
     PI_INSTRUMENTATION_END_SESSION()
 

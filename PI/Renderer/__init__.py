@@ -18,8 +18,8 @@ from .Mesh            import *
 from .Material        import *
 from .Light           import *
 
-# from .Scene           import *
-
 from .Framebuffer     import *
 
-PI_RD_VERSION: str = "5.1.2"
+from .UniformBuffer   import *
+
+PI_RD_VERSION: str = "6.0.0"

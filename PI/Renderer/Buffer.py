@@ -1,4 +1,4 @@
-from ..Renderer import Renderer, RendererAPI
+from .RendererAPI import RendererAPI
 from ..Logging.logger   import PI_CORE_ASSERT
 
 from OpenGL.GL import GL_FLOAT, GL_INT, GL_BOOL
@@ -132,11 +132,11 @@ class VertexBuffer(ABC):
 
     @staticmethod
     def Init() -> None:
-        if (Renderer.GetAPI() == RendererAPI.API.Null):
+        if (RendererAPI.GetAPI() == RendererAPI.API.Null):
             PI_CORE_ASSERT(False, "RendererAPI.None is currently not supported!")
             return
 
-        elif (Renderer.GetAPI() == RendererAPI.API.OpenGL):
+        elif (RendererAPI.GetAPI() == RendererAPI.API.OpenGL):
             from ..Platform.OpenGL.OpenGLBuffer import OpenGLVertexBuffer
             VertexBuffer.__NativeAPI = OpenGLVertexBuffer
             return
@@ -164,11 +164,11 @@ class IndexBuffer:
 
     @staticmethod
     def Init() -> None:
-        if (Renderer.GetAPI() == RendererAPI.API.Null):
+        if (RendererAPI.GetAPI() == RendererAPI.API.Null):
             PI_CORE_ASSERT(False, "RendererAPI.None is currently not supported!")
             return
 
-        elif (Renderer.GetAPI() == RendererAPI.API.OpenGL):
+        elif (RendererAPI.GetAPI() == RendererAPI.API.OpenGL):
             from ..Platform.OpenGL.OpenGLBuffer import OpenGLIndexBuffer
             IndexBuffer.__NativeAPI = OpenGLIndexBuffer
             return

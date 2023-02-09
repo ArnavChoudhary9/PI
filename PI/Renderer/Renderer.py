@@ -1,39 +1,45 @@
 from ..Logging      import PI_CORE_ASSERT
 from ..Core         import PI_TIMER, PI_DEBUG
 from ..Core.StateManager import StateManager
+
 from .RendererAPI   import RendererAPI
 from .RenderCommand import RenderCommand
 
+from .VertexArray   import VertexArray
+from .Buffer        import VertexBuffer, IndexBuffer
+from .Shader        import Shader
+from .Texture       import Texture
+from .Framebuffer   import Framebuffer
+from .UniformBuffer import UniformBuffer
+
 import pyrr
+import numpy as np
 
 class Renderer:
     class SceneData:
         Scene                = None
         ViewProjectionMatrix : pyrr.Matrix44
         CameraPos            : pyrr.Vector3
+        CameraUniformBuffer  = None
 
     __slots__ = "__CurrentSceneData", "LineShader", "CAM_COMP"
 
     @staticmethod
     def Init() -> None:
-        RendererAPI.Init()
-        RenderCommand.Init()
+        RendererAPI   .Init()
+        RenderCommand .Init()
 
-        from .VertexArray import VertexArray
-        VertexArray.Init()
+        VertexArray  .Init()
+        VertexBuffer .Init()
+        IndexBuffer  .Init()
 
-        from .Buffer import VertexBuffer, IndexBuffer
-        VertexBuffer.Init()
-        IndexBuffer.Init()
+        Shader  .Init()
+        Texture .Init()
 
-        from .Shader import Shader
-        Shader.Init()
-
-        from .Texture import Texture
-        Texture.Init()
-
-        from .Framebuffer import Framebuffer
-        Framebuffer.Init()
+        UniformBuffer .Init()
+        Framebuffer   .Init()
+        
+        # Renderer.__CurrentSceneData.CameraUniformBuffer  = UniformBuffer.Create(80, 0) # cameraMatrix.nbytes -> 80
 
         RendererAPI.EnableCulling()
 
@@ -57,6 +63,16 @@ class Renderer:
         Renderer.__CurrentSceneData.CameraPos            = camera.Position
         Renderer.__CurrentSceneData.Scene                = scene
 
+        # cameraMatrix = np.zeros((5, 4), dtype=np.float32)
+        # for i in range(4):
+        #     for j in range(4):
+        #         cameraMatrix[i, j] = camera.ViewProjectionMatrix[i, j]
+
+        # for i in range(3): cameraMatrix[4, i] = camera.Position[i]
+        # size = cameraMatrix.nbytes
+
+        # Renderer.__CurrentSceneData.CameraUniformBuffer.SetData(cameraMatrix, cameraMatrix.nbytes)
+
         Renderer.LineShader.Bind()
         Renderer.LineShader.SetMat4("u_ViewProjection", Renderer.__CurrentSceneData.ViewProjectionMatrix)
 
@@ -77,6 +93,7 @@ class Renderer:
         
         return Renderer
 
+    # Piss-Code
     @staticmethod
     def DrawLines(p0: pyrr.Vector3, p1: pyrr.Vector3,
         color: pyrr.Vector4=pyrr.Vector4([1, 1, 1, 1])) -> None:

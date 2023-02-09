@@ -4,7 +4,7 @@ from ...Renderer import PI_DEBUG, StateManager, Shader
 from OpenGL.GL import glDeleteProgram, glUseProgram,\
     glGetUniformLocation, \
     glUniformMatrix4fv, glUniform4f, glUniform3f, glUniform2f, glUniform1f, glUniform1i
-from OpenGL.GL import GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_FALSE
+from OpenGL.GL import GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_COMPUTE_SHADER, GL_FALSE
 
 from OpenGL.GL.shaders import compileProgram, compileShader
 import pyrr
@@ -71,10 +71,12 @@ class OpenGLShader(Shader):
         vertNames = [ "vertex"   , "vert" ]
         geomNames = [ "geometry" , "tess" ]
         fragNames = [ "fragment" , "frag" , "pixel" ]
+        compNames = [ "compute" ]
 
         if   _str in vertNames: return GL_VERTEX_SHADER
         elif _str in geomNames: return GL_GEOMETRY_SHADER
         elif _str in fragNames: return GL_FRAGMENT_SHADER
+        elif _str in compNames: return GL_COMPUTE_SHADER
         else: PI_CORE_ASSERT(False, "Invalid shader type.")
 
     @property

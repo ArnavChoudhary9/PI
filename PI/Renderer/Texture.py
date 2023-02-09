@@ -1,6 +1,6 @@
 from ..Logging.logger import PI_CORE_ASSERT
 from ..Core.Constants import *
-from .Renderer import Renderer, RendererAPI
+from .RendererAPI import RendererAPI
 
 from multipledispatch import dispatch
 
@@ -42,11 +42,11 @@ class Texture2D(Texture):
 
     @staticmethod
     def Init() -> None:
-        if (Renderer.GetAPI() == RendererAPI.API.Null):
+        if (RendererAPI.GetAPI() == RendererAPI.API.Null):
             PI_CORE_ASSERT(False, "RendererAPI.None is currently not supported!")
             return
 
-        elif (Renderer.GetAPI() == RendererAPI.API.OpenGL):
+        elif (RendererAPI.GetAPI() == RendererAPI.API.OpenGL):
             from ..Platform.OpenGL.OpenGLTexture import OpenGLTexture2D
             Texture2D.__NativeAPI = OpenGLTexture2D
             return

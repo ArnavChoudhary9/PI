@@ -1,4 +1,4 @@
-from ..Renderer import Renderer, RendererAPI
+from .RendererAPI import RendererAPI
 from ..Logging.logger   import PI_CORE_ASSERT
 
 from abc import ABC, abstractmethod, abstractproperty
@@ -40,11 +40,11 @@ class Framebuffer(ABC):
 
     @staticmethod
     def Init() -> None:
-        if (Renderer.GetAPI() == RendererAPI.API.Null):
+        if (RendererAPI.GetAPI() == RendererAPI.API.Null):
             PI_CORE_ASSERT(False, "RendererAPI.None is currently not supported!")
             return
 
-        elif (Renderer.GetAPI() == RendererAPI.API.OpenGL):
+        elif (RendererAPI.GetAPI() == RendererAPI.API.OpenGL):
             from ..Platform.OpenGL.OpenGLFramebuffer import OpenGLFramebuffer
             Framebuffer.__NativeAPI = OpenGLFramebuffer
             return
