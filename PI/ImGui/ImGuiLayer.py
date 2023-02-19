@@ -242,6 +242,8 @@ ImGuiTheme.LightActive.AddFields({
 class ImGuiLayer(Layer):
     __slots__ = "__Time", "__Renderer", "__io", "__BlockEvents"
 
+    GlobalHeadingFont = None
+
     def __init__(self, name: str="ImGuiLayer") -> None:
         super().__init__(name=name)
         self.__Time = 0.0
@@ -256,7 +258,9 @@ class ImGuiLayer(Layer):
         io.config_flags |= imgui.CONFIG_DOCKING_ENABLE
         io.config_flags |= imgui.CONFIG_VIEWEPORTS_ENABLE
 
-        io.fonts.add_font_from_file_ttf(".\\Assets\\Internal\\Fonts\\opensans\\OpenSans-Regular.ttf", 18.0)
+        fontLoc = ".\\Assets\\Internal\\Fonts\\opensans\\OpenSans-Regular.ttf"
+        io.fonts.add_font_from_file_ttf(fontLoc, 18.0)
+        ImGuiLayer.GlobalHeadingFont = io.fonts.add_font_from_file_ttf(fontLoc, 24.0)
 
         imgui.style_colors_dark()
         

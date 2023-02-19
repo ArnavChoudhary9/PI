@@ -1,8 +1,11 @@
 from PI import *
 
-from Panels.SceneHierarchyPanel import *
-from Panels.ContentBrowserPanel import *
-from Panels.DebugLogger         import *
+from ImGuiElements.SceneHierarchyPanel import *
+from ImGuiElements.ContentBrowserPanel import *
+from ImGuiElements.DebugLogger         import *
+from ImGuiElements.ProjectSettingsTab  import *
+from ImGuiElements.DebugStatsPanel     import *
+from ImGuiElements.ThemeEditorTab      import *
 
 INSTRUCTION_TEXT: str = \
 """Welcome to Theta: The PI Editor
@@ -32,9 +35,10 @@ class EditorLayer(Layer):
     __ActiveScene : Scene
     __EditorScene : Scene
 
-    __SceneHierarchyPanel: SceneHierarchyPanel
-    __ContentBrowserPanel: ContentBrowserPanel
-    __DebugLogger : DebugLogger
+    __SceneHierarchyPanel : SceneHierarchyPanel
+    __ThemeEditor         : ThemeEditor
+    __ProjectSettingsTab  : ProjectSettingsTab
+    __DebugLogger         : DebugLogger
 
     __EditorCamera: EditorCamera
 
@@ -43,10 +47,6 @@ class EditorLayer(Layer):
 
     __ViewportBounds : List[ImVec2]
     __HoveredEntity  : Entity = 0
-
-    __ThemePreset: str
-    __CurrentTheme: ImGuiTheme
-    __CurrentThemeActive: ImGuiTheme
 
     __ViewportFocused : bool
     __ViewportHovered : bool
@@ -59,19 +59,15 @@ class EditorLayer(Layer):
         Pause : int = 2
 
     __SceneState: int
-    __PlayIcon  : Texture2D
-    __StopIcon  : Texture2D
-    __PauseIcon : Texture2D
-    __StepIcon  : Texture2D
+    __Icons: Dict[str, Texture2D]
 
     __Framerate: float
     __LastFrameTime: float
 
     __ShowDebugStats: bool
-    __ShowThemeEditor: bool
     vSync = PI_V_SYNC
 
-    def __init__(self, name: str = "EditorLayer") -> None:
+    def __init__(self, name: str="EditorLayer") -> None:
         super().__init__(name=name)
         self.__ViewportSize = ImVec2( 0, 0 )
         self.__ViewportBounds = [ ImVec2( 0, 0 ) , ImVec2( 0, 0 ) ]
@@ -86,7 +82,6 @@ class EditorLayer(Layer):
         self.__SceneHierarchyPanel = SceneHierarchyPanel()
         self.__SceneHierarchyPanel.SetContext(self.__ActiveScene)
 
-        self.__ContentBrowserPanel = ContentBrowserPanel()
         self.__DebugLogger = DebugLogger()
 
         specs = Framebuffer.Specs()
@@ -102,56 +97,33 @@ class EditorLayer(Layer):
 
         self.__Framerate   = 60
         self.__ShowDebugStats = False
-        self.__ShowThemeEditor = False
 
-        self.__ThemePreset = Settings.GetProperty("ThemePreferences")
-
-        if self.__ThemePreset == "Default Dark":
-            self.__CurrentTheme: ImGuiTheme = ImGuiTheme.DefaultDark.Copy()
-            self.__CurrentThemeActive: ImGuiTheme = ImGuiTheme.DefaultActive.Copy()
-        
-        elif self.__ThemePreset == "Default Light":
-            self.__CurrentTheme: ImGuiTheme = ImGuiTheme.DefaultLight.Copy()
-            self.__CurrentThemeActive: ImGuiTheme = ImGuiTheme.LightActive.Copy()
-        
-        elif self.__ThemePreset == "Ruth":
-            self.__CurrentTheme: ImGuiTheme = ImGuiTheme.Ruth.Copy()
-            self.__CurrentThemeActive: ImGuiTheme = ImGuiTheme.DefaultDark.Copy()
-        
-        elif self.__ThemePreset == "Custom":
-            self.__CurrentTheme = ImGuiTheme()
-            self.__CurrentThemeActive = ImGuiTheme()
-            
-            for field, value in Settings.GetProperty('Theme').items():
-                self.__CurrentTheme.AddFields({ int(field) : ImVec4( value[0], value[1], value[2], value[3] ) })
-            
-            for field, value in Settings.GetProperty('ActiveTheme').items():
-                self.__CurrentThemeActive.AddFields({ int(field) : ImVec4( value[0], value[1], value[2], value[3] ) })
-
-        ImGuiLayer.SetTheme(self.__CurrentTheme)
+        self.__ThemeEditor = ThemeEditor()
+        self.__ProjectSettingsTab = ProjectSettingsTab()
 
         self.__ViewportFocused : bool = True
         self.__ViewportHovered : bool = True
 
         self.__Panels.append(self.__SceneHierarchyPanel)
-        self.__Panels.append(self.__ContentBrowserPanel)
+        self.__Panels.append(ContentBrowserPanel())
         self.__Panels.append(self.__DebugLogger)
 
         self.__SceneState = EditorLayer.SceneStateEnum.Edit
+        self.__Icons = {}
 
         try:
-            self.__PlayIcon  = Texture2D.Create( ".\\Theta\\Resources\\Icons\\PlayButton.png"  )
-            self.__StopIcon  = Texture2D.Create( ".\\Theta\\Resources\\Icons\\StopButton.png"  )
-            self.__PauseIcon = Texture2D.Create( ".\\Theta\\Resources\\Icons\\PauseButton.png" )
-            self.__StepIcon  = Texture2D.Create( ".\\Theta\\Resources\\Icons\\StepButton.png"  )
+            self.__Icons["Play"]  = Texture2D.Create( ".\\Theta\\Resources\\Icons\\PlayButton.png"  )
+            self.__Icons["Stop"]  = Texture2D.Create( ".\\Theta\\Resources\\Icons\\StopButton.png"  )
+            self.__Icons["Pause"] = Texture2D.Create( ".\\Theta\\Resources\\Icons\\PauseButton.png" )
+            self.__Icons["Step"]  = Texture2D.Create( ".\\Theta\\Resources\\Icons\\StepButton.png"  )
 
         # This is here for Building
         # 'cause the Build looks for files in '.'
         except FileNotFoundError:
-            self.__PlayIcon  = Texture2D.Create( ".\\Resources\\Icons\\PlayButton.png"  )
-            self.__StopIcon  = Texture2D.Create( ".\\Resources\\Icons\\StopButton.png"  )
-            self.__PauseIcon = Texture2D.Create( ".\\Resources\\Icons\\PauseButton.png" )
-            self.__StepIcon  = Texture2D.Create( ".\\Resources\\Icons\\StepButton.png"  )
+            self.__Icons["Play"]  = Texture2D.Create( ".\\Resources\\Icons\\PlayButton.png"  )
+            self.__Icons["Stop"]  = Texture2D.Create( ".\\Resources\\Icons\\StopButton.png"  )
+            self.__Icons["Pause"] = Texture2D.Create( ".\\Resources\\Icons\\PauseButton.png" )
+            self.__Icons["Step"]  = Texture2D.Create( ".\\Resources\\Icons\\StepButton.png"  )
 
     def __NewScene(self) -> None:
         self.__OnSceneStop()
@@ -195,39 +167,43 @@ class EditorLayer(Layer):
         control = Input.IsKeyPressed(PI_KEY_LEFT_CONTROL) or Input.IsKeyPressed(PI_KEY_RIGHT_CONTROL)
         shift   = Input.IsKeyPressed(PI_KEY_LEFT_SHIFT)   or Input.IsKeyPressed(PI_KEY_RIGHT_SHIFT)
 
-        if event.KeyCode == PI_KEY_Q and control:
-            StateManager.GetCurrentApplication().Close()
-            return True
+        if control:
+            if event.KeyCode == PI_KEY_Q:
+                StateManager.GetCurrentApplication().Close()
+                return True
 
-        if event.KeyCode == PI_KEY_N and control:
-            self.__NewScene()
-            return True
+            if event.KeyCode == PI_KEY_N:
+                self.__NewScene()
+                return True
 
-        if event.KeyCode == PI_KEY_S and control and not shift:
-            if not shift: self.__SaveScene()
-            else: self.__SaveScene(dialogbox=True)
-            return True
+            if event.KeyCode == PI_KEY_S and not shift:
+                if not shift: self.__SaveScene()
+                else: self.__SaveScene(dialogbox=True)
+                return True
 
-        if event.KeyCode == PI_KEY_O and control:
-            self.__LoadScene()
-            return True
+            if event.KeyCode == PI_KEY_O:
+                self.__LoadScene()
+                return True
 
-        if event.KeyCode == PI_KEY_F5 and not control:
-            if not shift and self.__SceneState == EditorLayer.SceneStateEnum.Edit:
-                self.__OnScenePlay()
-            elif shift and self.__SceneState in [EditorLayer.SceneStateEnum.Play, EditorLayer.SceneStateEnum.Pause]:
-                self.__OnSceneStop()
-            elif not shift and self.__SceneState == EditorLayer.SceneStateEnum.Pause:
-                self.__OnSceneResume()
-            return True
+        else:
+            if event.KeyCode == PI_KEY_F5:
+                if not shift and self.__SceneState == EditorLayer.SceneStateEnum.Edit:
+                    self.__OnScenePlay()
+                elif shift and self.__SceneState != EditorLayer.SceneStateEnum.Edit:
+                    self.__OnSceneStop()
+                elif not shift and self.__SceneState == EditorLayer.SceneStateEnum.Pause:
+                    self.__OnSceneResume()
+                return True
 
-        if event.KeyCode == PI_KEY_F6 and not control and not shift:
-            if self.__SceneState == EditorLayer.SceneStateEnum.Play: self.__OnScenePause()
-        
-        if event.KeyCode == PI_KEY_F10 and not control and not shift:
-            if self.__SceneState == EditorLayer.SceneStateEnum.Pause:
-                self.__ActiveScene.OnUpdateRuntime(self.__LastFrameTime)
-            return True
+            if not shift:
+                if event.KeyCode == PI_KEY_F6:
+                    if self.__SceneState == EditorLayer.SceneStateEnum.Play: self.__OnScenePause()
+                    return True
+                
+                if event.KeyCode == PI_KEY_F10:
+                    if self.__SceneState == EditorLayer.SceneStateEnum.Pause:
+                        self.__ActiveScene.OnUpdateRuntime(self.__LastFrameTime)
+                    return True
 
         return False
 
@@ -288,8 +264,10 @@ class EditorLayer(Layer):
                     imgui.end_menu()
 
                 if imgui.begin_menu("Edit"):
-                    if imgui.menu_item("Theme Editor")[0]: self.__ShowThemeEditor = True
+                    if imgui.menu_item("Theme Editor")[0]: self.__ThemeEditor.Show()
+                    if imgui.menu_item("Project Settings")[0]: self.__ProjectSettingsTab.Show()
 
+                    imgui.separator()
                     if not self.__ShowDebugStats:
                         if imgui.menu_item("Open Debug Stats")[0]: self.__ShowDebugStats = True
                     else:
@@ -300,55 +278,13 @@ class EditorLayer(Layer):
             for panel in self.__Panels: panel.OnImGuiRender()
 
             if self.__ShowDebugStats:   
-                with imgui.begin("DEBUG Settings"):
-                    clicked, self.vSync = imgui.checkbox("VSync", self.vSync)
+                self.vSync = DebugStatsPanel.OnImGuiRender(self.__Framerate, self.__HoveredEntity)
 
-                    if clicked:
-                        StateManager.GetCurrentWindow().SetVSync(self.vSync)
-
-                        global PI_V_SYNC
-                        PI_V_SYNC = self.vSync
-
-                    imgui.text("FPS: {}".format(round(self.__Framerate)))
-                    imgui.text("Last Frame Time: {}".format(round(self.__LastFrameTime, 5)))
-                    imgui.text("Hovered Entity: {}".format(int(self.__HoveredEntity) if self.__HoveredEntity else 0))
-
-                    imgui.text("\nRenderer Stats:")
-                    imgui.separator()
-                    imgui.text("Draw Calls: {}".format(StateManager.Stats.DrawCalls))
-                    
-                    flags = imgui.TREE_NODE_OPEN_ON_ARROW | imgui.TREE_NODE_SPAN_AVAILABLE_WIDTH
-                    if imgui.tree_node("Shaders (Binded {} times)".format(StateManager.Stats.Shaders.ShadersBinded),
-                        flags=flags):
-                        
-                        imgui.text("Uniforms:")
-                        imgui.text("\tTotal Uniforms Uploaded : {}" \
-                            .format(StateManager.Stats.Shaders.Uniforms.TotalUniforms))
-
-                        imgui.text("")
-                        imgui.text("\tTotal Ints Uploaded : {}" \
-                            .format(StateManager.Stats.Shaders.Uniforms.Ints))
-
-                        imgui.text("\tTotal Floats Uploaded : {}" \
-                            .format(StateManager.Stats.Shaders.Uniforms.Floats))
-
-                        imgui.text("")
-                        imgui.text("\tTotal Vector3's Uploaded : {}" \
-                            .format(StateManager.Stats.Shaders.Uniforms.Vector3))
-
-                        imgui.text("\tTotal Vector4's Uploaded : {}" \
-                            .format(StateManager.Stats.Shaders.Uniforms.Vector4))
-
-                        imgui.text("")
-                        imgui.text("\tTotal Matrix 3x3 Uploaded : {}" \
-                            .format(StateManager.Stats.Shaders.Uniforms.Matrix_3x3))
-
-                        imgui.text("\tTotal Matrix 4x4 Uploaded : {}" \
-                            .format(StateManager.Stats.Shaders.Uniforms.Matrix_4x4))
-
-                        imgui.tree_pop()
-
-            if self.__ShowThemeEditor: self.ThemeEditor()
+            self.__ThemeEditor.OnImGuiRender()
+            self.__ProjectSettingsTab.OnImGuiRender(
+                self.__ThemeEditor.CurrentTheme.Fields[imgui.COLOR_WINDOW_BACKGROUND],
+                self.__ThemeEditor.CurrentTheme.Fields[imgui.COLOR_BUTTON_ACTIVE]
+            )
 
             imgui.push_style_var(imgui.STYLE_WINDOW_PADDING, ImVec2( 0, 0 ))
             with imgui.begin("Viewport"):
@@ -408,8 +344,7 @@ class EditorLayer(Layer):
         self.__DebugLogger.ErrorOccurred = False
         
         self.__ActiveScene.OnStartRuntime()
-
-        ImGuiLayer.SetTheme(self.__CurrentThemeActive)
+        self.__ThemeEditor.SetCurrentActiveTheme()
 
     def __OnSceneStop(self) -> None:
         self.__SceneState = EditorLayer.SceneStateEnum.Edit
@@ -419,221 +354,15 @@ class EditorLayer(Layer):
 
         self.__SceneHierarchyPanel.SetContext(self.__EditorScene)
         self.__SceneHierarchyPanel.SetSelectedEntity(None)
-
-        ImGuiLayer.SetTheme(self.__CurrentTheme)
+        self.__ThemeEditor.SetCurrentTheme()
 
     def __OnScenePause(self) -> None:
+        if self.__SceneState == EditorLayer.SceneStateEnum.Edit: return
         self.__SceneState = EditorLayer.SceneStateEnum.Pause
 
     def __OnSceneResume(self) -> None:
+        if self.__SceneState == EditorLayer.SceneStateEnum.Edit: return
         self.__SceneState = EditorLayer.SceneStateEnum.Play
-
-    def ThemeEditor(self) -> None:
-        with imgui.begin("Themes"):
-            columnWidth = 150
-
-            presets = [ "Default Dark", "Default Light", "Ruth", "Custom" ]
-            changed, _, preset = UILib.DrawDropdown("Preset", presets.index(self.__ThemePreset), presets)
-            self.__ThemePreset = preset
-
-            if preset == "Custom":
-                imgui.text("")
-                imgui.separator()
-
-                changed, newColor = UILib.DrawColor3Controls(
-                    "Window Background", self.__CurrentTheme.Fields[imgui.COLOR_WINDOW_BACKGROUND], columnWidth
-                )
-                if changed:
-                    self.__CurrentTheme.AddFields({
-                        imgui.COLOR_WINDOW_BACKGROUND : ImVec4( *newColor, 1.0 ),
-                        imgui.COLOR_CHILD_BACKGROUND  : ImVec4( 0.0, 0.0, 0.0, 0.0 ),
-
-                        imgui.COLOR_TITLE_BACKGROUND : ImVec4( newColor[0] * 0.9, newColor[1] * 0.9, newColor[2] * 0.9, 1.0 ),
-                        imgui.COLOR_TITLE_BACKGROUND_COLLAPSED : ImVec4( 1., 1.0, 1.0, 0.51 ),
-                        imgui.COLOR_TITLE_BACKGROUND_ACTIVE
-                            : ImVec4( newColor[0] * 0.8, newColor[1] * 0.8, newColor[2] * 0.8, 1.0 ),
-
-                        imgui.COLOR_MENUBAR_BACKGROUND
-                            : ImVec4( newColor[0] * 0.7, newColor[1] * 0.7, newColor[2] * 0.7, 1.0 ),
-                    })
-
-                changed, newColor = UILib.DrawColor3Controls(
-                    "Text", self.__CurrentTheme.Fields[imgui.COLOR_TEXT], columnWidth
-                )
-                if changed:
-                    h, s, v = imgui.color_convert_rgb_to_hsv(newColor[0], newColor[1], newColor[2])
-                    v = (v * 0.6) if v > 0.5 else (v * 1.6)
-                    rd, gd, bd = imgui.color_convert_hsv_to_rgb(h, s, v)
-
-                    self.__CurrentTheme.AddFields({
-                        imgui.COLOR_TEXT : ImVec4( *newColor, 1.0 ),
-                        imgui.COLOR_TEXT_DISABLED : ImVec4( rd, gd, bd, 1.0 )
-                    })
-
-                changed, newColor = UILib.DrawColor3Controls(
-                    "Input Background", self.__CurrentTheme.Fields[imgui.COLOR_FRAME_BACKGROUND], columnWidth
-                )
-                if changed:
-                    h, s, v = imgui.color_convert_rgb_to_hsv(newColor[0], newColor[1], newColor[2])
-                    v = (v * 0.45) if v > 0.5 else (v * 1.45)
-                    rd, gd, bd = imgui.color_convert_hsv_to_rgb(h, s, v)
-
-                    self.__CurrentTheme.AddFields({
-                        imgui.COLOR_FRAME_BACKGROUND         : ImVec4( *newColor, 1.0 ),
-                        imgui.COLOR_FRAME_BACKGROUND_HOVERED : ImVec4( rd, gd, bd, 1.0 ),
-                        imgui.COLOR_FRAME_BACKGROUND_ACTIVE  : ImVec4( rd, gd, bd, 1.0 ),
-                    })
-
-                changed, newColor = UILib.DrawColor3Controls(
-                    "Tabs", self.__CurrentTheme.Fields[imgui.COLOR_TAB], columnWidth
-                )
-                if changed:
-                    h, s, v = imgui.color_convert_rgb_to_hsv(newColor[0], newColor[1], newColor[2])
-                    v = v if v > 0.8 else (v * 1.25)
-                    r, g, b = imgui.color_convert_hsv_to_rgb(h, s, v)
-
-                    self.__CurrentTheme.AddFields({
-                        imgui.COLOR_TAB         : ImVec4( *newColor, 1.0 ),
-                        imgui.COLOR_TAB_HOVERED : ImVec4( r, g, b, 1.0 ),
-                        imgui.COLOR_TAB_ACTIVE  : ImVec4( *newColor, 1.0 ),
-
-                        imgui.COLOR_TAB_UNFOCUSED         : ImVec4( r, g, b, 1.0 ),
-                        imgui.COLOR_TAB_UNFOCUSED_ACTIVE  : ImVec4( *newColor, 1.0 )
-                    })
-
-                changed, newColor = UILib.DrawColor3Controls(
-                    "Buttons", self.__CurrentTheme.Fields[imgui.COLOR_BUTTON], columnWidth
-                )
-                if changed:
-                    h, s, v = imgui.color_convert_rgb_to_hsv(newColor[0], newColor[1], newColor[2])
-                    v = (v * 0.25) if v > 0.8 else (v * 1.1)
-                    r, g, b = imgui.color_convert_hsv_to_rgb(h, s, v)
-
-                    self.__CurrentTheme.AddFields({
-                        imgui.COLOR_BUTTON         : ImVec4( *newColor, 0.40 ),
-                        imgui.COLOR_BUTTON_HOVERED : ImVec4( *newColor, 1.00 ),
-                        imgui.COLOR_BUTTON_ACTIVE  : ImVec4( r, g, b, 1.00 ),
-                    })
-
-                imgui.text("")
-
-                imgui.push_id("WhilePlaying")
-                imgui.text("While Playing")
-                imgui.separator()
-
-                changed, newColor = UILib.DrawColor3Controls(
-                    "Window Background", self.__CurrentThemeActive.Fields[imgui.COLOR_WINDOW_BACKGROUND], columnWidth
-                )
-                if changed:
-                    self.__CurrentThemeActive.AddFields({
-                        imgui.COLOR_WINDOW_BACKGROUND : ImVec4( *newColor, 1.0 ),
-                        imgui.COLOR_CHILD_BACKGROUND  : ImVec4( 0.0, 0.0, 0.0, 0.0 ),
-
-                        imgui.COLOR_TITLE_BACKGROUND : ImVec4( newColor[0] * 0.9, newColor[1] * 0.9, newColor[2] * 0.9, 1.0 ),
-                        imgui.COLOR_TITLE_BACKGROUND_COLLAPSED : ImVec4( 1., 1.0, 1.0, 0.51 ),
-                        imgui.COLOR_TITLE_BACKGROUND_ACTIVE
-                            : ImVec4( newColor[0] * 0.8, newColor[1] * 0.8, newColor[2] * 0.8, 1.0 ),
-
-                        imgui.COLOR_MENUBAR_BACKGROUND
-                            : ImVec4( newColor[0] * 0.7, newColor[1] * 0.7, newColor[2] * 0.7, 1.0 ),
-                    })
-
-                changed, newColor = UILib.DrawColor3Controls(
-                    "Text", self.__CurrentThemeActive.Fields[imgui.COLOR_TEXT], columnWidth
-                )
-                if changed:
-                    h, s, v = imgui.color_convert_rgb_to_hsv(newColor[0], newColor[1], newColor[2])
-                    v = (v * 0.6) if v > 0.5 else (v * 1.6)
-                    rd, gd, bd = imgui.color_convert_hsv_to_rgb(h, s, v)
-
-                    self.__CurrentThemeActive.AddFields({
-                        imgui.COLOR_TEXT : ImVec4( *newColor, 1.0 ),
-                        imgui.COLOR_TEXT_DISABLED : ImVec4( rd, gd, bd, 1.0 )
-                    })
-
-                changed, newColor = UILib.DrawColor3Controls(
-                    "Input Background", self.__CurrentThemeActive.Fields[imgui.COLOR_FRAME_BACKGROUND], columnWidth
-                )
-                if changed:
-                    h, s, v = imgui.color_convert_rgb_to_hsv(newColor[0], newColor[1], newColor[2])
-                    v = (v * 0.45) if v > 0.5 else (v * 1.45)
-                    rd, gd, bd = imgui.color_convert_hsv_to_rgb(h, s, v)
-
-                    self.__CurrentThemeActive.AddFields({
-                        imgui.COLOR_FRAME_BACKGROUND         : ImVec4( *newColor, 1.0 ),
-                        imgui.COLOR_FRAME_BACKGROUND_HOVERED : ImVec4( rd, gd, bd, 1.0 ),
-                        imgui.COLOR_FRAME_BACKGROUND_ACTIVE  : ImVec4( rd, gd, bd, 1.0 ),
-                    })
-
-                changed, newColor = UILib.DrawColor3Controls(
-                    "Tabs", self.__CurrentThemeActive.Fields[imgui.COLOR_TAB], columnWidth
-                )
-                if changed:
-                    h, s, v = imgui.color_convert_rgb_to_hsv(newColor[0], newColor[1], newColor[2])
-                    v = v if v > 0.8 else (v * 1.25)
-                    r, g, b = imgui.color_convert_hsv_to_rgb(h, s, v)
-
-                    self.__CurrentThemeActive.AddFields({
-                        imgui.COLOR_TAB         : ImVec4( *newColor, 1.0 ),
-                        imgui.COLOR_TAB_HOVERED : ImVec4( r, g, b, 1.0 ),
-                        imgui.COLOR_TAB_ACTIVE  : ImVec4( *newColor, 1.0 ),
-
-                        imgui.COLOR_TAB_UNFOCUSED         : ImVec4( r, g, b, 1.0 ),
-                        imgui.COLOR_TAB_UNFOCUSED_ACTIVE  : ImVec4( *newColor, 1.0 )
-                    })
-
-                changed, newColor = UILib.DrawColor3Controls(
-                    "Buttons", self.__CurrentThemeActive.Fields[imgui.COLOR_BUTTON], columnWidth
-                )
-                if changed:
-                    h, s, v = imgui.color_convert_rgb_to_hsv(newColor[0], newColor[1], newColor[2])
-                    v = (v * 0.25) if v > 0.8 else (v * 1.1)
-                    r, g, b = imgui.color_convert_hsv_to_rgb(h, s, v)
-
-                    self.__CurrentThemeActive.AddFields({
-                        imgui.COLOR_BUTTON         : ImVec4( *newColor, 0.40 ),
-                        imgui.COLOR_BUTTON_HOVERED : ImVec4( *newColor, 1.00 ),
-                        imgui.COLOR_BUTTON_ACTIVE  : ImVec4( r, g, b, 1.00 ),
-                    })
-                
-                imgui.pop_id()
-                imgui.text("")
-
-            imgui.set_cursor_pos_y(imgui.get_window_content_region_max()[1] - 25)
-            imgui.set_cursor_pos_x(imgui.get_window_content_region_max()[0] - 90)
-
-            save = imgui.button("Save")
-            if imgui.is_item_hovered():
-                imgui.begin_tooltip()
-                imgui.text("Your Theme Preferences will be saved locally")
-                imgui.end_tooltip()
-
-            imgui.same_line()
-            if imgui.button("Close"): self.__ShowThemeEditor = False
-
-            if save:
-                if preset == "Default Light":
-                    self.__CurrentTheme = ImGuiTheme.DefaultLight.Copy()
-                    self.__CurrentThemeActive = ImGuiTheme.LightActive.Copy()
-
-                elif preset == "Default Dark":
-                    self.__CurrentTheme = ImGuiTheme.DefaultDark.Copy()
-                    self.__CurrentThemeActive = ImGuiTheme.Ruth.Copy()
-                
-                elif preset == "Ruth":
-                    self.__CurrentTheme = ImGuiTheme.Ruth.Copy()
-                    self.__CurrentThemeActive = ImGuiTheme.DefaultDark.Copy()
-
-                # with open(f"{Cache.GetLocalSaveDirectory()}\\ThemePref.json", 'w') as f: json.dump({"Pref": preset}, f)
-
-                Settings.SetProperty("ThemePreferences", preset)
-                Settings.SetProperties(
-                    Theme=self.__CurrentTheme.Fields,
-                    ActiveTheme=self.__CurrentThemeActive.Fields
-                )
-
-                ImGuiLayer.SetTheme(self.__CurrentTheme)
-                self.__ShowThemeEditor = False
 
     def UI_Toolbar(self) -> None:
         imgui.push_style_var(imgui.STYLE_WINDOW_PADDING, ImVec2(0, 2))
@@ -651,22 +380,23 @@ class EditorLayer(Layer):
         with imgui.begin("##toolbar", flags=flags):
             size = imgui.get_window_height() - 4.0
             icon: Texture2D = (
-                self.__StopIcon 
-                if self.__SceneState in [EditorLayer.SceneStateEnum.Play, EditorLayer.SceneStateEnum.Pause]
-                else self.__PlayIcon
+                self.__Icons["Stop"] 
+                if self.__SceneState != EditorLayer.SceneStateEnum.Edit
+                else self.__Icons["Play"]
             )
 
-            spacing = {
-                EditorLayer.SceneStateEnum.Edit  : (imgui.get_window_content_region_max()[0] * 0.5) - 1*(size * 0.5),
-                EditorLayer.SceneStateEnum.Play  : (imgui.get_window_content_region_max()[0] * 0.5) - 2*(size * 0.5),
-                EditorLayer.SceneStateEnum.Pause : (imgui.get_window_content_region_max()[0] * 0.5) - 3*(size * 0.5)
+            cursorStartPos = {
+                EditorLayer.SceneStateEnum.Edit  : 1*(size * 0.5),
+                EditorLayer.SceneStateEnum.Play  : 2*(size * 0.5),
+                EditorLayer.SceneStateEnum.Pause : 3*(size * 0.5)
             }
-            imgui.set_cursor_pos_x(spacing[self.__SceneState])
+            imgui.set_cursor_pos_x(
+                (imgui.get_window_content_region_max()[0] * 0.5) - cursorStartPos[self.__SceneState]
+            )
 
             if imgui.image_button(icon.RendererID, size, size, (0, 0), (1, 1)):
-                if   self.__SceneState == EditorLayer.SceneStateEnum.Edit: self.__OnScenePlay()
-                elif self.__SceneState in [EditorLayer.SceneStateEnum.Play, EditorLayer.SceneStateEnum.Pause]:
-                    self.__OnSceneStop()
+                if    self.__SceneState == EditorLayer.SceneStateEnum.Edit: self.__OnScenePlay()
+                else: self.__OnSceneStop()
 
             if imgui.is_item_hovered():
                 imgui.begin_tooltip()
@@ -677,14 +407,14 @@ class EditorLayer(Layer):
                 )
                 imgui.end_tooltip()
 
-            if self.__SceneState in [EditorLayer.SceneStateEnum.Play, EditorLayer.SceneStateEnum.Pause]:
+            if self.__SceneState != EditorLayer.SceneStateEnum.Edit:
                 imgui.same_line()
 
                 if not self.__SceneState == EditorLayer.SceneStateEnum.Pause:
                     imgui.push_style_color(imgui.COLOR_BUTTON, 0, 0, 0, 0)
                 else: imgui.push_style_color(imgui.COLOR_BUTTON, 0.35, 0.35, 0.35, 1)
 
-                if imgui.image_button(self.__PauseIcon.RendererID, size, size, (0, 0), (1, 1)):
+                if imgui.image_button(self.__Icons["Pause"].RendererID, size, size, (0, 0), (1, 1)):
                     if   self.__SceneState == EditorLayer.SceneStateEnum.Play  : self.__OnScenePause  ()
                     elif self.__SceneState == EditorLayer.SceneStateEnum.Pause : self.__OnSceneResume ()
 
@@ -701,7 +431,7 @@ class EditorLayer(Layer):
 
             if self.__SceneState == EditorLayer.SceneStateEnum.Pause:
                 imgui.same_line()
-                if imgui.image_button(self.__StepIcon.RendererID, size, size, (0, 0), (1, 1)):
+                if imgui.image_button(self.__Icons["Step"].RendererID, size, size, (0, 0), (1, 1)):
                     self.__ActiveScene.OnUpdateRuntime(self.__LastFrameTime)
                 if imgui.is_item_hovered():
                     imgui.begin_tooltip()
@@ -711,7 +441,7 @@ class EditorLayer(Layer):
         imgui.pop_style_color(3)
         imgui.pop_style_var(3)
 
-    def OnUpdate(self, timestep: Timestep) -> None: 
+    def OnUpdate(self, timestep: Timestep) -> None:
         timer = PI_TIMER("EditorLayer::OnUpdate")
         self.__Framerate = 1 / timestep.Seconds
         self.__LastFrameTime = timestep.Seconds

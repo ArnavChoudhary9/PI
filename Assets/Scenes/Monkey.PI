@@ -23,6 +23,10 @@ Entities:
 - Entity: f6153aec-8503-431e-a3a7-ac3c971eac03
   MeshComponent:
     Path: Assets\Meshes\Monkey.obj
+  ScriptComponent:
+    Namespace: FallDown.FallDown
+    Variables:
+      Speed: !<Vector3> [0.0, -0.8500000238418579, 0.0]
   TagComponent:
     Tag: Monkey
   TransformComponent:
@@ -42,4 +46,4 @@ Entities:
     Scale: !<Vector3> [1.0, 1.0, 1.0]
     Translation: !<Vector3> [0.0, 1.75, 8.0]
 Scene: Untitled
-Version: 0.9.4.dev
+Version: 1.0.1.dev

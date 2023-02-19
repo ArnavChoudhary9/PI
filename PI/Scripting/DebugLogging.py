@@ -34,7 +34,10 @@ class DebugConsole:
         return DebugConsole
 
     @staticmethod
-    def HasErrorOccurred(): return DebugConsole.__ErrorOccured        
+    def HasErrorOccurred(): return DebugConsole.__ErrorOccured
+
+    @staticmethod
+    def ClearError() -> None: DebugConsole.__ErrorOccured = False    
 
     @staticmethod
     def FormatString(string: str) -> str:

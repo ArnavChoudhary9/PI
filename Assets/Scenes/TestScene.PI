@@ -5,7 +5,8 @@ Entities:
   ScriptComponent:
     Namespace: FallDown.FallDown
     Variables:
-      TestVariable: !<Vector3> [0.0, -0.5, 0.0]
+      Speed: !<Vector3> [0.0, -0.5, 0.0]
+      TestVariable: !<Vector3> [0.0, 0.0, 0.0]
   TagComponent:
     Tag: Sphere
   TransformComponent:

@@ -63,9 +63,9 @@ class PI_Application(ABC):
         from ..Scripting.ScriptingEngine import ScriptingEngine
         ScriptingEngine.Init()
 
-        from .DirectoryManager import Settings
-        Settings.Init()
-        Settings.LoadFields()
+        from .CacheManager import LocalCache
+        LocalCache.Init()
+        LocalCache.LoadFields()
 
         self._IsMinimised = False
 
@@ -151,8 +151,8 @@ class PI_Application(ABC):
         from ..Scripting.ScriptingEngine import ScriptingEngine
         ScriptingEngine.Shutdown()
 
-        from .DirectoryManager import Settings
-        Settings.Shutdown()
+        from .CacheManager import LocalCache
+        LocalCache.Shutdown()
 
         self._Running = False
     

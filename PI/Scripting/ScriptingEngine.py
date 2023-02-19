@@ -1,7 +1,10 @@
 import os
 import importlib
 import inspect
+import debugpy
 from typing import Dict, List, Any, Type, Callable
+
+from ..Core.Base import PI_DEBUG_SCRIPTS
 
 class Script: ...
 
@@ -35,7 +38,7 @@ class Module:
 
     def AllScriptsExtending(self, baseClass: Type) -> Dict[str, Script]:
         return { name: script for name, script in self.AllScripts.items() if script.Extends == baseClass }
-
+        
 class Script:
     def __init__(self, module: Module, scriptName: str, mustExtend: Type=object) -> None:
         self.Bound = False
@@ -106,9 +109,19 @@ class ScriptingEngine:
     @staticmethod
     def Init() -> None:
         ScriptingEngine.Modules = {}
+        if PI_DEBUG_SCRIPTS: ScriptingEngine.InitDebugger()
+
+    @staticmethod
+    def InitDebugger() -> None:
+        debugpy.configure(python="E:\Python\Python-3.8\python.exe")
+        debugpy.listen(6969)
 
     @staticmethod
     def Shutdown() -> None: pass
+
+    @staticmethod
+    def AttachToDebugger() -> None:
+        if PI_DEBUG_SCRIPTS and not debugpy.is_client_connected(): debugpy.wait_for_client()
 
     @staticmethod
     def ScanForModules(path: str='.') -> Dict[str, Module]:
@@ -118,7 +131,7 @@ class ScriptingEngine:
             nodes.append(path)
 
             try: dirs = os.listdir(path)
-            except NotADirectoryError as e:
+            except NotADirectoryError as _:
                 if path.endswith(filter): allModules.append(path)
                 return
 

@@ -25,6 +25,8 @@ PI_LOGGING         : bool
 PI_INSTRUMENTATION : bool
 PI_IMGUI           : bool
 
+PI_DEBUG_SCRIPTS: bool = False
+
 PI_V_SYNC: bool = True
 
 # Full DEBUG Configuration
