@@ -1,9 +1,8 @@
-from ..Core    import Random
 from ..Logging import PI_CORE_WARN
 
 import imgui
 import pyrr
-from typing import Callable, Iterable, List, Tuple
+from typing import Callable, Iterable, List, Tuple, Any
 
 class UILib:
     class _FILE_DIALOGUE_RESOURCES:
@@ -16,20 +15,35 @@ class UILib:
 
         @staticmethod
         def Init() -> None:
-            if not UILib._FILE_DIALOGUE_RESOURCES.IsLoaded:
-                import tkinter as tk
-                from   tkinter import filedialog
-                
-                UILib._FILE_DIALOGUE_RESOURCES._Root = tk.Tk()
-                UILib._FILE_DIALOGUE_RESOURCES._Root.withdraw()
+            if UILib._FILE_DIALOGUE_RESOURCES.IsLoaded: return
 
-                UILib._FILE_DIALOGUE_RESOURCES.LoadFileLoader = filedialog.askopenfilename
-                UILib._FILE_DIALOGUE_RESOURCES.SaveFileLoader = filedialog.asksaveasfilename
+            import tkinter as tk
+            from   tkinter import filedialog
+            
+            UILib._FILE_DIALOGUE_RESOURCES._Root = tk.Tk()
+            UILib._FILE_DIALOGUE_RESOURCES._Root.withdraw()
+
+            UILib._FILE_DIALOGUE_RESOURCES.LoadFileLoader = filedialog.askopenfilename
+            UILib._FILE_DIALOGUE_RESOURCES.SaveFileLoader = filedialog.asksaveasfilename
 
             UILib._FILE_DIALOGUE_RESOURCES.IsLoaded = True
 
     @staticmethod
-    def DrawVector3Controls(lable: str, values: pyrr.Vector3, resetValue: float=0, speed: float=0.05, columnWidth: float=100) -> Tuple[bool, pyrr.Vector3]:
+    def DrawButton(lable: str, tooltip: str=None) -> bool:
+        pressed = imgui.button(lable)
+
+        if tooltip and imgui.is_item_hovered():
+            imgui.begin_tooltip()
+            imgui.text(tooltip)
+            imgui.end_tooltip()
+
+        return pressed
+
+    @staticmethod
+    def DrawVector3Controls(
+        lable: str, values: pyrr.Vector3, resetValue: float=0,
+        speed: float=0.05, columnWidth: float=100
+        ) -> Tuple[bool, pyrr.Vector3]:
         imgui.push_id(lable)
 
         imgui.columns(2)
@@ -87,7 +101,7 @@ class UILib:
     def DrawTextFieldControls(
         lable: str, value: str, columnWidth: float=50,
         acceptDragDrop: bool=False, filter: Tuple[str]=None, tooltip: str=None
-    ) -> Tuple[bool, str]:
+    ) -> Tuple[bool, str, Any]:
         imgui.push_id(lable)
 
         imgui.columns(2)
@@ -119,6 +133,64 @@ class UILib:
         imgui.columns(1)
         imgui.pop_id()
 
+        if not acceptDragDrop: return changed, newText
+        return changed, newText, dragDrop
+
+    @staticmethod
+    def DrawSelectableFileField(
+        lable: str, value: str, columnWidth: float=50,
+        filetypes=Iterable[Tuple[str, str]], acceptDragDrop: bool=False,
+        textfieldTooltip: str=None, selectorTooltip: str=None
+    ) -> Tuple[bool, str]:
+        imgui.push_id(lable)
+
+        imgui.columns(3)
+        imgui.set_column_width(0, columnWidth)
+        imgui.set_column_width(1, imgui.get_window_content_region_max()[0] - 130)
+
+        imgui.text(lable)
+        imgui.next_column()
+        
+        imgui.push_item_width(imgui.calculate_item_width() * 1.5)
+        changed, newText = imgui.input_text("##Filter", value, 512)
+        imgui.pop_item_width()
+
+        if textfieldTooltip and imgui.is_item_hovered():
+            imgui.begin_tooltip()
+            imgui.text(textfieldTooltip)
+            imgui.end_tooltip()
+
+        dragDrop = False
+        if acceptDragDrop:
+            if imgui.begin_drag_drop_target():
+                data: bytes = imgui.accept_drag_drop_payload("CONTENT_BROWSER_ITEM")
+                if data:
+                    data = data.decode('utf-8')
+                    if not filter: changed, newText, dragDrop = True, data, True
+                    else:
+                        if data.lower().endswith(".exe"): changed, newText, dragDrop = True, data, True
+                        else: PI_CORE_WARN("This text field only accepts {} files", ".exe")
+                imgui.end_drag_drop_target()
+
+        imgui.next_column()
+        if UILib.DrawButton("...", tooltip=selectorTooltip):
+            cancelled, filename = UILib.DrawFileLoadDialog(filetypes)
+
+            if cancelled:
+                imgui.columns(1)
+                imgui.pop_id()
+                if not acceptDragDrop: return True, ""
+                return True, "", False
+        
+            imgui.columns(1)
+            imgui.pop_id()
+            if not acceptDragDrop: return True, filename
+            return True, filename, False
+
+        imgui.columns(1)
+        imgui.pop_id()
+
+        if not acceptDragDrop: return changed, newText
         return changed, newText, dragDrop
 
     @staticmethod
@@ -143,7 +215,7 @@ class UILib:
 
         imgui.push_item_width(imgui.calculate_item_width() * 1.5)
         
-        changed, index = imgui.combo("##lable", index, values)
+        changed, index = imgui.combo(f"##combo_{lable}", index, values)
 
         imgui.pop_item_width()
 
@@ -156,7 +228,8 @@ class UILib:
     def DrawFloatControls(
             lable: str, value: float, speed: float=0.05,
             minValue: float=0.0, maxValue: float=0.0,
-            columnWidth: float=100
+            columnWidth: float=100,
+            tooltip: str=None
         ) -> Tuple[bool, float]:
         imgui.push_id(lable)
         imgui.columns(2)
@@ -167,6 +240,11 @@ class UILib:
         changed, value = imgui.drag_float(
             "##Value", value, change_speed=speed, min_value=minValue, max_value=maxValue, format="%.2f"
         )
+
+        if tooltip and imgui.is_item_hovered():
+            imgui.begin_tooltip()
+            imgui.text(tooltip)
+            imgui.end_tooltip()
         
         imgui.columns(1)
         imgui.pop_id()

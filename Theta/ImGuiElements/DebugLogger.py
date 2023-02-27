@@ -26,7 +26,7 @@ class DebugLogger:
     def OnImGuiRender(self) -> None:
         with imgui.begin("Console", flags=imgui.WINDOW_NO_FOCUS_ON_APPEARING):
 
-            if self.ErrorOccurred:
+            if self.ErrorOccurred and (self.__Filter & DebugConsole.Severity.ERROR):
                 imgui.set_window_focus()
                 self.ErrorOccurred = False
                 DebugConsole.ClearError()

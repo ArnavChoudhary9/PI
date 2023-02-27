@@ -2,11 +2,11 @@ from ..Instrumentation import Instrumentor, InstrumentationTimer
 
 from typing import Tuple as _Tuple
 
-PI_VERSION_TUPLE : _Tuple[int] = (1,0,1)
+PI_VERSION_TUPLE : _Tuple[int] = (1,0,2)
 PI_VERSION       : str         = f"{'.'.join([str(_) for _ in PI_VERSION_TUPLE])}.dev"
 
 PI_LATEST_UPDATE: str = """
-    Debug Console Added
+    Added External Debugging support
 """
 
 #-------------------------------------------------------------------

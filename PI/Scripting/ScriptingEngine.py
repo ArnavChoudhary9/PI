@@ -106,22 +106,46 @@ class Script:
 class ScriptingEngine:
     Modules: Dict[str, Module]
 
+    class Debugger:
+        Running = False
+
+        @staticmethod
+        def Init(pythonLoc: str) -> int:
+            try: debugpy.configure(python=pythonLoc)
+            except Exception as _: return False
+
+            ScriptingEngine.Debugger.Running = True
+            return True
+
+        @staticmethod
+        def Shutdown() -> None: ScriptingEngine.Debugger.Running = False
+
+        @staticmethod
+        def Listen(port):
+            if not ScriptingEngine.Debugger.Running: return
+
+            try: debugpy.listen(port)
+            except Exception as _:
+                ScriptingEngine.Debugger.Running = False
+                return False
+
+            return True
+
+        @staticmethod
+        def IsClientConnected() -> bool: return debugpy.is_client_connected()
+
+        @staticmethod
+        def AttachToDebugger() -> None:
+            if not ScriptingEngine.Debugger.Running: return
+            if not debugpy.is_client_connected(): debugpy.wait_for_client()
+
     @staticmethod
     def Init() -> None:
         ScriptingEngine.Modules = {}
-        if PI_DEBUG_SCRIPTS: ScriptingEngine.InitDebugger()
 
     @staticmethod
-    def InitDebugger() -> None:
-        debugpy.configure(python="E:\Python\Python-3.8\python.exe")
-        debugpy.listen(6969)
-
-    @staticmethod
-    def Shutdown() -> None: pass
-
-    @staticmethod
-    def AttachToDebugger() -> None:
-        if PI_DEBUG_SCRIPTS and not debugpy.is_client_connected(): debugpy.wait_for_client()
+    def Shutdown() -> None:
+        ScriptingEngine.Debugger.Shutdown()
 
     @staticmethod
     def ScanForModules(path: str='.') -> Dict[str, Module]:

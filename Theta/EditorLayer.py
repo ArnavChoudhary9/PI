@@ -346,6 +346,10 @@ class EditorLayer(Layer):
         self.__ActiveScene.OnStartRuntime()
         self.__ThemeEditor.SetCurrentActiveTheme()
 
+        if (self.__ProjectSettingsTab.Settings["Debugging.EnableDebugging"] and
+            self.__ProjectSettingsTab.Settings["Debugging.WaitOnPlay"]):
+            ScriptingEngine.Debugger.AttachToDebugger()
+
     def __OnSceneStop(self) -> None:
         self.__SceneState = EditorLayer.SceneStateEnum.Edit
         self.__ActiveScene.OnStopRuntime()
@@ -443,9 +447,9 @@ class EditorLayer(Layer):
 
     def OnUpdate(self, timestep: Timestep) -> None:
         timer = PI_TIMER("EditorLayer::OnUpdate")
-        self.__Framerate = 1 / timestep.Seconds
-        self.__LastFrameTime = timestep.Seconds
-        if self.__ViewportFocused: self.__EditorCamera.OnUpdate(timestep.Seconds)
+        self.__Framerate = 1 / timestep.FixedTime
+        self.__LastFrameTime = timestep.FixedTime
+        if self.__ViewportFocused: self.__EditorCamera.OnUpdate(timestep.FixedTime)
 
         spec = self.__Framebuffer.Spec
         if self.__ViewportSize.x > 0.0 \
@@ -466,11 +470,11 @@ class EditorLayer(Layer):
             self.__Framebuffer.ClearAttachment(1, Math.PythonInt32ToBytes(0))
 
             if self.__SceneState == EditorLayer.SceneStateEnum.Edit:
-                self.__ActiveScene.OnUpdateEditor(float(timestep), self.__EditorCamera)
+                self.__ActiveScene.OnUpdateEditor(timestep.FixedTime, self.__EditorCamera)
             elif self.__SceneState == EditorLayer.SceneStateEnum.Play:
-                self.__ActiveScene.OnUpdateRuntime(float(timestep))
+                self.__ActiveScene.OnUpdateRuntime(timestep.GameDelta)
             elif self.__SceneState == EditorLayer.SceneStateEnum.Pause:
-                self.__ActiveScene.OnUpdateEditor(float(timestep), self.__EditorCamera)
+                self.__ActiveScene.OnUpdateEditor(timestep.Seconds, self.__EditorCamera)
                 
             self.__ActiveScene.Draw()
 
