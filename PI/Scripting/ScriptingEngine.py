@@ -4,8 +4,6 @@ import inspect
 import debugpy
 from typing import Dict, List, Any, Type, Callable
 
-from ..Core.Base import PI_DEBUG_SCRIPTS
-
 class Script: ...
 
 class Module:

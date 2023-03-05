@@ -23,9 +23,11 @@ class ProjectSettingsTab:
             "Debugging.WaitOnPlay": True,
         }
 
-        # self.__Settings: Dict[str, Any] = LocalCache.GetProperty("ProjectSettings", defaultSettings)
-        self.__Settings: Dict[str, Any] = defaultSettings.copy()
+        self.__Settings: Dict[str, Any] = LocalCache.GetProperty("ProjectSettings", defaultSettings)
         self.__TempSettings = self.__Settings.copy()
+
+        if self.__Settings["Debugging.EnableDebugging"]:
+            self.__StartDebugAdapter()
 
     def __del__(self) -> None: LocalCache.SetProperty("ProjectSettings", self.__Settings)
 
@@ -33,6 +35,14 @@ class ProjectSettingsTab:
 
     @property
     def Settings(self) -> Dict[str, Any]: return self.__Settings
+
+    def __StartDebugAdapter(self) -> None:
+        pythonPath = self.__TempSettings["Debugging.PythonPath"]
+        port = self.__TempSettings["Debugging.Port"]
+
+        if (not ScriptingEngine.Debugger.Init(pythonPath) or
+            not ScriptingEngine.Debugger.Listen(port)):
+            DebugConsole.Error(f"Envalid python path!!")
 
     def OnImGuiRender(self, bgColor: ImVec4, activeColor: ImVec4) -> None:
         if not self.__Show: return
@@ -122,12 +132,7 @@ class ProjectSettingsTab:
                     if changed: self.__TempSettings["Debugging.WaitOnPlay"] = waitOnPlay
 
                     if not ScriptingEngine.Debugger.Running and UILib.DrawButton("Start Debug Adapter"):
-                        pythonPath = self.__TempSettings["Debugging.PythonPath"]
-                        port = self.__TempSettings["Debugging.Port"]
-
-                        if (not ScriptingEngine.Debugger.Init(pythonPath) or
-                            not ScriptingEngine.Debugger.Listen(port)):
-                            DebugConsole.Error(f"Envalid python path!!")
+                        self.__StartDebugAdapter()
 
         imgui.set_cursor_pos_x(imgui.get_window_content_region_max()[0] - 95)
         imgui.set_cursor_pos_y(imgui.get_window_content_region_max()[1] - 25)
@@ -149,12 +154,7 @@ class ProjectSettingsTab:
             # Debugger Settings
             if self.__TempSettings["Debugging.EnableDebugging"] != self.__Settings["Debugging.EnableDebugging"]:
                 if not ScriptingEngine.Debugger.Running:
-                        pythonPath = self.__TempSettings["Debugging.PythonPath"]
-                        port = self.__TempSettings["Debugging.Port"]
-
-                        if (not ScriptingEngine.Debugger.Init(pythonPath) or
-                            not ScriptingEngine.Debugger.Listen(port)):
-                            DebugConsole.Error(f"Envalid python path!!")
+                    self.__StartDebugAdapter()
 
             self.__Settings = self.__TempSettings.copy()
             LocalCache.SetProperty("ProjectSettings", self.__Settings)

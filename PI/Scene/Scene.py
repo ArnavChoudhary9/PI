@@ -99,6 +99,7 @@ class Scene:
                     camera = cameraComponent.Camera.CameraObject
                     camera.SetPosition( transform.Translation )
                     camera.SetRotation( transform.Rotation    )
+                    
         self._Registry.add_processor(_TransformUpdater())
 
     @staticmethod

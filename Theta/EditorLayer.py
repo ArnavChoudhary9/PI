@@ -472,7 +472,7 @@ class EditorLayer(Layer):
             if self.__SceneState == EditorLayer.SceneStateEnum.Edit:
                 self.__ActiveScene.OnUpdateEditor(timestep.FixedTime, self.__EditorCamera)
             elif self.__SceneState == EditorLayer.SceneStateEnum.Play:
-                self.__ActiveScene.OnUpdateRuntime(timestep.GameDelta)
+                self.__ActiveScene.OnUpdateRuntime(min(timestep.GameDelta, 1/10))   # This is to stop abrupt behaviour in scripts
             elif self.__SceneState == EditorLayer.SceneStateEnum.Pause:
                 self.__ActiveScene.OnUpdateEditor(timestep.Seconds, self.__EditorCamera)
                 

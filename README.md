@@ -18,7 +18,7 @@ NOTE: The binaries are compiled with Python v 3.8.3 & Pyinstaller v4.7
 
 Start by cloning the repository `git clone https://github.com/HotShot0901/PI`
 
-OR
+**OR**
 
 Directly download precompiled binaries from the releases section.
 
@@ -28,18 +28,25 @@ The repository comes with a virtual environment that has all the prerequisites a
 
 <ins>**To Run:**</ins>
 
-First activate the virtual environment:
+1) Reinstanciate the virtual environment <br />
+`virtualenv virtualenv`
 
-`ActivateVirtualEnv.bat`
+2) Activate the virtual environment: <br />
+`ActivateVirtualEnv.bat` <br />
+**OR**  <br />
+`.\virtualenv\Scripts\activate` <br />
 
-OR
+3) Then run the editor: <br />
+`python Theta\Theta.py`
 
-`.\virtualenv\Scripts\activate`
+**OR**
+
+If You have downloaded the precompiled binaries, you can just run <br />
+`vX.X.X.xxx\Theta\Theta.exe`
 
 <br />
-Then run the editor:
 
-`python Theta\Theta.py`
+>**Congratulations You have successfully installed PI!!!**
 
 <br />
 

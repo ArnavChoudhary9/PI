@@ -21,6 +21,8 @@ class OpenGLTexture2D(Texture2D):
 
     @dispatch(str, int)
     def __init__(self, path: str, format: int) -> None:
+        self.__RendererID = None
+
         self.__Path = path
         image = Image.open(path)
         image = image.transpose(Image.FLIP_TOP_BOTTOM)
@@ -81,6 +83,8 @@ class OpenGLTexture2D(Texture2D):
 
     @dispatch(int, int, int)
     def __init__(self, width: int, height: int, format: int) -> None:
+        self.__RendererID = None
+
         self.__Width = width
         self.__Height = height
 
@@ -121,6 +125,7 @@ class OpenGLTexture2D(Texture2D):
         return self.__Name
 
     def __del__(self) -> None:
+        if self.__RendererID is None: return
         glDeleteTextures(1, [self.__RendererID])
 
     @property
