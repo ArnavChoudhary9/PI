@@ -1,7 +1,7 @@
 Entities:
 - Entity: d21c54be-6daa-4f4e-93f7-74fe487e2ae6
   MeshComponent:
-    Path: Assets\Internal\Meshes\Plane.obj
+    Path: InternalAssets\Meshes\Plane.obj
   TagComponent:
     Tag: Plane
   TransformComponent:
@@ -22,7 +22,7 @@ Entities:
     Translation: !<Vector3> [0.0, 10.0, 0.0]
 - Entity: f6153aec-8503-431e-a3a7-ac3c971eac03
   MeshComponent:
-    Path: Assets\Meshes\Monkey.obj
+    Path: Meshes\Monkey.obj
   ScriptComponent:
     Namespace: FallDown.FallDown
     Variables:
@@ -46,4 +46,4 @@ Entities:
     Scale: !<Vector3> [1.0, 1.0, 1.0]
     Translation: !<Vector3> [0.0, 1.75, 8.0]
 Scene: Untitled
-Version: 1.0.1.dev
+Version: 1.0.3.dev

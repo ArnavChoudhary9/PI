@@ -12,7 +12,9 @@ class ProjectSettingsTab:
     __Settings: Dict[str, Any]
     __TempSettings: Dict[str, Any]
 
-    def __init__(self) -> None:
+    def __init__(self) -> None: self.Init()
+
+    def Init(self) -> None:
         defaultSettings = {
             "Time.Scale": 1,
             "Time.GameScale": 1,
@@ -23,13 +25,13 @@ class ProjectSettingsTab:
             "Debugging.WaitOnPlay": True,
         }
 
-        self.__Settings: Dict[str, Any] = LocalCache.GetProperty("ProjectSettings", defaultSettings)
+        self.__Settings: Dict[str, Any] = ProjectCache.GetProperty("ProjectSettings", defaultSettings)
         self.__TempSettings = self.__Settings.copy()
 
         if self.__Settings["Debugging.EnableDebugging"]:
             self.__StartDebugAdapter()
 
-    def __del__(self) -> None: LocalCache.SetProperty("ProjectSettings", self.__Settings)
+    def __del__(self) -> None: ProjectCache.SetProperty("ProjectSettings", self.__Settings)
 
     def Show(self) -> None: self.__Show = True
 
@@ -157,7 +159,8 @@ class ProjectSettingsTab:
                     self.__StartDebugAdapter()
 
             self.__Settings = self.__TempSettings.copy()
-            LocalCache.SetProperty("ProjectSettings", self.__Settings)
+            ProjectCache.SetProperty("ProjectSettings", self.__Settings)
+            ProjectCache.DumpFields()
             self.__Show = False
 
         imgui.end()

@@ -7,11 +7,11 @@ class SceneHierarchyPanel:
     __Context: Scene
     __SelectionContext: Entity
 
-    def __init__(self) -> None:
+    def __init__(self, project: Project) -> None:
         self.__Context = Scene()
         self.__SelectionContext = None
 
-        ScriptingEngine.ScanForModules("Assets")
+        ScriptingEngine.ScanForModules()
 
     def OnImGuiRender(self) -> None:
         with imgui.begin("Scene Heirarchy"):
@@ -94,7 +94,9 @@ class SceneHierarchyPanel:
             if imgui.menu_item("Camera")[0]:
                 if not self.__SelectionContext.HasComponent(CameraComponent):
                     self.__SelectionContext.AddComponent(CameraComponent, SceneCamera(SceneCamera.ProjectionTypeEnum.Perspective))
-                else: PI_CLIENT_WARN("Entity already has a Camera Component")
+                else:
+                    PI_CLIENT_WARN("Entity already has a Camera Component")
+                    DebugConsole.Warn("Entity already has a Camera Component")
                 imgui.close_current_popup()
 
             # Meshes
@@ -102,44 +104,58 @@ class SceneHierarchyPanel:
                 if imgui.menu_item("Empty Mesh")[0]:
                     if not self.__SelectionContext.HasComponent(MeshComponent):
                         self.__SelectionContext.AddComponent(MeshComponent, "")
-                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                    else:
+                        PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        DebugConsole.Warn("Entity already has a Mesh Component")
                     imgui.close_current_popup()
 
                 imgui.separator()
                 if imgui.menu_item("Cube")[0]:
                     if not self.__SelectionContext.HasComponent(MeshComponent):
-                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Cube.obj")
-                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\InternalAssets\\Meshes\\Cube.obj")
+                    else:
+                        PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        DebugConsole.Warn("Entity already has a Mesh Component")
                     imgui.close_current_popup()
                     
                 if imgui.menu_item("Sphere")[0]:
                     if not self.__SelectionContext.HasComponent(MeshComponent):
-                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Sphere.obj")
-                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\InternalAssets\\Meshes\\Sphere.obj")
+                    else:
+                        PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        DebugConsole.Warn("Entity already has a Mesh Component")
                     imgui.close_current_popup()
                     
                 if imgui.menu_item("Cyliender")[0]:
                     if not self.__SelectionContext.HasComponent(MeshComponent):
-                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Cylinder.obj")
-                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\InternalAssets\\Meshes\\Cylinder.obj")
+                    else:
+                        PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        DebugConsole.Warn("Entity already has a Mesh Component")
                     imgui.close_current_popup()
                     
                 if imgui.menu_item("Plane")[0]:
                     if not self.__SelectionContext.HasComponent(MeshComponent):
-                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Plane.obj")
-                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\InternalAssets\\Meshes\\Plane.obj")
+                    else:
+                        PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        DebugConsole.Warn("Entity already has a Mesh Component")
                     imgui.close_current_popup()
                     
                 if imgui.menu_item("Cone")[0]:
                     if not self.__SelectionContext.HasComponent(MeshComponent):
-                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Cone.obj")
-                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\InternalAssets\\Meshes\\Cone.obj")
+                    else:
+                        PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        DebugConsole.Warn("Entity already has a Mesh Component")
                     imgui.close_current_popup()
                     
                 if imgui.menu_item("Torus")[0]:
                     if not self.__SelectionContext.HasComponent(MeshComponent):
-                        self.__SelectionContext.AddComponent(MeshComponent, ".\\Assets\\Internal\\Meshes\\Torus.obj")
-                    else: PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        self.__SelectionContext.AddComponent(MeshComponent, ".\\InternalAssets\\Meshes\\Torus.obj")
+                    else:
+                        PI_CLIENT_WARN("Entity already has a Mesh Component")
+                        DebugConsole.Warn("Entity already has a Mesh Component")
                     imgui.close_current_popup()
 
                 imgui.end_menu()
@@ -149,19 +165,25 @@ class SceneHierarchyPanel:
                     self.__SelectionContext.AddComponent(MaterialComponent,
                         Material(Material.Type.Standard | Material.Type.Lit | Material.Type.Phong)
                     )
-                else: PI_CLIENT_WARN("Entity already has a Material Component")
+                else:
+                    PI_CLIENT_WARN("Entity already has a Material Component")
+                    DebugConsole.Warn("Entity already has a Material Component")
                 imgui.close_current_popup()
 
             if imgui.menu_item("Light")[0]:
                 if not self.__SelectionContext.HasComponent(LightComponent):
                     self.__SelectionContext.AddComponent(LightComponent, LightComponent.TypeEnum.Point)
-                else: PI_CLIENT_WARN("Entity already has a Light Component")
+                else:
+                    PI_CLIENT_WARN("Entity already has a Light Component")
+                    DebugConsole.Warn("Entity already has a Light Component")
                 imgui.close_current_popup()
 
             if imgui.menu_item("Script")[0]:
                 if not self.__SelectionContext.HasComponent(ScriptComponent):
                     self.__SelectionContext.AddComponent(ScriptComponent, "", "")
-                else: PI_CLIENT_WARN("Entity already has a Script Component")
+                else:
+                    PI_CLIENT_WARN("Entity already has a Script Component")
+                    DebugConsole.Warn("Entity already has a Script Component")
                 imgui.close_current_popup()
 
             imgui.end_popup()
@@ -183,6 +205,7 @@ class SceneHierarchyPanel:
             if (Input.IsKeyPressed(PI_KEY_ENTER) or dragDrop):
                 if not os.path.exists(component.Path):
                     PI_CLIENT_WARN("Trying to load invalid Model")
+                    DebugConsole.Warn("Trying to load invalid Model")
                     if hasattr(component, "MeshObject"): component.Path = component.MeshObject.Path
                     else: component.Path = ""
                     return
@@ -193,7 +216,7 @@ class SceneHierarchyPanel:
                     return
 
                 entity.RemoveComponent(MeshComponent)
-                entity.RemoveComponent(MaterialComponent)
+                if entity.HasComponent(MaterialComponent): entity.RemoveComponent(MaterialComponent)
                 entity.AddComponent(MeshComponent, component.Path).Init()
 
         def _MaterialUIFunction(entity: Entity, component: MaterialComponent) -> None:
@@ -211,7 +234,7 @@ class SceneHierarchyPanel:
             if changed: component.MaterialObject.SetSpecular(color)
             
             changed, shininess = UILib.DrawIntControls("Shininess", component.MaterialObject.Shininess,
-                minValue=0, maxValue=128)
+                minValue=1, maxValue=128)
             if changed: component.MaterialObject.SetShininess(shininess)
 
         def _ScriptUIFunction(entity: Entity, component: ScriptComponent) -> None:
@@ -223,7 +246,7 @@ class SceneHierarchyPanel:
                         variableChanged, new = UILib.DrawVector3Controls(name, instance, columnWidth=100)
 
                     if isinstance(instance, str):
-                        variableChanged, new, _ = UILib.DrawTextFieldControls(name, instance, columnWidth=100)
+                        variableChanged, new = UILib.DrawTextFieldControls(name, instance, columnWidth=100)
                     
                     if isinstance(instance, float):
                         variableChanged, new = UILib.DrawFloatControls(name, instance, columnWidth=100)
@@ -242,7 +265,7 @@ class SceneHierarchyPanel:
                     if variableChanged: component.SetVariables({name: new})
                 if len(component.Variables) != 0: imgui.text("")
 
-            modules = ScriptingEngine.ScanForModules(".\\Assets")
+            modules = ScriptingEngine.ScanForModules()
             scripts = ['.']
             for name, module in modules.items():
                 for script_name, script in module.AllScriptsExtending(Behaviour).items():

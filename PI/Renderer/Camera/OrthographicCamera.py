@@ -26,15 +26,6 @@ class OrthographicCamera(Camera):
 
         self._RecalculateViewMatrix()
 
-    # NOTE: Remove this after conforming this is not used anywhere else.
-    # @property
-    # def Rotation(self) -> float:
-    #     return self._Rotation.z
-
-    # def SetRotation(self, angle: float) -> None:
-    #     self._Rotation = pyrr.Vector3([ 0, 0, angle ])
-    #     self._RecalculateViewMatrix()
-
     @property
     def Scale(self) -> float:
         return self._Scale

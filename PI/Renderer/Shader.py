@@ -7,7 +7,7 @@ import pyrr
 from abc import ABC, abstractmethod
 
 class Shader(ABC):
-    __slots__ = ("__NativeAPI",)
+    __slots__ = ("__NativeAPI", "_Path")
 
     @staticmethod
     def Init() -> None:
@@ -42,6 +42,8 @@ class Shader(ABC):
 
     @property
     def Name(self) -> int: ...
+    @property
+    def Path(self) -> str: return self._Path
 
     @abstractmethod
     def __del__(self) -> None: ...

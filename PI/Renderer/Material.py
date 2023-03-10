@@ -38,6 +38,8 @@ class Material:
         #    Textured     => 0b00100000
         Textured : Final[int] = BIT(5)
 
+        StandardPhong : Final[int] = Standard | Phong
+
         @staticmethod
         def Is(_type: int, flag: int) -> int:
             return _type & flag
@@ -86,18 +88,18 @@ class Material:
         if Material.Type.Is(self.__Type, Material.Type.Lit):
             if Material.Type.Is(self.__Type, Material.Type.Phong):
                 if Material.Type.Is(self.__Type, Material.Type.Textured):
-                    self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardLitPhong_Textured_3D.glsl")
+                    self.__Shader : Shader = Shader.Create(".\\InternalAssets\\Shaders\\StandardLitPhong_Textured_3D.glsl")
                 elif not Material.Type.Is(self.__Type, Material.Type.Textured):
-                    self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardLitPhong_NonTextured_3D.glsl")
+                    self.__Shader : Shader = Shader.Create(".\\InternalAssets\\Shaders\\StandardLitPhong_NonTextured_3D.glsl")
                 else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
             
             else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
 
         elif not Material.Type.Is(self.__Type, Material.Type.Lit):
             if Material.Type.Is(self.__Type, Material.Type.Textured):
-                self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardUnlit_Textured_3D.glsl")
+                self.__Shader : Shader = Shader.Create(".\\InternalAssets\\Shaders\\StandardUnlit_Textured_3D.glsl")
             elif not Material.Type.Is(self.__Type, Material.Type.Textured):
-                self.__Shader : Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\StandardUnlit_NonTextured_3D.glsl")
+                self.__Shader : Shader = Shader.Create(".\\InternalAssets\Shaders\\StandardUnlit_NonTextured_3D.glsl")
             else: PI_CORE_ASSERT(False, "Unsupported Shader type.")
 
         else: PI_CORE_ASSERT(False, "Unsupported Shader type.")

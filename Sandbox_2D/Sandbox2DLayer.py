@@ -13,19 +13,27 @@ class Sandbox2D(Layer):
     __Camera: Camera
     __CameraController: OrthogrphicCameraController
 
+    __LogoT : UUID
+    __Logo  : UUID
+
     __Framerate: float
     vSync = PI_V_SYNC
 
     def __init__(self, name: str="Sandbox2DLayer") -> None:
         super().__init__(name)
         self.__Camera = OrthographicCamera(StateManager.GetCurrentWindow().AspectRatio)
+        self.__Camera.SetPosition(pyrr.Vector3([ 0.0, 0.0, 0.1]))
         self.__CameraController = OrthogrphicCameraController(self.__Camera)
 
     def OnAttach(self) -> None:
         self.__AssetManager = AssetManager()
 
-        self.__AssetManager.Load(AssetManager.AssetType.Texture2DAsset, ".\\Assets\\Internal\\Images\\Logo_Transperent.png")
-        self.__AssetManager.Load(AssetManager.AssetType.Texture2DAsset, ".\\Assets\\Internal\\Images\\Logo_HotShot.png")
+        self.__LogoT = self.__AssetManager.Load(
+            AssetManager.AssetType.Texture2DAsset, ".\\InternalAssets\\Images\\Logo_Transperent.png"
+        )
+        self.__Logo  = self.__AssetManager.Load(
+            AssetManager.AssetType.Texture2DAsset, ".\\InternalAssets\\Images\\Logo_HotShot.png"
+        )
 
         self.__Color = (0.8, 0.2, 0.2)
         self.__Framerate = 60
@@ -57,27 +65,32 @@ class Sandbox2D(Layer):
 
             # Verb driven API
             (
-                Renderer2D.DrawQuad (
+                Renderer2D
+                
+                .DrawQuad (
                     pos   = ( 0.0, 0.0, -0.1 ),
                     size  = ( 6.0, 6.0 ),
                     color = ( 0.25, 0.25, 0.25 ),
-                    texture = self.__AssetManager.Get("Logo_HotShot"),
+                    texture = self.__AssetManager.Get(self.__Logo),
                     tilingFactor = 30.0
+                )
 
-                ).DrawQuad (
+                .DrawQuad (
                     pos   = ( -0.5, 0.0 ),
                     size  = ( 0.5, 0.5 ),
                     color = self.__Color 
+                )
 
-                ).DrawQuad (
+                .DrawQuad (
                     pos   = ( 0.5, -0.5 ),
                     size  = ( 0.5, 0.75 ),
                     rotation = 30,
                     color = inverseColor 
-
-                ).DrawQuad (
+                )
+                
+                .DrawQuad (
                     pos   = ( 0.75, 0.65 ),
                     size  = ( 0.75, 0.75 ),
-                    texture = self.__AssetManager.Get("Logo_Transperent")
+                    texture = self.__AssetManager.Get(self.__LogoT)
                 )
             )

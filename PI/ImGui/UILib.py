@@ -10,8 +10,9 @@ class UILib:
         
         _Root = None
 
-        LoadFileLoader: Callable[[ Iterable[Tuple[str, str]] ], str]
-        SaveFileLoader: Callable[[ Iterable[Tuple[str, str]] ], str]
+        LoadFileLoader  : Callable[[ Iterable[Tuple[str, str]] ], str]
+        SaveFileLoader  : Callable[[ Iterable[Tuple[str, str]] ], str]
+        DirectoryLoader : Callable[[                           ], str]
 
         @staticmethod
         def Init() -> None:
@@ -23,8 +24,9 @@ class UILib:
             UILib._FILE_DIALOGUE_RESOURCES._Root = tk.Tk()
             UILib._FILE_DIALOGUE_RESOURCES._Root.withdraw()
 
-            UILib._FILE_DIALOGUE_RESOURCES.LoadFileLoader = filedialog.askopenfilename
-            UILib._FILE_DIALOGUE_RESOURCES.SaveFileLoader = filedialog.asksaveasfilename
+            UILib._FILE_DIALOGUE_RESOURCES.LoadFileLoader  = filedialog.askopenfilename
+            UILib._FILE_DIALOGUE_RESOURCES.SaveFileLoader  = filedialog.asksaveasfilename
+            UILib._FILE_DIALOGUE_RESOURCES.DirectoryLoader = filedialog.askdirectory
 
             UILib._FILE_DIALOGUE_RESOURCES.IsLoaded = True
 
@@ -192,6 +194,47 @@ class UILib:
 
         if not acceptDragDrop: return changed, newText
         return changed, newText, dragDrop
+    
+    @staticmethod
+    def DrawSelectableDirField(
+        lable: str, value: str, columnWidth: float=50,
+        textfieldTooltip: str=None, selectorTooltip: str=None
+    ) -> Tuple[bool, str]:
+        imgui.push_id(lable)
+
+        imgui.columns(3)
+        imgui.set_column_width(0, columnWidth)
+        imgui.set_column_width(1, imgui.get_window_content_region_max()[0] - 130)
+
+        imgui.text(lable)
+        imgui.next_column()
+        
+        imgui.push_item_width(imgui.calculate_item_width() * 1.5)
+        changed, newText = imgui.input_text("##Filter", value, 512)
+        imgui.pop_item_width()
+
+        if textfieldTooltip and imgui.is_item_hovered():
+            imgui.begin_tooltip()
+            imgui.text(textfieldTooltip)
+            imgui.end_tooltip()
+
+        imgui.next_column()
+        if UILib.DrawButton("...", tooltip=selectorTooltip):
+            cancelled, filename = UILib.DrawDirLoadDialog()
+
+            if cancelled:
+                imgui.columns(1)
+                imgui.pop_id()
+                return True, ""
+        
+            imgui.columns(1)
+            imgui.pop_id()
+            return True, filename
+
+        imgui.columns(1)
+        imgui.pop_id()
+
+        return changed, newText
 
     @staticmethod
     def DrawTextLable(lable: str, value: str, columnWidth: float=50) -> None:
@@ -315,4 +358,10 @@ class UILib:
     def DrawFileSaveDialog(filetypes=Iterable[Tuple[str, str]]) -> Tuple[bool, str]:
         UILib._FILE_DIALOGUE_RESOURCES.Init()
         fileName = UILib._FILE_DIALOGUE_RESOURCES.SaveFileLoader(filetypes=filetypes)
+        return fileName == "", fileName
+    
+    @staticmethod
+    def DrawDirLoadDialog() -> Tuple[bool, str]:
+        UILib._FILE_DIALOGUE_RESOURCES.Init()
+        fileName = UILib._FILE_DIALOGUE_RESOURCES.DirectoryLoader()
         return fileName == "", fileName

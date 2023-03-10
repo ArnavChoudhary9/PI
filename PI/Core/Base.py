@@ -2,17 +2,18 @@ from ..Instrumentation import Instrumentor, InstrumentationTimer
 
 from typing import Tuple as _Tuple
 
-PI_VERSION_TUPLE : _Tuple[int] = (1,0,2)
+PI_VERSION_TUPLE : _Tuple[int] = (1,1,0)
 PI_VERSION       : str         = f"{'.'.join([str(_) for _ in PI_VERSION_TUPLE])}.dev"
 
 PI_LATEST_UPDATE: str = """
-    Added External Debugging support
+    1.0.1.dev - Added External Debugging support
+    1.1.0.dev - Added Projects
 """
 
 #-------------------------------------------------------------------
 # Platforms
 SUPPORTED_PLATFORMS = ["Windows"]           # Currently only supports Windows
-CURRENT_PLATFORM = SUPPORTED_PLATFORMS[0]
+CURRENT_PLATFORM    = SUPPORTED_PLATFORMS[0]
 #-------------------------------------------------------------------
 
 #-------------------------------------------------------------------

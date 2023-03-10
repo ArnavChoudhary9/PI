@@ -13,7 +13,7 @@ Current version: {0}
 Current Configuration: {1}
 
 Content Browser:
--> Drag and drop scenes from ContentBrowser (./Scenes/*) to Viewport to load the scene.
+-> Drag and drop scenes from ContentBrowser (Scenes/*) to Viewport to load the scene.
 
 -> Click on any object to select it.
 -> Its properties will show up in the Properties panel.
@@ -32,12 +32,15 @@ Theme Editor:
     .format(PI_VERSION, PI_CONFIG)
 
 class EditorLayer(Layer):
+    __ActiveProject : Project
+
     __ActiveScene : Scene
     __EditorScene : Scene
 
     __SceneHierarchyPanel : SceneHierarchyPanel
     __ThemeEditor         : ThemeEditor
     __ProjectSettingsTab  : ProjectSettingsTab
+    __ContentBrowser      : ContentBrowserPanel
     __DebugLogger         : DebugLogger
 
     __EditorCamera: EditorCamera
@@ -65,6 +68,11 @@ class EditorLayer(Layer):
     __LastFrameTime: float
 
     __ShowDebugStats: bool
+
+    __ShowProjectTab: bool
+    __Temp_ProjectName: str
+    __Temp_ProjectPath: str
+
     vSync = PI_V_SYNC
 
     def __init__(self, name: str="EditorLayer") -> None:
@@ -76,10 +84,13 @@ class EditorLayer(Layer):
     def OnAttach(self) -> None:
         timer = PI_TIMER("EditorLayer::OnAttach")
 
-        self.__EditorScene = Scene()
+        self.__ActiveProject = Project(projFileLoc="DefaultProject\\DefaultProject.PIProj")
+        ScriptingEngine.Init(str(self.__ActiveProject.ScriptsLocation))
+
+        self.__EditorScene = self.__ActiveProject.StartScene
         self.__ActiveScene = self.__EditorScene
 
-        self.__SceneHierarchyPanel = SceneHierarchyPanel()
+        self.__SceneHierarchyPanel = SceneHierarchyPanel(self.__ActiveProject)
         self.__SceneHierarchyPanel.SetContext(self.__ActiveScene)
 
         self.__DebugLogger = DebugLogger()
@@ -97,15 +108,19 @@ class EditorLayer(Layer):
 
         self.__Framerate   = 60
         self.__ShowDebugStats = False
+        self.__ShowProjectTab = False
+        self.__Temp_ProjectName = ""
+        self.__Temp_ProjectPath = ""
 
         self.__ThemeEditor = ThemeEditor()
         self.__ProjectSettingsTab = ProjectSettingsTab()
+        self.__ContentBrowser = ContentBrowserPanel(self.__ActiveProject)
 
         self.__ViewportFocused : bool = True
         self.__ViewportHovered : bool = True
 
         self.__Panels.append(self.__SceneHierarchyPanel)
-        self.__Panels.append(ContentBrowserPanel())
+        self.__Panels.append(self.__ContentBrowser)
         self.__Panels.append(self.__DebugLogger)
 
         self.__SceneState = EditorLayer.SceneStateEnum.Edit
@@ -163,6 +178,17 @@ class EditorLayer(Layer):
         self.__ActiveScene = self.__EditorScene
         self.__SceneHierarchyPanel.SetContext(self.__EditorScene)
     
+    def __LoadProject(self, filename: str=None) -> None:
+        if filename is None:
+            cancil, filename = UILib.DrawFileLoadDialog(( ("PI Project File (*.PIProj)", ".PIProj"), ))
+            if cancil: return
+
+        self.__ActiveProject = Project(projFileLoc=filename)
+        self.__LoadScene(str(self.__ActiveProject.StartSceneLocation))
+        self.__ContentBrowser.SetProject(self.__ActiveProject)
+
+        self.__ProjectSettingsTab.Init()
+
     def __CheckKeys(self, event: KeyPressedEvent) -> bool:
         control = Input.IsKeyPressed(PI_KEY_LEFT_CONTROL) or Input.IsKeyPressed(PI_KEY_RIGHT_CONTROL)
         shift   = Input.IsKeyPressed(PI_KEY_LEFT_SHIFT)   or Input.IsKeyPressed(PI_KEY_RIGHT_SHIFT)
@@ -204,6 +230,11 @@ class EditorLayer(Layer):
                     if self.__SceneState == EditorLayer.SceneStateEnum.Pause:
                         self.__ActiveScene.OnUpdateRuntime(self.__LastFrameTime)
                     return True
+                
+                if event.KeyCode in [PI_KEY_DELETE, PI_KEY_X]:
+                    selectedEntity = self.__SceneHierarchyPanel.SelectedEntity
+                    if selectedEntity: self.__ActiveScene.DestroyEntity(selectedEntity)
+                    self.__SceneHierarchyPanel.SetSelectedEntity(None)
 
         return False
 
@@ -275,10 +306,35 @@ class EditorLayer(Layer):
 
                     imgui.end_menu()
 
+                if imgui.begin_menu("Project"):
+                    if imgui.menu_item( "Open Project" )[0]: self.__LoadProject()
+                    if imgui.menu_item( "New Project"  )[0]: self.__ShowProjectTab = True
+
+                    imgui.end_menu()
+
             for panel in self.__Panels: panel.OnImGuiRender()
 
             if self.__ShowDebugStats:   
                 self.vSync = DebugStatsPanel.OnImGuiRender(self.__Framerate, self.__HoveredEntity)
+
+            if self.__ShowProjectTab:
+                with imgui.begin("New Project"):
+                    _, self.__Temp_ProjectName = UILib.DrawTextFieldControls(
+                        "Name", self.__Temp_ProjectName, columnWidth=75
+                    )
+
+                    _, self.__Temp_ProjectPath = UILib.DrawSelectableDirField(
+                        "Location", self.__Temp_ProjectPath, columnWidth=75
+                    )
+
+                    imgui.set_cursor_pos_x(imgui.get_window_content_region_max()[0] - 50)
+                    imgui.set_cursor_pos_y(imgui.get_window_content_region_max()[1] - 25)
+
+                    if UILib.DrawButton("Create"):
+                        path = f"{self.__Temp_ProjectPath}\\{self.__Temp_ProjectName}"
+                        Project(self.__Temp_ProjectName, newLoc=path)
+                        self.__LoadProject(f"{path}\\{self.__Temp_ProjectName}.PIProj")
+                        self.__ShowProjectTab = False
 
             self.__ThemeEditor.OnImGuiRender()
             self.__ProjectSettingsTab.OnImGuiRender(
@@ -321,7 +377,7 @@ class EditorLayer(Layer):
                     if data:
                         data = data.decode('UTF-8')
                         if not data.lower().endswith('.pi'):
-                            DebugConsole.Error(f"File: {data} is not a scene file")
+                            DebugConsole.Warn(f"File: {data} is not a scene file")
                             PI_CLIENT_WARN("File: {} is not a scene file", data)
                         else: self.__LoadScene(data)
                     imgui.end_drag_drop_target()

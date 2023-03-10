@@ -1,0 +1,7 @@
+Project:
+  AssetsLocation: Assets
+  Name: DefaultProject
+  ScenesLocation: Assets\Scenes
+  ScriptLocation: Assets\Scripts
+  StartScene: DefaultScene.PI
+VERSION: 1.1.0.dev

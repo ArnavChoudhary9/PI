@@ -5,7 +5,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 # Main Code starts from here
 from PI import *
-from ExampleLayer   import ExampleLayer
 from Sandbox2DLayer import Sandbox2D
 
 class Sandbox2DApp(PI_Application):
@@ -13,7 +12,6 @@ class Sandbox2DApp(PI_Application):
         timer = PI_TIMER("Sandbox2DApp::Init")
         super().__init__(name, props)
 
-        # self._LayerStack.PushLayer(ExampleLayer())
         self._LayerStack.PushLayer(Sandbox2D())
 
     def Run(self) -> None:

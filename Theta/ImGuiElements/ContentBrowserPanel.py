@@ -3,18 +3,23 @@ from PI import *
 import pathlib
 import os
 
-ASSETS_DIR = pathlib.Path("Assets")
-
 class ContentBrowserPanel:
-    __CurrentDirectory: pathlib.Path = ASSETS_DIR
-    __LastDirectory: pathlib.Path = ASSETS_DIR
+    __Project: Project
+
+    __CurrentDirectory: pathlib.Path
+    __LastDirectory: pathlib.Path
 
     __DirectoryIcon: Texture2D = None
     __FileIcon: Texture2D = None
 
     __AdditionalImages: Dict[str, Texture2D]
 
-    def __init__(self) -> None:
+    def __init__(self, project: Project) -> None:
+        self.__Project = project
+        
+        self.__CurrentDirectory = project.AssetsLocation
+        self.__LastDirectory = project.AssetsLocation
+
         try:
             self.__DirectoryIcon = Texture2D.Create(".\\Theta\\Resources\\Icons\\ContentBrowser\\DirectoryIcon.png")
             self.__FileIcon      = Texture2D.Create(".\\Theta\\Resources\\Icons\\ContentBrowser\\FileIcon.png")
@@ -27,6 +32,12 @@ class ContentBrowserPanel:
 
         self.__AdditionalImages = {}
 
+    def SetProject(self, project: Project) -> None:
+        self.__Project = project
+        
+        self.__CurrentDirectory = project.AssetsLocation
+        self.__LastDirectory = project.AssetsLocation
+
     def __GetImage(self, filename) -> Texture2D:
         image = self.__AdditionalImages.get(filename, None)
         if not image:
@@ -38,7 +49,7 @@ class ContentBrowserPanel:
     def OnImGuiRender(self) -> None:
         imgui.begin("Content Browser")
 
-        if self.__CurrentDirectory != ASSETS_DIR:
+        if self.__CurrentDirectory != self.__Project.AssetsLocation:
             if imgui.button("<-"):
                 self.__LastDirectory = self.__CurrentDirectory
                 self.__CurrentDirectory = self.__CurrentDirectory.parent
@@ -46,7 +57,8 @@ class ContentBrowserPanel:
         imgui.same_line()
         if imgui.button("->"):
             self.__CurrentDirectory = self.__LastDirectory
-            self.__LastDirectory = self.__CurrentDirectory.parent if self.__CurrentDirectory != ASSETS_DIR else ASSETS_DIR
+            self.__LastDirectory = self.__CurrentDirectory.parent \
+                if self.__CurrentDirectory != self.__Project.AssetsLocation else self.__Project.AssetsLocation
 
         padding: float = 8.0
         thumbnailSize: float = 64
@@ -58,7 +70,7 @@ class ContentBrowserPanel:
 
         imgui.columns(columnCount, border=False)
 
-        for path in os.listdir(self.__CurrentDirectory):
+        for path in os.listdir(self.__CurrentDirectory.absolute()):
             path = self.__CurrentDirectory / pathlib.Path(path)
             relativePath = str(path.relative_to(self.__CurrentDirectory))
 
@@ -84,6 +96,8 @@ class ContentBrowserPanel:
                 self.__CurrentDirectory = path
 
             imgui.pop_id()
+            MAX_DISPLAY_LEN: int = 15
+            if len(relativePath) > MAX_DISPLAY_LEN: relativePath = relativePath[:MAX_DISPLAY_LEN] + "..."
             imgui.text_wrapped(relativePath)
             imgui.next_column()
 

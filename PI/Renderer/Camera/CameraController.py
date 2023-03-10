@@ -1,6 +1,6 @@
 from ...Core.Input    import Input
 from ...ButtonCodes.KeyCodes import *
-from ...Events   import Event, EventDispatcher, EventType
+from ...Events   import Event, WindowResizeEvent, EventDispatcher, EventType
 
 from .Camera     import Camera
 
@@ -19,7 +19,7 @@ class CameraController:
     def OnUpdate(self, dt: float) -> None:
         pass
 
-    def OnEvent(self, e: Event) -> None:
+    def OnEvent(self, e: WindowResizeEvent) -> None:
         EventDispatcher(e).Dispach(
             lambda e: self._Camera.SetAspectRatio( e.Width / e.Height ),
             EventType.WindowResize

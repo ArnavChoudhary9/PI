@@ -13,6 +13,8 @@ class OpenGLShader(Shader):
     __slots__ = "__RendererID", "__Name", "__UniformLocations"
 
     def __init__(self, shaderFile: str) -> None:
+        self._Path = shaderFile
+        
         src = ""
         with open(shaderFile, 'r') as file: src = file.read()
         src = src.split('\n')

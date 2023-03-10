@@ -7,6 +7,8 @@ from ..Scripting import Color4, Color3
 from ..Renderer import Renderer, DirectionalLight
 from ..Logging  import PI_CORE_TRACE
 
+from ..AssetManager.AssetManager import AssetManager
+
 from copy import deepcopy
 import pyrr
 import esper
@@ -129,7 +131,7 @@ class Scene:
 
             if entity.HasComponent(MeshComponent):
                 mc = entity.GetComponent(MeshComponent)
-                entityDict["MeshComponent"] = { "Path": mc.Path }
+                entityDict["MeshComponent"] = { "Path": AssetManager.GetInstance().GetRelativePath(mc.Path) }
 
             if entity.HasComponent(CameraComponent):
                 cc = entity.GetComponent(CameraComponent)
@@ -404,7 +406,7 @@ class Scene:
 
         elif isinstance(component, MeshComponent):
             component.Init()
-            if component.Path is not "": entity.AddComponent(MaterialComponent, component.Path)
+            if component.Path != "": entity.AddComponent(MaterialComponent, component.Path)
         
         elif isinstance(component, MaterialComponent): component.Init()
 

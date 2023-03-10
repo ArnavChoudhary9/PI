@@ -26,7 +26,7 @@ Entities:
     Translation: !<Vector3> [6.650000095367432, 26.0, 0.0]
 - Entity: ec27c2a7-06f9-4a3e-bc9f-f64cb98712a9
   MeshComponent:
-    Path: .\Assets\Meshes\Sponza\Sponza.obj
+    Path: Meshes\Sponza\Sponza.obj
   TagComponent:
     Tag: Sponza
   TransformComponent:

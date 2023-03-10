@@ -258,7 +258,7 @@ class ImGuiLayer(Layer):
         io.config_flags |= imgui.CONFIG_DOCKING_ENABLE
         io.config_flags |= imgui.CONFIG_VIEWEPORTS_ENABLE
 
-        fontLoc = ".\\Assets\\Internal\\Fonts\\opensans\\OpenSans-Regular.ttf"
+        fontLoc = ".\\InternalAssets\\Fonts\\opensans\\OpenSans-Regular.ttf"
         io.fonts.add_font_from_file_ttf(fontLoc, 18.0)
         ImGuiLayer.GlobalHeadingFont = io.fonts.add_font_from_file_ttf(fontLoc, 24.0)
 

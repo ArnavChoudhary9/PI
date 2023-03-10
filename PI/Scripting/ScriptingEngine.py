@@ -1,4 +1,4 @@
-import os
+import os, sys, pathlib
 import importlib
 import inspect
 import debugpy
@@ -10,6 +10,7 @@ class Module:
     __AllScripts: Dict[str, Script]
 
     def __init__(self, path: str):
+        sys.path.append(str(pathlib.Path(path).absolute().parent))
         self.Path = path
 
         path = path.replace('\\', '/')
@@ -17,10 +18,10 @@ class Module:
         path = path.split('/')
 
         moduleName = path[-1].replace(".py", '')
-        package = ".".join(path[:-1])
 
         self.Name = moduleName
-        self.Module = importlib.import_module(f".{moduleName}", package)
+        self.Module = importlib.import_module(moduleName)
+        sys.path.pop()
 
         self.__ScanForModules()
 
@@ -102,6 +103,7 @@ class Script:
         for name, value in variables.items(): setattr(self.Object, name, value)
 
 class ScriptingEngine:
+    DIR: str
     Modules: Dict[str, Module]
 
     class Debugger:
@@ -138,7 +140,8 @@ class ScriptingEngine:
             if not debugpy.is_client_connected(): debugpy.wait_for_client()
 
     @staticmethod
-    def Init() -> None:
+    def Init(scriptDir: str) -> None:
+        ScriptingEngine.DIR = scriptDir
         ScriptingEngine.Modules = {}
 
     @staticmethod
@@ -146,7 +149,7 @@ class ScriptingEngine:
         ScriptingEngine.Debugger.Shutdown()
 
     @staticmethod
-    def ScanForModules(path: str='.') -> Dict[str, Module]:
+    def ScanForModules() -> Dict[str, Module]:
         ScriptingEngine.Modules = {}
 
         def _ScanForModules(path: str, nodes: List[str], allModules: List[str], filter: str='.py'):
@@ -162,7 +165,7 @@ class ScriptingEngine:
             nodes.pop()
 
         allModules = []
-        _ScanForModules(path, [], allModules)
+        _ScanForModules(ScriptingEngine.DIR, [], allModules)
 
         for module in allModules:
             module = Module(module)

@@ -11,8 +11,6 @@ from .Texture         import *
 from .RendererAPI     import *
 from .RenderCommand   import *
 
-from .AssetManager    import *
-
 from .Camera          import *
 from .Mesh            import *
 from .Material        import *

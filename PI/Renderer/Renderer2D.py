@@ -56,7 +56,7 @@ class Renderer2D:
         Renderer2D.__RendererData._QuadVertexArray.AddVertexBuffer(QuadVB)
         Renderer2D.__RendererData._QuadVertexArray.SetIndexBuffer(IndexBuffer.Create([0, 1, 2, 2, 3, 0]))
 
-        Renderer2D.__RendererData._TextureShader = Shader.Create(".\\Assets\\Internal\\Shaders\\CombinedRenderer2DShader.glsl")
+        Renderer2D.__RendererData._TextureShader = Shader.Create(".\\InternalAssets\\Shaders\\CombinedRenderer2DShader.glsl")
 
         Renderer2D.__RendererData._WhiteTexture = Texture2D.Create(1, 1)
         Renderer2D.__RendererData._WhiteTexture.SetData(b'\xff\xff\xff\xff', 32)

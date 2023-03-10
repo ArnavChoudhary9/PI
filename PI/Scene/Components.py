@@ -4,6 +4,7 @@ from ..Renderer.Material import Material
 from ..Renderer.Light import *
 from .SceneCamera import SceneCamera
 from ..Scripting  import *
+from ..AssetManager.AssetManager import AssetManager
 
 import pyrr
 
@@ -114,14 +115,15 @@ class MeshComponent:
 
     @dispatch(str)
     def __init__(self, path: str) -> None:
-        self.Path: str  = path
+        self.Path: str  = AssetManager.GetInstance().GetAbsolutePath(path)
 
     def Init(self) -> None:
         if self.Path != "" and not self.Initialized:
-            meshes = Mesh.Load(self.Path)
-            PI_CORE_ASSERT(len(meshes), "Meshes not imported properly.")
-            mesh = meshes[0]
-            self.MeshObject: Mesh = mesh[0]
+            # meshes = Mesh.Load(self.Path)
+            # PI_CORE_ASSERT(len(meshes), "Meshes not imported properly.")
+            # mesh = meshes[0]
+            mesh = AssetManager.GetInstance().Load(AssetManager.AssetType.MeshAsset, self.Path)
+            self.MeshObject: Mesh = AssetManager.GetInstance().Get(mesh)
             self.Name = self.MeshObject.Name
 
             self.Initialized = True
@@ -162,8 +164,8 @@ class MaterialComponent:
 
     def Init(self) -> None:
         if self.Path != "" and not self.Initialized:
-            mesh = Mesh.Load(self.Path)[0]
-            self.MaterialObject: Material = mesh[1]
+            mesh: Mesh = AssetManager.GetInstance().Get(self.Path)
+            self.MaterialObject: Material = mesh.Material
             self.Name = self.MaterialObject.Name
 
             if self.MaterialObject.AlbedoMap is not None: self.Textured = True
@@ -226,7 +228,7 @@ class ScriptComponent:
         if self.Bound: return
         if self.Name == "": return
 
-        self.Script: Script = ScriptingEngine.ScanForModules("Assets")[self.Module].AllScripts[self.Name]
+        self.Script: Script = ScriptingEngine.ScanForModules()[self.Module].AllScripts[self.Name]
         self.Script.Bind(self.Entity)
         self.Script.BindFunctions("OnAttach", "OnDetach", "OnUpdate")
 

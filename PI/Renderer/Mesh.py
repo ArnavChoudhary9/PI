@@ -1,5 +1,4 @@
 from .Texture import Texture2D
-from ..Logging.logger import PI_CORE_TRACE
 from .VertexArray import *
 from .Buffer import *
 from .Material import *
@@ -14,7 +13,7 @@ class Mesh:
     __slots__ = "__VertexArray", "__VertexBuffer", "__IndexBuffer", \
         "__Translation", "__Rotation", "__Scale", \
         "__Translation_Matrix", "__Rotation_Matrix", "__Scale_Matrix", "__Transform", "__Transformed", \
-        "__Name", "__Path"
+        "__Name", "__Path", "__Material"
 
     @dispatch(list, list, BufferLayout)
     def __init__(self, vertices: list, indicies: list, layout: BufferLayout,
@@ -26,6 +25,7 @@ class Mesh:
 
         self.__Name = name
         self.__Path = "Internally Created Mesh"
+        self.__Material = Material(Material.Type.StandardPhong)
 
         self.__Translation = translation
         self.__Rotation    = rotation
@@ -55,6 +55,7 @@ class Mesh:
 
         self.__Name = name
         self.__Path = "Internally Created Mesh"
+        self.__Material = Material(Material.Type.StandardPhong)
 
         self.__Translation = translation
         self.__Rotation    = rotation
@@ -118,8 +119,9 @@ class Mesh:
                 name=nameMesh
             )
             mesh.__Path = path
+            mesh.SetMaterial(mat)
 
-            objects.append((mesh, mat))
+            objects.append(mesh)
 
         return objects
 
@@ -127,6 +129,8 @@ class Mesh:
     def Name(self) -> str: return self.__Name
     @property
     def Path(self) -> str: return self.__Path
+    @property
+    def Material(self) -> Material: return self.__Material
     @property
     def Transform(self) -> pyrr.Matrix44: return self.__Transform
     @property
@@ -163,6 +167,8 @@ class Mesh:
         self.__Rotation_Matrix    = rotX @ rotY @ rotZ
 
         self.__Transform = self.__Scale_Matrix @ self.__Rotation_Matrix @ self.__Translation_Matrix
+
+    def SetMaterial(self, material: Material) -> None: self.__Material = material
 
     def SetTranslation(self, translation: pyrr.Vector3):
         self.__Translation = translation

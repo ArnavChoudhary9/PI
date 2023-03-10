@@ -1,4 +1,4 @@
-from .Base      import PI_INSTRUMENTATION_BEGIN_SESSION, PI_INSTRUMENTATION_END_SESSION, PI_IMGUI, PI_DEBUG
+from .Base      import PI_INSTRUMENTATION_BEGIN_SESSION, PI_INSTRUMENTATION_END_SESSION, PI_IMGUI, PI_INSTRUMENTATION
 from ..Events   import *
 from .Input     import Input
 from ..ImGui    import ImGuiLayer
@@ -58,12 +58,13 @@ class PI_Application(ABC):
         # Renderer 2D can only be initialized after Rendering API is Initializd
         # i.e. After window is created
         Renderer2D.Init()
-        Renderer.LineShader: Shader = Shader.Create(".\\Assets\\Internal\\Shaders\\Line3D.glsl")
+        Renderer.LineShader: Shader = Shader.Create(".\\InternalAssets\\Shaders\\Line3D.glsl")
   
         from ..Scripting.ScriptingEngine import ScriptingEngine
-        ScriptingEngine.Init()
+        ScriptingEngine.Init("DefaultProject\\Assets\\Scripts")
 
-        from .CacheManager import LocalCache
+        from .CacheManager import LocalCache, ProjectCache
+        ProjectCache.Init("DefaultProject")
         LocalCache.Init()
         LocalCache.LoadFields()
 
@@ -151,7 +152,8 @@ class PI_Application(ABC):
         from ..Scripting.ScriptingEngine import ScriptingEngine
         ScriptingEngine.Shutdown()
 
-        from .CacheManager import LocalCache
+        from .CacheManager import LocalCache, ProjectCache
+        ProjectCache.Shutdown()
         LocalCache.Shutdown()
 
         self._Running = False
@@ -174,7 +176,7 @@ def _main():
     PI_INSTRUMENTATION_END_SESSION()
 
 def main():
-    if PI_DEBUG:
+    if PI_INSTRUMENTATION:
         # Only for Detailed Profiling
         import cProfile
         import pstats

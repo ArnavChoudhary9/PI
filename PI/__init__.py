@@ -1,6 +1,6 @@
-from .Core       import *
-from .Core.App   import *
-from .Core.Input import *
+from .Core        import *
+from .Core.App    import *
+from .Core.Input  import *
 from .Core.Window import *
 
 from .Events import *
@@ -11,8 +11,11 @@ from .ImGui import *
 from .Platform import *
 from .Renderer import *
 
-from .Scene import *
+from .Scene     import *
 from .Scripting import *
+from .Projects  import *
+
+from .AssetManager import *
 
 from .Logging import *
 

@@ -57,4 +57,3 @@ If You have downloaded the precompiled binaries, you can just run <br />
 - Uniform Buffers
 - Compute Shader Support
 - Shadows
-    - Hybrid RayTracer

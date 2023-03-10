@@ -13,7 +13,7 @@ class EditorCamera(PerspectiveCamera):
 
     __InitialMousePosition: Tuple[float, float] = (0.0, 0.0)
 
-    __Distance: float = 10.0
+    __Distance: float = -5.0
     __Pitch: float = 0.0
     __Yaw: float = 0.0
 
@@ -56,7 +56,9 @@ class EditorCamera(PerspectiveCamera):
     def SetViewportSize(self, width: float, height: float) -> None:
         self.__ViewportWidth = width
         self.__ViewportHeight = height
-        self.SetAspectRatio(width / height)   # PerspectiveCamera.SetAspectRatio automatically recalculates view & projection
+
+        # PerspectiveCamera.SetAspectRatio() automatically recalculates view & projection
+        self.SetAspectRatio(width / height)
 
     @property
     def UpDirection(self) -> pyrr.Vector3:
@@ -100,32 +102,26 @@ class EditorCamera(PerspectiveCamera):
         self.__Yaw += yawSign * delta[0] * self.__RotationSpeed
         self.__Pitch += delta[1] * self.__RotationSpeed
 
-    def __MouseZoom(self, delta: float) -> None:
-        self.__Distance -= delta * self.__ZoomSpeed
-
-        if self.__Distance < 1.0:
-            self.__FocalPoint += self.ForwardDirection
-            self.__Distance = 1.0
-
+    def __MouseZoom(self, delta: float) -> None: self.__Distance -= delta * self.__ZoomSpeed
     def __CalculatePosition(self) -> pyrr.Vector3: return self.__FocalPoint - self.ForwardDirection * self.__Distance
 
     @property
     def __PanSpeed(self) -> Tuple[float, float]:
         x = min(self.__ViewportWidth / 1000.0, 0.2)
-        xFactor = 0.025 * (x*x) - 0.1778 * x + 0.2
+        xFactor = 0.0145 * (x*x) - 0.1778 * x + 0.2
 
         y = min(self.__ViewportHeight / 1000.0, 0.2)
-        yFactor = 0.025 * (y*y) - 0.1778 * y + 0.2
+        yFactor = 0.0145 * (y*y) - 0.1778 * y + 0.2
 
         return xFactor, yFactor
 
     @property
-    def __RotationSpeed(self) -> float: return 0.05
+    def __RotationSpeed(self) -> float: return 0.1
 
     @property
     def __ZoomSpeed(self) -> float:
-        distance = self.__Distance * 0.2
+        distance = self.__Distance * 0.1
         distance = max(distance, 0.001)
-        speed = 1 / distance
-        speed = min(speed, 150.0)
+        speed = 1 / distance * 0.9
+        speed = min(speed, 7.5)
         return speed

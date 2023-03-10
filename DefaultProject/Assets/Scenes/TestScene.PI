@@ -1,7 +1,7 @@
 Entities:
 - Entity: 30a1913a-db62-4d51-bb62-62506a0b7ea9
   MeshComponent:
-    Path: .\Assets\Internal\Meshes\Sphere.obj
+    Path: InternalAssets\Meshes\Sphere.obj
   ScriptComponent:
     Namespace: FallDown.FallDown
     Variables:
@@ -15,7 +15,7 @@ Entities:
     Translation: !<Vector3> [3.0, 0.0, -14.0]
 - Entity: fa0d995c-9b4f-4b26-953e-6cec3dd1384f
   MeshComponent:
-    Path: .\Assets\Meshes\TexturedCube.obj
+    Path: Meshes\TexturedCube.obj
   ScriptComponent:
     Namespace: TestScript.TestScript
     Variables:
@@ -34,7 +34,7 @@ Entities:
     Translation: !<Vector3> [-3.0, 0.0, -14.0]
 - Entity: 5273661d-7dc8-4499-991d-290dbfb79c5a
   MeshComponent:
-    Path: .\Assets\Meshes\Monkey.obj
+    Path: Meshes\Monkey.obj
   TagComponent:
     Tag: Monkey
   TransformComponent:
@@ -43,7 +43,7 @@ Entities:
     Translation: !<Vector3> [0.0, -0.800000011920929, -14.0]
 - Entity: be767897-f883-4e74-b9cd-026ad5542ab5
   MeshComponent:
-    Path: .\Assets\Meshes\Hut.obj
+    Path: Meshes\Hut.obj
   TagComponent:
     Tag: Hut
   TransformComponent:
@@ -52,7 +52,7 @@ Entities:
     Translation: !<Vector3> [7.5, 0.0, -17.0]
 - Entity: f0c8f1a8-21a6-4c11-a584-97488ec84e44
   MeshComponent:
-    Path: .\Assets\Internal\Meshes\Torus.obj
+    Path: InternalAssets\Meshes\Torus.obj
   TagComponent:
     Tag: Torus
   TransformComponent:
@@ -61,7 +61,7 @@ Entities:
     Translation: !<Vector3> [-7.5, -0.75, -17.0]
 - Entity: 3a4cfac8-557d-4a5b-9dd7-ece8514948a3
   MeshComponent:
-    Path: .\Assets\Internal\Meshes\Plane.obj
+    Path: InternalAssets\Meshes\Plane.obj
   TagComponent:
     Tag: Plane
   TransformComponent:
@@ -133,4 +133,4 @@ Entities:
     Scale: !<Vector3> [1.0, 1.0, 1.0]
     Translation: !<Vector3> [0.0, 0.0, -7.0]
 Scene: Untitled
-Version: 1.0.1.dev
+Version: 1.0.3.dev
