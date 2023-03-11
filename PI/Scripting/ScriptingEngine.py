@@ -100,7 +100,8 @@ class Script:
         return variables
 
     def SetVariables(self, variables: Dict[str, Any]):
-        for name, value in variables.items(): setattr(self.Object, name, value)
+        for name, value in variables.items():
+            if name in self.ExternalVariables.keys(): setattr(self.Object, name, value)
 
 class ScriptingEngine:
     DIR: str
@@ -111,6 +112,8 @@ class ScriptingEngine:
 
         @staticmethod
         def Init(pythonLoc: str) -> int:
+            if ScriptingEngine.Debugger.Running: return
+
             try: debugpy.configure(python=pythonLoc)
             except Exception as _: return False
 

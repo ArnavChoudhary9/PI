@@ -46,4 +46,4 @@ Entities:
     Scale: !<Vector3> [1.0, 1.0, 1.0]
     Translation: !<Vector3> [0.0, 1.75, 8.0]
 Scene: Untitled
-Version: 1.0.3.dev
+Version: 1.1.1.dev
