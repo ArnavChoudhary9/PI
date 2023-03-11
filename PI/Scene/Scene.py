@@ -77,11 +77,15 @@ class Scene:
 
     _Filepath : str = None
 
+    __Running: bool
+
     def __init__(self) -> None:
         self._Registry = esper.World()
 
         self._PointLights = []
         self._SpotLights = []
+
+        self.__Running = False
 
         class _TransformUpdater(esper.Processor):
             def process(self, dt: float):
@@ -168,7 +172,8 @@ class Scene:
 
             if entity.HasComponent(ScriptComponent):
                 component = entity.GetComponent(ScriptComponent)
-                entityDict["ScriptComponent"] = {"Namespace": component.Namespace, "Variables": component.Variables}
+                if component.Bound:
+                    entityDict["ScriptComponent"] = {"Namespace": component.Namespace, "Variables": component.Variables}
 
             entities.append(entityDict)
 
@@ -319,10 +324,12 @@ class Scene:
         self._Registry.delete_entity(int(entity))
 
     def OnStartRuntime(self) -> None:
+        self.__Running = True
         for entity, script in self._Registry.get_component(ScriptComponent):
             if script.Bound: script.OnAttach()
 
     def OnStopRuntime(self) -> None:
+        self.__Running = False
         for entity, script in self._Registry.get_component(ScriptComponent):
             if script.Bound: script.OnDetach()
 
@@ -402,7 +409,9 @@ class Scene:
                 component.Light.SetIndex( len( self._SpotLights  ) )
                 self._SpotLights.append(component.Light)
 
-        elif isinstance(component, ScriptComponent): component.Bind()
+        elif isinstance(component, ScriptComponent):
+            component.Bind()
+            if self.__Running: component.OnAttach()
 
         elif isinstance(component, MeshComponent):
             component.Init()

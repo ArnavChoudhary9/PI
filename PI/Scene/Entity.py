@@ -14,6 +14,9 @@ class Entity():
         self.__EntityHandle = entityHandle
         self.__Scene = scene
 
+    @property
+    def _Scene(self): return self.__Scene
+
     def __int__  (self) -> int  : return self.__EntityHandle
     def __bool__ (self) -> bool : return self.__EntityHandle != None
     

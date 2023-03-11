@@ -6,7 +6,6 @@ Entities:
     Namespace: FallDown.FallDown
     Variables:
       Speed: !<Vector3> [0.0, -0.5, 0.0]
-      TestVariable: !<Vector3> [0.0, 0.0, 0.0]
   TagComponent:
     Tag: Sphere
   TransformComponent:
@@ -133,4 +132,4 @@ Entities:
     Scale: !<Vector3> [1.0, 1.0, 1.0]
     Translation: !<Vector3> [0.0, 0.0, -7.0]
 Scene: Untitled
-Version: 1.0.3.dev
+Version: 1.1.1.dev
