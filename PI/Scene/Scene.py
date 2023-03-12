@@ -78,6 +78,7 @@ class Scene:
     _Filepath : str = None
 
     __Running: bool
+    __RBWorld: PySics
 
     def __init__(self) -> None:
         self._Registry = esper.World()
@@ -88,7 +89,7 @@ class Scene:
         self.__Running = False
 
         class _TransformUpdater(esper.Processor):
-            def process(self, dt: float):
+            def process(self, dt: float, running: bool):
                 for entity, (meshComponent, transform) in self.world.get_components(MeshComponent, TransformComponent):
                     if not meshComponent.Initialized: continue
                     mesh = meshComponent.MeshObject
@@ -105,7 +106,12 @@ class Scene:
                     camera = cameraComponent.Camera.CameraObject
                     camera.SetPosition( transform.Translation )
                     camera.SetRotation( transform.Rotation    )
-                    
+
+                if not running: return
+                for entity, (rbComponent, transform) in self.world.get_components(RigidBodyComponent, TransformComponent):
+                    transform.SetTranslation(rbComponent.RigidBody.Position)
+                    transform.SetRotation(rbComponent.RigidBody.Rotation)
+
         self._Registry.add_processor(_TransformUpdater())
 
     @staticmethod
@@ -174,6 +180,16 @@ class Scene:
                 component = entity.GetComponent(ScriptComponent)
                 if component.Bound:
                     entityDict["ScriptComponent"] = {"Namespace": component.Namespace, "Variables": component.Variables}
+
+            if entity.HasComponent(CollidorComponent):
+                component = entity.GetComponent(CollidorComponent)
+                entityDict["CollidorComponent"] = { "Type": component.Type, "Scale": component.Collidor.Scale }
+
+            if entity.HasComponent(RigidBodyComponent):
+                component = entity.GetComponent(RigidBodyComponent)
+                entityDict["RigidBodyComponent"] = {
+                    "IsStatic": component.RigidBody.IsStatic, "Mass": component.RigidBody.Mass 
+                }
 
             entities.append(entityDict)
 
@@ -259,6 +275,28 @@ class Scene:
                 component = deserializedEntity.AddComponent(ScriptComponent, module, script)
                 variables = scriptComponent.get("Variables", False)
                 if variables: component.SetVariables(variables)
+            
+            collidorComponent = entity.get("CollidorComponent", False)
+            if collidorComponent:
+                collidor = deserializedEntity.AddComponent(CollidorComponent, collidorComponent["Type"])
+                collidor.Collidor.SetScale(collidorComponent["Scale"])
+            
+            rigidbodyComponent = entity.get("RigidBodyComponent", False)
+            if rigidbodyComponent:
+                transform: TransformComponent = deserializedEntity.GetComponent(TransformComponent)
+
+                collidor: Collider = None
+                if deserializedEntity.HasComponent(CollidorComponent):
+                    collidor = deserializedEntity.GetComponent(CollidorComponent).Collidor
+                else:
+                    collidor = deserializedEntity.AddComponent(CollidorComponent, CollidorComponent.Shapes.Box).Collidor
+                    collidor.SetScale(transform.Scale)
+
+                mat = PySicsMaterial(
+                    mass=rigidbodyComponent["Mass"], isStatic=rigidbodyComponent["IsStatic"],
+                    position=transform.Translation, rotation=transform.Rotation, collider=collidor
+                )
+                rb = deserializedEntity.AddComponent(RigidBodyComponent, mat)
 
         scene._Filepath = path
         return scene
@@ -325,24 +363,40 @@ class Scene:
 
     def OnStartRuntime(self) -> None:
         self.__Running = True
+        self.__RBWorld = PySics()
+
         for entity, script in self._Registry.get_component(ScriptComponent):
             if script.Bound: script.OnAttach()
 
+        for entity, rbComponent in self._Registry.get_component(RigidBodyComponent):
+            self.__RBWorld.AddRigidBody(rbComponent.RigidBody)
+
+        self.__RBWorld.OnSimulationStart()
+
     def OnStopRuntime(self) -> None:
         self.__Running = False
+        
+        try:
+            self.__RBWorld.OnSimulationEnd()
+            del self.__RBWorld
+        except: pass
+
         for entity, script in self._Registry.get_component(ScriptComponent):
-            if script.Bound: script.OnDetach()
+            if script.Bound:
+                script.OnDetach()
+                script.Reload()
 
     def OnUpdateEditor(self, dt: float, camera: EditorCamera) -> None:
         self._DrawCamera = camera
-        self._Registry.process(dt)
+        self._Registry.process(dt, self.__Running)
 
     def OnUpdateRuntime(self, dt: float) -> None:
         self._DrawCamera = None
         timer = PI_TIMER("Scene::OnUpdateRuntime")
         for entity, script in self._Registry.get_component(ScriptComponent):
             if script.Bound: script.OnUpdate(dt)
-        self._Registry.process(dt)
+        self.__RBWorld.Update(dt)
+        self._Registry.process(dt, self.__Running)
         
     def Draw(self) -> None:
         if self._DrawCamera is None and self.PrimaryCameraEntity is None: return

@@ -272,7 +272,7 @@ class UILib:
             lable: str, value: float, speed: float=0.05,
             minValue: float=0.0, maxValue: float=0.0,
             columnWidth: float=100,
-            tooltip: str=None
+            tooltip: str=None, inActive: bool=False
         ) -> Tuple[bool, float]:
         imgui.push_id(lable)
         imgui.columns(2)

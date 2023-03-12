@@ -13,7 +13,7 @@ from uuid import uuid3 as _UUIDGenerator
 
 UUIDGenerator: Callable[[str], UUID] = lambda asset: _UUIDGenerator(NAMESPACE_URL, asset)
 
-@Struct()
+@Struct
 class Asset:
     Type: int
     Path: str
@@ -85,9 +85,9 @@ class AssetManager:
 
         return self._GetUUID(asset)
 
-    @dispatch(UUID)
-    def Get(self, uuid: UUID) -> Any: return self.__AssetMap.get(uuid, None).Asset
-
     @dispatch(str)
     def Get(self, path: str) -> Any:
         return self.__AssetMap.get(UUIDGenerator(self.GetAbsolutePath(path)), None).Asset
+
+    @dispatch(UUID)
+    def Get(self, uuid: UUID) -> Any: return self.__AssetMap.get(uuid, None).Asset

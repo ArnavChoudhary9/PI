@@ -11,8 +11,6 @@ class SceneHierarchyPanel:
         self.__Context = Scene()
         self.__SelectionContext = None
 
-        ScriptingEngine.ScanForModules()
-
     def OnImGuiRender(self) -> None:
         with imgui.begin("Scene Heirarchy"):
             for entity in self.__Context._Registry._entities.keys():
@@ -186,6 +184,33 @@ class SceneHierarchyPanel:
                     DebugConsole.Warn("Entity already has a Script Component")
                 imgui.close_current_popup()
 
+            if imgui.menu_item("Collidor")[0]:
+                if not self.__SelectionContext.HasComponent(CollidorComponent):
+                    collidor = self.__SelectionContext.AddComponent(CollidorComponent, CollidorComponent.Shapes.Box)
+                    collidor.SetScale(entity.GetComponent(TransformComponent).Scale)
+                else:
+                    PI_CLIENT_WARN("Entity already has a Collidor Component")
+                    DebugConsole.Warn("Entity already has a Collidor Component")
+                imgui.close_current_popup()
+
+            if imgui.menu_item("RigidBody")[0]:
+                collidor: Collider = None
+                transform: TransformComponent = entity.GetComponent(TransformComponent)
+
+                if not self.__SelectionContext.HasComponent(CollidorComponent):
+                    collidor = self.__SelectionContext.AddComponent(CollidorComponent, CollidorComponent.Shapes.Box)
+                else: collidor = entity.GetComponent(CollidorComponent)
+
+                if not self.__SelectionContext.HasComponent(RigidBodyComponent):
+                    material = PySicsMaterial(collider=collidor)
+                    material.Position = transform.Translation
+                    material.Rotation = transform.Rotation
+                    self.__SelectionContext.AddComponent(RigidBodyComponent, material)
+                else:
+                    PI_CLIENT_WARN("Entity already has a RigidBody Component")
+                    DebugConsole.Warn("Entity already has a RigidBody Component")
+                imgui.close_current_popup()
+
             imgui.end_popup()
 
         imgui.pop_item_width()
@@ -239,6 +264,7 @@ class SceneHierarchyPanel:
 
         def _ScriptUIFunction(entity: Entity, component: ScriptComponent) -> None:
             if component.Bound:
+                component.Reload()
                 for name, instance in component.Variables.items():
                     variableChanged, new = False, instance
 
@@ -271,7 +297,9 @@ class SceneHierarchyPanel:
                 for script_name, script in module.AllScriptsExtending(Behaviour).items():
                     scripts.append(f"{name}.{script_name}")
 
-            changed, index, namespace = UILib.DrawDropdown("Script", scripts.index(component.Namespace), scripts)
+            try: changed, index, namespace = UILib.DrawDropdown("Script", scripts.index(component.Namespace), scripts)
+            except ValueError as _:
+                changed, index, namespace = UILib.DrawDropdown("Script", 0, scripts)
 
             if changed:
                 entity.RemoveComponent(ScriptComponent)
@@ -366,12 +394,38 @@ class SceneHierarchyPanel:
                     camera._Far = new
                     camera.RecalculateProjection()
 
+        def _CollidorUIFunction(entity: Entity, component: CollidorComponent) -> None:
+            shapes = ["Box", "Plane"]
+            changed, index, new = UILib.DrawDropdown("Shape", component.Type, shapes)
+            if changed:
+                entity.RemoveComponent(CollidorComponent)
+                entity.AddComponent(CollidorComponent, index)
+
+            if index == CollidorComponent.Shapes.Box:
+                changed, new = UILib.DrawVector3Controls(
+                    "Scale", component.Collidor.Scale,
+                    resetValue=1, columnWidth=50
+                )
+
+                if changed: component.Collidor.SetScale(new)
+
+        def _RigidBodyUIFunction(entity: Entity, component: RigidBodyComponent) -> None:
+            changed, new = UILib.DrawBoolControls("Static", component.RigidBody.IsStatic, columnWidth=50)
+            if changed:
+                component.RigidBody.IsStatic = new
+                if new: component.RigidBody.Mass = 0.0
+
+            if not component.RigidBody.IsStatic:
+                _, component.RigidBody.Mass = UILib.DrawFloatControls("Mass", component.RigidBody.Mass, columnWidth=50)
+
         SceneHierarchyPanel.DrawComponent( "Transform" , entity , TransformComponent , _TransformUIFunction )
         SceneHierarchyPanel.DrawComponent( "Mesh"      , entity , MeshComponent      , _MeshUIFunction      )
         SceneHierarchyPanel.DrawComponent( "Material"  , entity , MaterialComponent  , _MaterialUIFunction  )
         SceneHierarchyPanel.DrawComponent( "Script"    , entity , ScriptComponent    , _ScriptUIFunction    )
         SceneHierarchyPanel.DrawComponent( "Light"     , entity , LightComponent     , _LightUIFunction     )
         SceneHierarchyPanel.DrawComponent( "Camera"    , entity , CameraComponent    , _CameraUIFunction    )
+        SceneHierarchyPanel.DrawComponent( "Collidor"  , entity , CollidorComponent  , _CollidorUIFunction  )
+        SceneHierarchyPanel.DrawComponent( "RigidBody" , entity , RigidBodyComponent , _RigidBodyUIFunction )
 
     def SetContext(self, scene: Scene) -> None: self.__Context = scene
     def SetSelectedEntity(self, entity: Entity) -> None: self.__SelectionContext = entity

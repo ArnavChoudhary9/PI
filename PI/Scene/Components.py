@@ -1,10 +1,11 @@
 from ..Logging.logger import PI_CORE_ASSERT
 from ..Renderer.Mesh  import Mesh
 from ..Renderer.Material import Material
-from ..Renderer.Light import *
-from .SceneCamera import SceneCamera
+from ..Renderer.Light    import *
 from ..Scripting  import *
+from ..Physics    import *
 from ..AssetManager.AssetManager import AssetManager
+from .SceneCamera import SceneCamera
 
 import pyrr
 
@@ -228,7 +229,11 @@ class ScriptComponent:
         if self.Bound: return
         if self.Name == "": return
 
-        self.Script: Script = ScriptingEngine.ScanForModules()[self.Module].AllScripts[self.Name]
+        try: self.Script: Script = ScriptingEngine.ScanForModules()[self.Module].AllScripts[self.Name]
+        except KeyError as _:
+            self.Bound = False
+            return
+
         self.Script.Bind(self.Entity)
         self.Script.BindFunctions("OnAttach", "OnDetach", "OnUpdate")
 
@@ -244,13 +249,35 @@ class ScriptComponent:
     def Namespace(self) -> str: return f"{self.Module}.{self.Name}"
     def SetVariables(self, map: Dict[str, Any]) -> None: self.Script.SetVariables(map)
 
+    def Reload(self) -> None:
+        self.Bound = False
+        self.Bind()
+
     def Copy(self):
         component = ScriptComponent(self.Module, self.Name, self.Entity)
         component.SetVariables(self.Variables)
 
         return component
+class CollidorComponent:
+    class Shapes:
+        Box, Plane \
+            = range(2)
+        
+    def __init__(self,
+        _type: int, scale: pyrr.Vector3=pyrr.Vector3([ 1, 1, 1 ]),
+        up: pyrr.Vector3=pyrr.Vector3([ 0, 1, 0 ]), dist: float = 0.0
+    ) -> None:
+        self.Type = _type
+        if   _type == CollidorComponent.Shapes.Box   : self.Collidor = BoxCollider(bounds=scale)
+        elif _type == CollidorComponent.Shapes.Plane : self.Collidor = PlaneCollider(
+            bounds=pyrr.Vector3([ dist, 0, 0 ]), up=up
+        )
+class RigidBodyComponent:
+    def __init__(self, mat: PySicsMaterial) -> None:
+        self.RigidBody = RigidBody(mat)
 
 CTV = TypeVar("CTV",
         IDComponent, TagComponent, TransformComponent,
-        CameraComponent, MeshComponent, MaterialComponent, LightComponent, ScriptComponent
+        CameraComponent, MeshComponent, MaterialComponent, LightComponent, ScriptComponent,
+        CollidorComponent, RigidBodyComponent
     )
