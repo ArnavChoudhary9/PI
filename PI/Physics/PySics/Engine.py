@@ -11,55 +11,58 @@ class PySics:
     Gravity: pyrr.Vector3
 
     def __init__(self) -> None:
+        self.__BulletWorld = BulletWorld()
         self.__Bodies = []
         self.Gravity = pyrr.Vector3([ 0, -9.81, 0 ])
-
-    def AddRigidBody(self, body: RigidBody) -> None: self.__Bodies.append(body)
-
-    def CreateRigidBody(self, mat: PySicsMaterial) -> RigidBody:
-        body = RigidBody(mat)
-        self.__Bodies.append(body)
-        return body
-
-    def OnSimulationStart(self) -> None:
-        self.__BulletWorld = BulletWorld()
 
         g = self.Gravity
         self.__BulletWorld.setGravity(Vec3(g.x, g.y, g.z))
         
         self.__BulletNodes = []
 
-        for i, body in enumerate(self.__Bodies):
-            node = BulletRigidBodyNode("Box")
+    def AddRigidBody(self, body: RigidBody) -> None:
+        self.__Bodies.append(body)
 
-            pos, rot, scale = body.Position, body.Rotation, body.Collider.Scale
+        node = BulletRigidBodyNode("RB")
 
-            node.setTransform(TransformState.make_pos_hpr_scale(
-                Point3(pos.x, pos.y, pos.z),
-                Vec3(rot.x, rot.y, rot.z),
-                Vec3(scale.x, scale.y, scale.z)
-            ))
+        pos, rot, scale = body.Position, body.Rotation, body.Collider.Scale
 
-            bounds = body.Collider.Bounds
-            if isinstance(body.Collider, BoxCollider):
-                shape = BulletBoxShape(Vec3(bounds.x, bounds.y, bounds.z))
-            elif isinstance(body.Collider, PlaneCollider):
-                shape = BulletPlaneShape(
-                    Vec3(body.Collider.Up.x, body.Collider.Up.y, body.Collider.Up.z),
-                    bounds.x
-                )
+        node.setTransform(TransformState.make_pos_hpr_scale(
+            Point3(pos.x, pos.y, pos.z),
+            Vec3(rot.x, rot.y, rot.z),
+            Vec3(scale.x, scale.y, scale.z)
+        ))
 
-            node.addShape(shape)
-            node.setMass(body.Mass)
+        bounds = body.Collider.Bounds
+        if isinstance(body.Collider, BoxCollider):
+            shape = BulletBoxShape(Vec3(bounds.x, bounds.y, bounds.z))
+        elif isinstance(body.Collider, PlaneCollider):
+            shape = BulletPlaneShape(
+                Vec3(body.Collider.Up.x, body.Collider.Up.y, body.Collider.Up.z),
+                bounds.x
+            )
 
-            self.__BulletWorld.attachRigidBody(node)
-            self.__BulletNodes.append(node)
+        node.addShape(shape)
+        node.setMass(body.Mass)
+
+        node.setCcdMotionThreshold(1e-7)
+        node.setCcdSweptSphereRadius(0.50)
+
+        self.__BulletWorld.attachRigidBody(node)
+        self.__BulletNodes.append(node)
+
+    def CreateRigidBody(self, mat: PySicsMaterial) -> RigidBody:
+        body = RigidBody(mat)
+        self.AddRigidBody(body)
+        return body
+
+    def OnSimulationStart(self) -> None: ...
 
     def Update(self, dt: float) -> None:
         # Set variables
 
         # Update bullet physics
-        self.__BulletWorld.doPhysics(dt, 10, 1/60)
+        self.__BulletWorld.doPhysics(dt, 10, 1/180)
 
         # Get variables
         for pySicsBody, bulletBody in zip(self.__Bodies, self.__BulletNodes):

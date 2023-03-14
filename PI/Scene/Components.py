@@ -120,9 +120,6 @@ class MeshComponent:
 
     def Init(self) -> None:
         if self.Path != "" and not self.Initialized:
-            # meshes = Mesh.Load(self.Path)
-            # PI_CORE_ASSERT(len(meshes), "Meshes not imported properly.")
-            # mesh = meshes[0]
             mesh = AssetManager.GetInstance().Load(AssetManager.AssetType.MeshAsset, self.Path)
             self.MeshObject: Mesh = AssetManager.GetInstance().Get(mesh)
             self.Name = self.MeshObject.Name

@@ -1,5 +1,5 @@
-from ..Renderer  import Camera, EditorCamera, RenderCommand, Mesh, Material
-from ..Core      import PI_TIMER, PI_VERSION, Cache, Random
+from ..Renderer  import Camera, EditorCamera, RenderCommand, Material
+from ..Core      import PI_TIMER, PI_VERSION, Cache
 from .Components import *
 from .Entity     import Entity
 from ..Scripting import Color4, Color3
@@ -77,6 +77,8 @@ class Scene:
 
     _Filepath : str = None
 
+    __ToDestroy: List[Entity]
+
     __Running: bool
     __RBWorld: PySics
 
@@ -88,16 +90,10 @@ class Scene:
 
         self.__Running = False
 
-        class _TransformUpdater(esper.Processor):
-            def process(self, dt: float, running: bool):
-                for entity, (meshComponent, transform) in self.world.get_components(MeshComponent, TransformComponent):
-                    if not meshComponent.Initialized: continue
-                    mesh = meshComponent.MeshObject
+        self.__ToDestroy = []
 
-                    mesh.SetTranslation ( transform.Translation )
-                    mesh.SetRotation    ( transform.Rotation    )
-                    mesh.SetScale       ( transform.Scale       )
-                
+        class _TransformUpdater(esper.Processor):
+            def process(self, dt: float, running: bool):                
                 for entity, (lightComponent, transform) in self.world.get_components(LightComponent, TransformComponent):
                     light = lightComponent.Light
                     light.SetPosition ( transform.Translation )
@@ -359,7 +355,10 @@ class Scene:
 
                 self._PointLights = newLights
 
-        self._Registry.delete_entity(int(entity))
+        self._Registry.delete_entity(int(entity), immediate=True)
+
+    def DefferedDestroy(self, entity: Entity) -> None:
+        if entity not in self.__ToDestroy: self.__ToDestroy.append(entity)
 
     def OnStartRuntime(self) -> None:
         self.__Running = True
@@ -397,16 +396,26 @@ class Scene:
             if script.Bound: script.OnUpdate(dt)
         self.__RBWorld.Update(dt)
         self._Registry.process(dt, self.__Running)
+
+        for entity in self.__ToDestroy:
+            self.__ToDestroy.remove(entity)
+            self.DestroyEntity(entity)
         
     def Draw(self) -> None:
         if self._DrawCamera is None and self.PrimaryCameraEntity is None: return
 
         with Renderer.BeginScene(self, self._DrawCamera):
-            for entity, (meshComponent, materialComponent) in self._Registry.get_components(MeshComponent, MaterialComponent):
+            for entity, (meshComponent, materialComponent, transform) in \
+                self._Registry.get_components(MeshComponent, MaterialComponent, TransformComponent):
+
                 if not meshComponent.Initialized: continue
                 mesh = meshComponent.MeshObject
                 camera = self._DrawCamera if self._DrawCamera else \
                     self.PrimaryCameraEntity.GetComponent(CameraComponent).Camera.CameraObject
+
+                mesh.SetTranslation ( transform.Translation )
+                mesh.SetRotation    ( transform.Rotation    )
+                mesh.SetScale       ( transform.Scale       )
 
                 mesh._RecalculateTransform()
 
@@ -472,6 +481,9 @@ class Scene:
             if component.Path != "": entity.AddComponent(MaterialComponent, component.Path)
         
         elif isinstance(component, MaterialComponent): component.Init()
+
+        elif isinstance(component, RigidBodyComponent):
+            if self.__Running: self.__RBWorld.AddRigidBody(component.RigidBody)
 
     def _OnComponentRemoved(self, entity: Entity, component: CTV) -> None:
         if isinstance(component, LightComponent):
