@@ -4,28 +4,38 @@ import inspect
 import debugpy
 from typing import Dict, List, Any, Type, Callable
 
+from ..Logging    import PI_CLIENT_ERROR, DebugConsole
+from .FileWatcher import *
+
 class Script: ...
 
 class Module:
     __AllScripts: Dict[str, Script]
 
     def __init__(self, path: str):
-        sys.path.append(str(pathlib.Path(path).absolute().parent))
         self.Path = path
+        self.Error = False
 
         path = path.replace('\\', '/')
         if path.startswith('./'): path = path[2:]
         path = path.split('/')
-
-        moduleName = path[-1].replace(".py", '')
-
-        self.Name = moduleName
-        self.Module = importlib.import_module(moduleName)
+        
+        self.Name = path[-1].replace(".py", '')
+        
+        sys.path.append(str(pathlib.Path(self.Path).absolute().parent))
+        try: self.Module = importlib.reload(importlib.import_module(self.Name))
+        except Exception as _:
+            PI_CLIENT_ERROR("Error loading module\n{}", _)
+            self.Error = True
         sys.path.pop()
 
-        self.__ScanForModules()
+        self.__ScanForScripts()
 
-    def __ScanForModules(self) -> None:
+    def __ScanForScripts(self) -> None:
+        if self.Error:
+            self.__AllScripts = {}
+            return
+
         scripts = [
             s for s in self.Module.__dir__()
             if (not s.startswith("_") and inspect.isclass(self.Module.__dict__[s]))
@@ -105,7 +115,19 @@ class Script:
 
 class ScriptingEngine:
     DIR: str
-    Modules: Dict[str, Module]
+    Modules: Dict[str, Module] = {}
+
+    _DirWatcher: DirectoryWatcher
+
+    class EventHandler(FileSystemEventHandler):
+        @staticmethod
+        def OnCreated  (_) -> None: ScriptingEngine.ScanForModules()
+        @staticmethod
+        def OnModified (_) -> None: ScriptingEngine.ScanForModules()
+        @staticmethod
+        def OnDeleted  (_) -> None: ScriptingEngine.ScanForModules()
+        @staticmethod
+        def OnMoved    (_) -> None: ScriptingEngine.ScanForModules()
 
     class Debugger:
         Running = False
@@ -145,10 +167,16 @@ class ScriptingEngine:
     @staticmethod
     def Init(scriptDir: str) -> None:
         ScriptingEngine.DIR = scriptDir
-        ScriptingEngine.Modules = {}
+        ScriptingEngine.ScanForModules()
+
+        ScriptingEngine._DirWatcher = DirectoryWatcher(pathlib.Path(scriptDir), ScriptingEngine.EventHandler)
+        ScriptingEngine._DirWatcher.Start()
+        
+        DebugConsole.Init()
 
     @staticmethod
     def Shutdown() -> None:
+        ScriptingEngine._DirWatcher.Stop()
         ScriptingEngine.Debugger.Shutdown()
 
     @staticmethod

@@ -13,12 +13,12 @@ from uuid import uuid3 as _UUIDGenerator
 
 UUIDGenerator: Callable[[str], UUID] = lambda asset: _UUIDGenerator(NAMESPACE_URL, asset)
 
-@Struct()
+@Struct
 class Asset:
-    Type: int
-    Path: str
-    UUID: UUID
-    Asset: Any
+    Type: int = -1
+    Path: str = ""
+    UUID: UUID = UUIDGenerator("")
+    Asset: Any = None
 
 class AssetManager:
     class AssetType:
@@ -69,6 +69,8 @@ class AssetManager:
         if assetType >= 3: PI_CORE_ASSERT(False, "Invalid AssetType: {}", assetType)
         path = self.GetAbsolutePath(path)
 
+        if (mesh := self.Get(path)) is not None: return self._GetUUID(mesh)
+
         asset = None
         if assetType == AssetManager.AssetType.ShaderAsset:
             asset: Shader = Shader.Create(path)
@@ -85,9 +87,9 @@ class AssetManager:
 
         return self._GetUUID(asset)
 
-    @dispatch(UUID)
-    def Get(self, uuid: UUID) -> Any: return self.__AssetMap.get(uuid, None).Asset
-
     @dispatch(str)
     def Get(self, path: str) -> Any:
-        return self.__AssetMap.get(UUIDGenerator(self.GetAbsolutePath(path)), None).Asset
+        return self.__AssetMap.get(UUIDGenerator(self.GetAbsolutePath(path)), Asset()).Asset
+
+    @dispatch(UUID)
+    def Get(self, uuid: UUID) -> Any: return self.__AssetMap.get(uuid, Asset()).Asset

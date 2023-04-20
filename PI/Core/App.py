@@ -59,6 +59,8 @@ class PI_Application(ABC):
         # i.e. After window is created
         Renderer2D.Init()
         Renderer.LineShader: Shader = Shader.Create(".\\InternalAssets\\Shaders\\Line3D.glsl")
+
+        RenderCommand.EnableCulling()
   
         from ..Scripting.ScriptingEngine import ScriptingEngine
         ScriptingEngine.Init("DefaultProject\\Assets\\Scripts")

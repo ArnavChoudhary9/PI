@@ -21,12 +21,9 @@ class RenderCommand:
         return None
 
     @staticmethod
-    def SetClearColor(*args) -> None:
-        RenderCommand.__RendererAPI.SetClearColor(*args)
-
+    def SetClearColor(*args) -> None: RenderCommand.__RendererAPI.SetClearColor(*args)
     @staticmethod
-    def Clear() -> None:
-        RenderCommand.__RendererAPI.Clear()
+    def Clear() -> None: RenderCommand.__RendererAPI.Clear()
 
     @staticmethod
     def DrawIndexed(vertexArray, indices: int=None) -> None:
@@ -39,17 +36,10 @@ class RenderCommand:
         RenderCommand.__RendererAPI.DrawLines(vertexArray, indices)
 
     @staticmethod
-    def Resize(x: int, y: int, width: int, height: int) -> None:
-        RenderCommand.__RendererAPI.Resize(x, y, width, height)
-
+    def Resize(x: int, y: int, width: int, height: int) -> None: RenderCommand.__RendererAPI.Resize(x, y, width, height)
     @staticmethod
-    def EnableDepth() -> None:
-        RenderCommand.__RendererAPI.EnableDepth()
-
+    def EnableDepth() -> None: RenderCommand.__RendererAPI.EnableDepth()
     @staticmethod
-    def EnableBlending() -> None:
-        RenderCommand.__RendererAPI.EnableBlending()
-
+    def EnableBlending() -> None: RenderCommand.__RendererAPI.EnableBlending()
     @staticmethod
-    def EnableCulling() -> None:
-        RenderCommand.__RendererAPI.EnableCulling()
+    def EnableCulling() -> None: RenderCommand.__RendererAPI.EnableCulling()

@@ -17,6 +17,9 @@ class Entity():
     @property
     def _Scene(self): return self.__Scene
 
+    @property
+    def AllComponents(self): return self._Scene._Registry.components_for_entity(self.__EntityHandle)
+
     def __int__  (self) -> int  : return self.__EntityHandle
     def __bool__ (self) -> bool : return self.__EntityHandle != None
     
@@ -33,6 +36,14 @@ class Entity():
             component = componentType(*args, entity=self, **kwargs)
         else: component = componentType(*args, **kwargs)
 
+        self.__Scene._Registry.add_component(self.__EntityHandle, component)
+        self.__Scene._OnComponentAdded(self, component)
+        return component
+    
+    def _AddComponentInstance(self, component) -> None:
+        PI_CLIENT_ASSERT(not self.HasComponent(type(component)),
+            "Enitiy: {} ({}), Already have component of type: {}", self, int(self), type(component)
+        )
         self.__Scene._Registry.add_component(self.__EntityHandle, component)
         self.__Scene._OnComponentAdded(self, component)
         return component

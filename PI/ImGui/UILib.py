@@ -1,4 +1,4 @@
-from ..Logging import PI_CORE_WARN
+from ..Logging import PI_CLIENT_WARN
 
 import imgui
 import pyrr
@@ -31,14 +31,16 @@ class UILib:
             UILib._FILE_DIALOGUE_RESOURCES.IsLoaded = True
 
     @staticmethod
-    def DrawButton(lable: str, tooltip: str=None) -> bool:
-        pressed = imgui.button(lable)
-
+    def TooltipIfHovered(tooltip: str=None) -> None:
         if tooltip and imgui.is_item_hovered():
             imgui.begin_tooltip()
             imgui.text(tooltip)
             imgui.end_tooltip()
 
+    @staticmethod
+    def DrawButton(lable: str, tooltip: str=None) -> bool:
+        pressed = imgui.button(lable)
+        UILib.TooltipIfHovered(tooltip)
         return pressed
 
     @staticmethod
@@ -115,10 +117,7 @@ class UILib:
         changed, newText = imgui.input_text("##Filter", value, 512)
         imgui.pop_item_width()
 
-        if tooltip and imgui.is_item_hovered():
-            imgui.begin_tooltip()
-            imgui.text(tooltip)
-            imgui.end_tooltip()
+        UILib.TooltipIfHovered(tooltip)
 
         dragDrop = False
         if acceptDragDrop:
@@ -129,7 +128,7 @@ class UILib:
                     if not filter: changed, newText, dragDrop = True, data, True
                     else:
                         if data.lower().endswith(filter): changed, newText, dragDrop = True, data, True
-                        else: PI_CORE_WARN("This text field only accepts {} files", filter)
+                        else: PI_CLIENT_WARN("This text field only accepts {} files", filter)
                 imgui.end_drag_drop_target()
 
         imgui.columns(1)
@@ -157,10 +156,7 @@ class UILib:
         changed, newText = imgui.input_text("##Filter", value, 512)
         imgui.pop_item_width()
 
-        if textfieldTooltip and imgui.is_item_hovered():
-            imgui.begin_tooltip()
-            imgui.text(textfieldTooltip)
-            imgui.end_tooltip()
+        UILib.TooltipIfHovered(textfieldTooltip)
 
         dragDrop = False
         if acceptDragDrop:
@@ -171,7 +167,7 @@ class UILib:
                     if not filter: changed, newText, dragDrop = True, data, True
                     else:
                         if data.lower().endswith(".exe"): changed, newText, dragDrop = True, data, True
-                        else: PI_CORE_WARN("This text field only accepts {} files", ".exe")
+                        else: PI_CLIENT_WARN("This text field only accepts {} files", ".exe")
                 imgui.end_drag_drop_target()
 
         imgui.next_column()
@@ -213,10 +209,7 @@ class UILib:
         changed, newText = imgui.input_text("##Filter", value, 512)
         imgui.pop_item_width()
 
-        if textfieldTooltip and imgui.is_item_hovered():
-            imgui.begin_tooltip()
-            imgui.text(textfieldTooltip)
-            imgui.end_tooltip()
+        UILib.TooltipIfHovered(textfieldTooltip)
 
         imgui.next_column()
         if UILib.DrawButton("...", tooltip=selectorTooltip):
@@ -272,7 +265,7 @@ class UILib:
             lable: str, value: float, speed: float=0.05,
             minValue: float=0.0, maxValue: float=0.0,
             columnWidth: float=100,
-            tooltip: str=None
+            tooltip: str=None, inActive: bool=False
         ) -> Tuple[bool, float]:
         imgui.push_id(lable)
         imgui.columns(2)
@@ -284,11 +277,7 @@ class UILib:
             "##Value", value, change_speed=speed, min_value=minValue, max_value=maxValue, format="%.2f"
         )
 
-        if tooltip and imgui.is_item_hovered():
-            imgui.begin_tooltip()
-            imgui.text(tooltip)
-            imgui.end_tooltip()
-        
+        UILib.TooltipIfHovered(tooltip)
         imgui.columns(1)
         imgui.pop_id()
 

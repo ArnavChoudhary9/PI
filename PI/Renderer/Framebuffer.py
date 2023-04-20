@@ -1,35 +1,26 @@
 from .RendererAPI import RendererAPI
 from ..Logging.logger   import PI_CORE_ASSERT
+from .Texture import TextureSpecification
 
 from abc import ABC, abstractmethod, abstractproperty
 
-from typing import Iterable
 from typing import List  as _List
 
+class Framebuffer:
+    class AttachmentSpecification : ...      # Forward decleration
+    class TextureSpecification    : ...      # Forward decleration
+
 class Framebuffer(ABC):
-    class TextureFormat:
-        NULL: int = 0
-
-        RGBA8: int = 1
-        RED_INTEGER: int = 2
-        
-        DEPTH24STENCIL8: int = 3
-
-        DEPTH: int = DEPTH24STENCIL8
-
-    class TextureSpecification:
-        def __init__(self, format=None) -> None:
-            self.TextureFormat = format if format is not None else Framebuffer.TextureFormat.NULL
-
     class AttachmentSpecification:
+        Attachments : _List[TextureSpecification]
         def __init__(self, *attachments) -> None:
-            self.Attachments : _List[Framebuffer.TextureSpecification] = list(attachments)
+            self.Attachments : _List[TextureSpecification] = list(attachments)
 
     class Specs:
         Width  : int
         Height : int
 
-        Attachments = None
+        AttachmentSpecification: Framebuffer.AttachmentSpecification = None
 
         Samples : int = 1
         SwapChainTarget = False

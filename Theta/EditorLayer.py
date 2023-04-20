@@ -7,6 +7,8 @@ from ImGuiElements.ProjectSettingsTab  import *
 from ImGuiElements.DebugStatsPanel     import *
 from ImGuiElements.ThemeEditorTab      import *
 
+from ImGuiElements.UndoManager import *
+
 INSTRUCTION_TEXT: str = \
 """Welcome to Theta: The PI Editor
 Current version: {0}
@@ -94,21 +96,23 @@ class EditorLayer(Layer):
         self.__SceneHierarchyPanel.SetContext(self.__ActiveScene)
 
         self.__DebugLogger = DebugLogger()
+        UndoManager()        # Init UndoManager
 
         specs = Framebuffer.Specs()
         specs.Width = 1280
         specs.Height = 720
-        specs.Attachments = Framebuffer.AttachmentSpecification(
-            Framebuffer.TextureSpecification(Framebuffer.TextureSpecification(Framebuffer.TextureFormat.RGBA8)),
-            Framebuffer.TextureSpecification(Framebuffer.TextureSpecification(Framebuffer.TextureFormat.RED_INTEGER)),
-            Framebuffer.TextureSpecification(Framebuffer.TextureSpecification(Framebuffer.TextureFormat.DEPTH))
+        specs.AttachmentSpecification = Framebuffer.AttachmentSpecification(
+            TextureSpecification( TextureFormat.RGBA8       ),
+            TextureSpecification( TextureFormat.RED_INTEGER ),
+            TextureSpecification( TextureFormat.DEPTH       )
         )
         self.__Framebuffer: Framebuffer = Framebuffer.Create(specs)
         self.__Framebuffer.Unbind()
 
-        self.__Framerate   = 60
+        self.__Framerate = 60
         self.__ShowDebugStats = False
         self.__ShowProjectTab = False
+
         self.__Temp_ProjectName = ""
         self.__Temp_ProjectPath = ""
 
@@ -127,18 +131,20 @@ class EditorLayer(Layer):
         self.__Icons = {}
 
         try:
-            self.__Icons["Play"]  = Texture2D.Create( ".\\Theta\\Resources\\Icons\\PlayButton.png"  )
-            self.__Icons["Stop"]  = Texture2D.Create( ".\\Theta\\Resources\\Icons\\StopButton.png"  )
-            self.__Icons["Pause"] = Texture2D.Create( ".\\Theta\\Resources\\Icons\\PauseButton.png" )
-            self.__Icons["Step"]  = Texture2D.Create( ".\\Theta\\Resources\\Icons\\StepButton.png"  )
+            self.__Icons["Play"]   = Texture2D.Create( ".\\Theta\\Resources\\Icons\\PlayButton.png"  )
+            self.__Icons["Stop"]   = Texture2D.Create( ".\\Theta\\Resources\\Icons\\StopButton.png"  )
+            self.__Icons["Pause"]  = Texture2D.Create( ".\\Theta\\Resources\\Icons\\PauseButton.png" )
+            self.__Icons["Step"]   = Texture2D.Create( ".\\Theta\\Resources\\Icons\\StepButton.png"  )
+            self.__Icons["Restart"] = Texture2D.Create( ".\\Theta\\Resources\\Icons\\ResartButton.png"  )
 
         # This is here for Building
         # 'cause the Build looks for files in '.'
         except FileNotFoundError:
-            self.__Icons["Play"]  = Texture2D.Create( ".\\Resources\\Icons\\PlayButton.png"  )
-            self.__Icons["Stop"]  = Texture2D.Create( ".\\Resources\\Icons\\StopButton.png"  )
-            self.__Icons["Pause"] = Texture2D.Create( ".\\Resources\\Icons\\PauseButton.png" )
-            self.__Icons["Step"]  = Texture2D.Create( ".\\Resources\\Icons\\StepButton.png"  )
+            self.__Icons["Play"]   = Texture2D.Create( ".\\Resources\\Icons\\PlayButton.png"   )
+            self.__Icons["Stop"]   = Texture2D.Create( ".\\Resources\\Icons\\StopButton.png"   )
+            self.__Icons["Pause"]  = Texture2D.Create( ".\\Resources\\Icons\\PauseButton.png"  )
+            self.__Icons["Step"]   = Texture2D.Create( ".\\Resources\\Icons\\StepButton.png"   )
+            self.__Icons["Restart"] = Texture2D.Create( ".\\Resources\\Icons\\ResartButton.png" )
 
     def __NewScene(self) -> None:
         self.__OnSceneStop()
@@ -189,27 +195,53 @@ class EditorLayer(Layer):
 
         self.__ProjectSettingsTab.Init()
 
+    def __Undo(self) -> None:
+        event = UndoManager.GetInstance().PopUndo()
+        if   type(event) == UndoEvent: return
+        elif type(event) == ComponentDeletionEvent:
+            event.Entity._AddComponentInstance(event.ComponentDeleted)
+
+    def __Redo(self) -> None:
+        event = UndoManager.GetInstance().PopRedo()
+        if   type(event) == UndoEvent: return
+        elif type(event) == ComponentDeletionEvent:
+            event.Entity.RemoveComponent(type(event.ComponentDeleted))
+
     def __CheckKeys(self, event: KeyPressedEvent) -> bool:
         control = Input.IsKeyPressed(PI_KEY_LEFT_CONTROL) or Input.IsKeyPressed(PI_KEY_RIGHT_CONTROL)
         shift   = Input.IsKeyPressed(PI_KEY_LEFT_SHIFT)   or Input.IsKeyPressed(PI_KEY_RIGHT_SHIFT)
 
         if control:
-            if event.KeyCode == PI_KEY_Q:
-                StateManager.GetCurrentApplication().Close()
-                return True
+            if not shift:
+                if event.KeyCode == PI_KEY_Q:
+                    StateManager.GetCurrentApplication().Close()
+                    return True
 
-            if event.KeyCode == PI_KEY_N:
-                self.__NewScene()
-                return True
+                if event.KeyCode == PI_KEY_N:
+                    self.__NewScene()
+                    return True
 
-            if event.KeyCode == PI_KEY_S and not shift:
-                if not shift: self.__SaveScene()
-                else: self.__SaveScene(dialogbox=True)
-                return True
+                if event.KeyCode == PI_KEY_S and not shift:
+                    if not shift: self.__SaveScene()
+                    else: self.__SaveScene(dialogbox=True)
+                    return True
 
-            if event.KeyCode == PI_KEY_O:
-                self.__LoadScene()
-                return True
+                if event.KeyCode == PI_KEY_O:
+                    self.__LoadScene()
+                    return True
+
+                if event.KeyCode == PI_KEY_Z:
+                    self.__Undo()
+                    return True
+
+                if event.KeyCode == PI_KEY_Y:
+                    self.__Redo()
+                    return True
+            
+            else:
+                if event.KeyCode == PI_KEY_F5:
+                    self.__SceneRestart()
+                    return True
 
         else:
             if event.KeyCode == PI_KEY_F5:
@@ -235,6 +267,17 @@ class EditorLayer(Layer):
                     selectedEntity = self.__SceneHierarchyPanel.SelectedEntity
                     if selectedEntity: self.__ActiveScene.DestroyEntity(selectedEntity)
                     self.__SceneHierarchyPanel.SetSelectedEntity(None)
+                    return True
+                
+            else:
+                if event.KeyCode == PI_KEY_D:
+                    selection = self.__SceneHierarchyPanel.SelectedEntity
+                    if selection: self.__ActiveScene.DuplicateEntity(selection)
+                    return True
+                
+                if event.KeyCode == PI_KEY_N:
+                    self.__ActiveScene.CreateEntity("New Entity")
+                    return True
 
         return False
 
@@ -250,9 +293,7 @@ class EditorLayer(Layer):
         dispatcher.Dispach(self.__CheckKeys, EventType.KeyPressed)
         dispatcher.Dispach(self.__MouseButtonClick, EventType.MouseButtonPressed)
 
-    def OnImGuiRender(self) -> None:
-        ImGuiTimer = PI_TIMER("EditorLayer::OnImGuiRender")
-    
+    def OnImGuiRender(self) -> None:    
         optFullscreen = True
         dockspaceFlage = imgui.DOCKNODE_NONE
 
@@ -327,14 +368,19 @@ class EditorLayer(Layer):
                         "Location", self.__Temp_ProjectPath, columnWidth=75
                     )
 
-                    imgui.set_cursor_pos_x(imgui.get_window_content_region_max()[0] - 50)
+                    imgui.set_cursor_pos_x(imgui.get_window_content_region_max()[0] - 100)
                     imgui.set_cursor_pos_y(imgui.get_window_content_region_max()[1] - 25)
 
+                    if UILib.DrawButton("Close"): self.__ShowProjectTab = False
+                    imgui.same_line()
                     if UILib.DrawButton("Create"):
-                        path = f"{self.__Temp_ProjectPath}\\{self.__Temp_ProjectName}"
-                        Project(self.__Temp_ProjectName, newLoc=path)
-                        self.__LoadProject(f"{path}\\{self.__Temp_ProjectName}.PIProj")
-                        self.__ShowProjectTab = False
+                        if self.__Temp_ProjectName != "" and self.__Temp_ProjectPath != "":
+                            path = f"{self.__Temp_ProjectPath}\\{self.__Temp_ProjectName}"
+                            Project(self.__Temp_ProjectName, newLoc=path)
+                            self.__LoadProject(f"{path}\\{self.__Temp_ProjectName}.PIProj")
+                            self.__ShowProjectTab = False
+
+                        else: PI_CLIENT_ERROR("Cannot Make Project without Name or Path")
 
             self.__ThemeEditor.OnImGuiRender()
             self.__ProjectSettingsTab.OnImGuiRender(
@@ -376,10 +422,12 @@ class EditorLayer(Layer):
                     data: bytes = imgui.accept_drag_drop_payload("CONTENT_BROWSER_ITEM")
                     if data:
                         data = data.decode('UTF-8')
-                        if not data.lower().endswith('.pi'):
-                            DebugConsole.Warn(f"File: {data} is not a scene file")
-                            PI_CLIENT_WARN("File: {} is not a scene file", data)
-                        else: self.__LoadScene(data)
+
+                        if data.lower().endswith('.pi'): self.__LoadScene(data)  
+                        elif data.lower().endswith('.obj'):
+                            entity = self.__ActiveScene.CreateEntity("New Entity")
+                            entity.AddComponent(MeshComponent, data)
+                        else: PI_CLIENT_WARN("File: {} is not a Scene/Mesh file", data)
                     imgui.end_drag_drop_target()
 
             imgui.pop_style_var()
@@ -424,6 +472,12 @@ class EditorLayer(Layer):
         if self.__SceneState == EditorLayer.SceneStateEnum.Edit: return
         self.__SceneState = EditorLayer.SceneStateEnum.Play
 
+    def __SceneRestart(self) -> None:
+        if self.__SceneState == EditorLayer.SceneStateEnum.Edit: return
+        if self.__SceneState == EditorLayer.SceneStateEnum.Pause: self.__OnSceneResume()
+        self.__OnSceneStop()
+        self.__OnScenePlay()
+
     def UI_Toolbar(self) -> None:
         imgui.push_style_var(imgui.STYLE_WINDOW_PADDING, ImVec2(0, 2))
         imgui.push_style_var(imgui.STYLE_ITEM_INNER_SPACING, ImVec2(0, 0))
@@ -447,8 +501,8 @@ class EditorLayer(Layer):
 
             cursorStartPos = {
                 EditorLayer.SceneStateEnum.Edit  : 1*(size * 0.5),
-                EditorLayer.SceneStateEnum.Play  : 2*(size * 0.5),
-                EditorLayer.SceneStateEnum.Pause : 3*(size * 0.5)
+                EditorLayer.SceneStateEnum.Play  : 3*(size * 0.5),
+                EditorLayer.SceneStateEnum.Pause : 4*(size * 0.5)
             }
             imgui.set_cursor_pos_x(
                 (imgui.get_window_content_region_max()[0] * 0.5) - cursorStartPos[self.__SceneState]
@@ -458,14 +512,11 @@ class EditorLayer(Layer):
                 if    self.__SceneState == EditorLayer.SceneStateEnum.Edit: self.__OnScenePlay()
                 else: self.__OnSceneStop()
 
-            if imgui.is_item_hovered():
-                imgui.begin_tooltip()
-                imgui.text(
-                    "Play (F5)"
-                    if self.__SceneState == EditorLayer.SceneStateEnum.Edit else
-                    "Stop (Shift+F5)"
-                )
-                imgui.end_tooltip()
+            UILib.TooltipIfHovered(
+                "Play (F5)"
+                if self.__SceneState == EditorLayer.SceneStateEnum.Edit else
+                "Stop (Shift+F5)"
+            )
 
             if self.__SceneState != EditorLayer.SceneStateEnum.Edit:
                 imgui.same_line()
@@ -480,31 +531,31 @@ class EditorLayer(Layer):
 
                 imgui.pop_style_color()
 
-                if imgui.is_item_hovered():
-                    imgui.begin_tooltip()
-                    imgui.text(
-                        "Pause (F6)"
-                        if self.__SceneState == EditorLayer.SceneStateEnum.Play else
-                        "Resume (F5)"
-                    )
-                    imgui.end_tooltip()
+                UILib.TooltipIfHovered(
+                    "Pause (F6)"
+                    if self.__SceneState == EditorLayer.SceneStateEnum.Play else
+                    "Resume (F5)"
+                )
+
+                imgui.same_line()
+                if imgui.image_button(self.__Icons["Restart"].RendererID, size, size, (0, 1), (1, 0)):
+                    self.__SceneRestart()
+
+                UILib.TooltipIfHovered("Restart (Shift+Ctrl+F5)")
 
             if self.__SceneState == EditorLayer.SceneStateEnum.Pause:
                 imgui.same_line()
                 if imgui.image_button(self.__Icons["Step"].RendererID, size, size, (0, 0), (1, 1)):
                     self.__ActiveScene.OnUpdateRuntime(self.__LastFrameTime)
-                if imgui.is_item_hovered():
-                    imgui.begin_tooltip()
-                    imgui.text("Step (F10)")
-                    imgui.end_tooltip()
+                UILib.TooltipIfHovered("Step (F10)")
 
         imgui.pop_style_color(3)
         imgui.pop_style_var(3)
 
     def OnUpdate(self, timestep: Timestep) -> None:
-        timer = PI_TIMER("EditorLayer::OnUpdate")
         self.__Framerate = 1 / timestep.FixedTime
         self.__LastFrameTime = timestep.FixedTime
+
         if self.__ViewportFocused: self.__EditorCamera.OnUpdate(timestep.FixedTime)
 
         spec = self.__Framebuffer.Spec

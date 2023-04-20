@@ -1,5 +1,5 @@
 from ...Logging import PI_CORE_ASSERT, PI_CORE_WARN
-from ...Renderer import Framebuffer
+from ...Renderer import Framebuffer, TextureFormat, TextureSpecification
 from ...Core.Constants import *
 
 from OpenGL.GL import *
@@ -57,13 +57,13 @@ class Utils:
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, Utils.TextureTarget(multisampled), id, 0)
 
-    def IsDepthFormat(format: Framebuffer.TextureFormat):
-        if format == Framebuffer.TextureFormat.DEPTH24STENCIL8: return True
+    def IsDepthFormat(format: int):
+        if format == TextureFormat.DEPTH24STENCIL8: return True
         else: return False
 
-    def PIFBTextureFormatToGL(format: Framebuffer.TextureFormat):
-        if   format == Framebuffer.TextureFormat.RGBA8       : return GL_RGBA8
-        elif format == Framebuffer.TextureFormat.RED_INTEGER : return GL_RED_INTEGER
+    def PIFBTextureFormatToGL(format: int):
+        if   format == TextureFormat.RGBA8       : return GL_RGBA8
+        elif format == TextureFormat.RED_INTEGER : return GL_RED_INTEGER
 
         PI_CORE_ASSERT(False, "Invalid texture format.")
         return 0
@@ -73,8 +73,8 @@ _MaxFramebufferSize : int = 8192
 class OpenGLFramebuffer(Framebuffer):
     __Specs: Framebuffer.Specs
 
-    __ColorAttachmentsSpecs : _List[Framebuffer.TextureSpecification]
-    __DepthAttachmentSpecs  : Framebuffer.TextureFormat = Framebuffer.TextureFormat.NULL
+    __ColorAttachmentsSpecs : _List[TextureSpecification]
+    __DepthAttachmentSpecs  : TextureFormat = TextureFormat.NULL
 
     __ColorAttachments      : _List[int]
     __DepthAttachment       : int = 0
@@ -88,11 +88,11 @@ class OpenGLFramebuffer(Framebuffer):
         self.__ColorAttachmentsSpecs = []
         self.__ColorAttachments = []
 
-        for spec in specs.Attachments.Attachments:
-            if not Utils.IsDepthFormat(spec.TextureFormat.TextureFormat):
-                self.__ColorAttachmentsSpecs.append(spec)
+        for attachment in specs.AttachmentSpecification.Attachments:
+            if not Utils.IsDepthFormat(attachment.TextureFormat):
+                self.__ColorAttachmentsSpecs.append(attachment)
             else:
-                self.__DepthAttachmentSpecs = spec
+                self.__DepthAttachmentSpecs = attachment
 
         self.Invalidate()
 
@@ -117,19 +117,19 @@ class OpenGLFramebuffer(Framebuffer):
             for attachment, spec in zip(self.__ColorAttachments, self.__ColorAttachmentsSpecs):
                 Utils.BindTexture(multisample, attachment)
 
-                if spec.TextureFormat.TextureFormat == Framebuffer.TextureFormat.RGBA8:
+                if spec.TextureFormat == TextureFormat.RGBA8:
                     Utils.AttachColorTexture(attachment, self.__Specs.Samples, GL_RGBA8, GL_RGBA,
                         self.__Specs.Width, self.__Specs.Height, self.__ColorAttachmentsSpecs.index(spec))
 
-                elif spec.TextureFormat.TextureFormat == Framebuffer.TextureFormat.RED_INTEGER:
+                elif spec.TextureFormat == TextureFormat.RED_INTEGER:
                     Utils.AttachColorTexture(attachment, self.__Specs.Samples, GL_R32I, GL_RED_INTEGER,
                         self.__Specs.Width, self.__Specs.Height, self.__ColorAttachmentsSpecs.index(spec))
 
-        if self.__DepthAttachmentSpecs.TextureFormat != Framebuffer.TextureFormat.NULL:
+        if self.__DepthAttachmentSpecs.TextureFormat != TextureFormat.NULL:
             self.__DepthAttachment = Utils.CreateTextures(multisample, 1)[0]
             Utils.BindTexture(multisample, self.__DepthAttachment)
 
-            if self.__DepthAttachmentSpecs.TextureFormat.TextureFormat == Framebuffer.TextureFormat.DEPTH24STENCIL8:
+            if self.__DepthAttachmentSpecs.TextureFormat == TextureFormat.DEPTH24STENCIL8:
                 Utils.AttachDepthTexture(self.__DepthAttachment, self.__Specs.Samples, GL_DEPTH24_STENCIL8,
                     GL_DEPTH_STENCIL_ATTACHMENT, self.__Specs.Width, self.__Specs.Height)
 
@@ -163,10 +163,8 @@ class OpenGLFramebuffer(Framebuffer):
 
     @property
     def Attachments(self) -> _List[int]: return self.__ColorAttachments
-
     @property
-    def Spec(self) -> Framebuffer.Specs:
-        return self.__Specs
+    def Spec(self) -> Framebuffer.Specs: return self.__Specs
 
     def GetColorAttachment(self, index=0) -> int:
         PI_CORE_ASSERT(index < len(self.__ColorAttachments), "Index must be less than attachments length")
@@ -177,7 +175,7 @@ class OpenGLFramebuffer(Framebuffer):
 
         spec = self.__ColorAttachmentsSpecs[attachmentIndex]
         glClearTexImage(self.__ColorAttachments[attachmentIndex], 0,
-            Utils.PIFBTextureFormatToGL(spec.TextureFormat.TextureFormat), GL_INT, value)
+            Utils.PIFBTextureFormatToGL(spec.TextureFormat), GL_INT, value)
 
     def Bind(self) -> None:
         if not self.__Specs.SwapChainTarget: glBindFramebuffer(GL_FRAMEBUFFER, self.__RendererID)

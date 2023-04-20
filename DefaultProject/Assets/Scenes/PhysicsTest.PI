@@ -1,0 +1,166 @@
+Entities:
+- CollidorComponent:
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Type: 0
+  Entity: 4dc144e5-2b52-4335-b313-03560b2f3548
+  MeshComponent:
+    Path: .\InternalAssets\Meshes\Cube.obj
+  RigidBodyComponent:
+    IsStatic: true
+    Mass: 0.0
+  TagComponent:
+    Tag: Cube1
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [0.0, 1.0, 0.0]
+- CollidorComponent:
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Type: 0
+  Entity: dfce705f-bbc3-4cc9-8427-4a12fd36fd92
+  MeshComponent:
+    Path: .\InternalAssets\Meshes\Cube.obj
+  RigidBodyComponent:
+    IsStatic: false
+    Mass: 10.0
+  TagComponent:
+    Tag: Cube2
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [2.049999952316284, 1.0, 0.0]
+- CollidorComponent:
+    Scale: !<Vector3> [4.0, 0.10000000149011612, 4.0]
+    Type: 0
+  Entity: d10a703e-7e0e-43e4-8c64-07a4d8a7a42a
+  MeshComponent:
+    Path: .\InternalAssets\Meshes\Plane.obj
+  RigidBodyComponent:
+    IsStatic: true
+    Mass: 0.0
+  TagComponent:
+    Tag: Plane
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [15.0, 1.0, 15.0]
+    Translation: !<Vector3> [0.0, 0.0, 0.0]
+- Entity: 93900154-2fa7-4109-a764-a29c83b28566
+  LightComponent:
+    Diffuse: !<Vector3> [0.8, 0.8, 0.8]
+    Intensity: 100.0
+    LightType: 1
+    Specular: !<Vector3> [0.8, 0.8, 0.8]
+  TagComponent:
+    Tag: Light
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [-5.25, 10.850000381469727, 2.950000047683716]
+- CameraComponent:
+    Camera:
+      ProjectionType: 1
+    FixedAspectRatio: false
+    IsPrimary: true
+  Entity: 76c5587a-4d27-42ea-8396-b1cc3ef3ecc1
+  ScriptComponent:
+    Namespace: CameraFire.CameraFire
+    Variables:
+      Speed: 10
+  TagComponent:
+    Tag: Camera
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [0.0, 3.0, 10.0]
+- CollidorComponent:
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Type: 0
+  Entity: bd8aed88-cee7-4228-b58b-f6eaf2bfd8e2
+  MeshComponent:
+    Path: .\InternalAssets\Meshes\Cube.obj
+  RigidBodyComponent:
+    IsStatic: false
+    Mass: 10.0
+  TagComponent:
+    Tag: Cube3
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [0.0, 3.049999952316284, 0.0]
+- CollidorComponent:
+    Scale: !<Vector3> [1.0, 1.0, 4.0]
+    Type: 0
+  Entity: f664b3ca-756a-4483-a9fa-d61b2964fa2b
+  MeshComponent:
+    Path: .\InternalAssets\Meshes\Cube.obj
+  RigidBodyComponent:
+    IsStatic: false
+    Mass: 10.0
+  TagComponent:
+    Tag: Cube4
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [2.049999952316284, 3.049999952316284, 0.0]
+- CollidorComponent:
+    Scale: &id001 !<Vector3> [1.0, 1.0, 1.0]
+    Type: 0
+  Entity: d391aca9-1bbb-4a38-9121-eb07ad59ac34
+  MeshComponent:
+    Path: .\InternalAssets\Meshes\Cube.obj
+  RigidBodyComponent:
+    IsStatic: false
+    Mass: 10.0
+  TagComponent:
+    Tag: Cube5
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [-2.049999952316284, 3.049999952316284, 0.0]
+- CollidorComponent:
+    Scale: *id001
+    Type: 0
+  Entity: 218e6373-3eb2-49a1-b352-5e09c0856487
+  MeshComponent:
+    Path: .\InternalAssets\Meshes\Cube.obj
+  RigidBodyComponent:
+    IsStatic: false
+    Mass: 10.0
+  TagComponent:
+    Tag: Cube6
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [-2.049999952316284, 1.0, 0.0]
+- CollidorComponent:
+    Scale: *id001
+    Type: 0
+  Entity: bc855201-4a18-4bfa-8810-f118d9693e23
+  MeshComponent:
+    Path: .\InternalAssets\Meshes\Cube.obj
+  RigidBodyComponent:
+    IsStatic: false
+    Mass: 10.0
+  TagComponent:
+    Tag: Cube7
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [-1.024999976158142, 5.099999904632568, 0.0]
+- CollidorComponent:
+    Scale: *id001
+    Type: 0
+  Entity: b89e9bc6-70c4-4781-b2fe-6c7c599fc8e3
+  MeshComponent:
+    Path: .\InternalAssets\Meshes\Cube.obj
+  RigidBodyComponent:
+    IsStatic: false
+    Mass: 10.0
+  TagComponent:
+    Tag: Cube8
+  TransformComponent:
+    Rotation: !<Vector3> [0.0, 0.0, 0.0]
+    Scale: !<Vector3> [1.0, 1.0, 1.0]
+    Translation: !<Vector3> [1.024999976158142, 5.099999904632568, 0.0]
+Scene: Untitled
+Version: 1.1.1.dev

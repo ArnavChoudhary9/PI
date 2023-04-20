@@ -1,10 +1,11 @@
 from ..Logging.logger import PI_CORE_ASSERT
 from ..Renderer.Mesh  import Mesh
 from ..Renderer.Material import Material
-from ..Renderer.Light import *
-from .SceneCamera import SceneCamera
+from ..Renderer.Light    import *
 from ..Scripting  import *
+from ..Physics    import *
 from ..AssetManager.AssetManager import AssetManager
+from .SceneCamera import SceneCamera
 
 import pyrr
 
@@ -72,12 +73,12 @@ class TransformComponent:
     def SetScale(self, scale: pyrr.Vector3) -> None:
         self.Scale = scale
 
-    def Copy(self):
+    def Copy(self, recipientEntity):
         component = TransformComponent()
 
-        component.Translation = self.Translation
-        component.Rotation = self.Rotation
-        component.Scale = self.Scale
+        component.Translation = self.Translation .copy()
+        component.Rotation    = self.Rotation    .copy()
+        component.Scale       = self.Scale       .copy()
 
         return component
 
@@ -95,7 +96,7 @@ class CameraComponent:
 
     def __bool__(self) -> bool: return self.Primary
 
-    def Copy(self):
+    def Copy(self, recipientEntity):
         component = CameraComponent(SceneCamera(self.Camera.ProjectionType), self.Primary, self.FixedAspectRatio)
         component.Camera.CameraObject.SetAspectRatio(self.Camera.CameraObject.AspectRatio)
         return component
@@ -118,10 +119,8 @@ class MeshComponent:
         self.Path: str  = AssetManager.GetInstance().GetAbsolutePath(path)
 
     def Init(self) -> None:
-        if self.Path != "" and not self.Initialized:
-            # meshes = Mesh.Load(self.Path)
-            # PI_CORE_ASSERT(len(meshes), "Meshes not imported properly.")
-            # mesh = meshes[0]
+        if self.Path == ".": return
+        if AssetManager.GetInstance().GetRelativePath(self.Path) != '.' and not self.Initialized:
             mesh = AssetManager.GetInstance().Load(AssetManager.AssetType.MeshAsset, self.Path)
             self.MeshObject: Mesh = AssetManager.GetInstance().Get(mesh)
             self.Name = self.MeshObject.Name
@@ -130,16 +129,7 @@ class MeshComponent:
 
     def __str__(self) -> str: return self.Name
 
-    def Copy(self):
-        mesh = self.MeshObject
-        component = MeshComponent(Mesh(
-            mesh.VertexArray, mesh.VertexBuffer, mesh.IndexBuffer,
-            name=mesh.Name,
-            translation=mesh.Translation,
-            rotation=mesh.Rotation,
-            scale=mesh.Scale
-        ))
-        return component
+    def Copy(self, recipientEntity): return MeshComponent(self.Path)
 class MaterialComponent:
     MaterialObject : Material
     Textured       : bool = False
@@ -152,7 +142,7 @@ class MaterialComponent:
     def __init__(self, material: Material) -> None:
         self.MaterialObject = material
         self.Name           = material.Name
-        self.Path           = ""
+        self.Path           = "."
 
         if self.MaterialObject.AlbedoMap is not None: self.Textured = True
 
@@ -163,7 +153,8 @@ class MaterialComponent:
         self.Path: str = path
 
     def Init(self) -> None:
-        if self.Path != "" and not self.Initialized:
+        if self.Path == ".": return
+        if AssetManager.GetInstance().GetRelativePath(self.Path) != '.' and not self.Initialized:
             mesh: Mesh = AssetManager.GetInstance().Get(self.Path)
             self.MaterialObject: Material = mesh.Material
             self.Name = self.MaterialObject.Name
@@ -173,6 +164,8 @@ class MaterialComponent:
             self.Initialized = True
 
     def __str__(self) -> str: return self.Name
+
+    def Copy(self, recipientEntity): return MaterialComponent(self.Path)
 class LightComponent:
     @dataclass(frozen=True)
     class TypeEnum:
@@ -191,7 +184,7 @@ class LightComponent:
 
         self.LightType = _type
 
-    def Copy(self):
+    def Copy(self, recipientEntity):
         light = self.Light
         
         if self.LightType == LightComponent.TypeEnum.Directional:
@@ -228,7 +221,11 @@ class ScriptComponent:
         if self.Bound: return
         if self.Name == "": return
 
-        self.Script: Script = ScriptingEngine.ScanForModules()[self.Module].AllScripts[self.Name]
+        try: self.Script: Script = ScriptingEngine.Modules[self.Module].AllScripts[self.Name]
+        except KeyError as _:
+            self.Bound = False
+            return
+
         self.Script.Bind(self.Entity)
         self.Script.BindFunctions("OnAttach", "OnDetach", "OnUpdate")
 
@@ -244,13 +241,42 @@ class ScriptComponent:
     def Namespace(self) -> str: return f"{self.Module}.{self.Name}"
     def SetVariables(self, map: Dict[str, Any]) -> None: self.Script.SetVariables(map)
 
-    def Copy(self):
-        component = ScriptComponent(self.Module, self.Name, self.Entity)
+    def Reload(self) -> None:
+        self.Bound = False
+        self.Bind()
+
+    def Copy(self, recipientEntity):
+        component = ScriptComponent(self.Module, self.Name, recipientEntity)
+        component.Bind()
         component.SetVariables(self.Variables)
 
         return component
 
+class CollidorComponent:
+    class Shapes:
+        Box, Plane \
+            = range(2)
+        
+    def __init__(self,
+        _type: int, scale: pyrr.Vector3=pyrr.Vector3([ 1, 1, 1 ]),
+        up: pyrr.Vector3=pyrr.Vector3([ 0, 1, 0 ]), dist: float = 0.0
+    ) -> None:
+        self.Type = _type
+        self._InitData = (scale, up, dist)      # For Copying
+        if   _type == CollidorComponent.Shapes.Box   : self.Collidor = BoxCollider(bounds=scale)
+        elif _type == CollidorComponent.Shapes.Plane : self.Collidor = PlaneCollider(
+            bounds=pyrr.Vector3([ dist, 0, 0 ]), up=up
+        )
+    def Copy(self, recipientEntity): return CollidorComponent(self.Type, *self._InitData)
+class RigidBodyComponent:
+    def __init__(self, mat: PySicsMaterial) -> None:
+        self._Mat = mat         # For Copying
+        self.RigidBody = RigidBody(mat)
+
+    def Copy(self, recipientEntity): return RigidBodyComponent(self._Mat)
+
 CTV = TypeVar("CTV",
         IDComponent, TagComponent, TransformComponent,
-        CameraComponent, MeshComponent, MaterialComponent, LightComponent, ScriptComponent
+        CameraComponent, MeshComponent, MaterialComponent, LightComponent, ScriptComponent,
+        CollidorComponent, RigidBodyComponent
     )

@@ -223,10 +223,7 @@ class ThemeEditor:
             imgui.set_cursor_pos_x(imgui.get_window_content_region_max()[0] - 90)
 
             save = imgui.button("Save")
-            if imgui.is_item_hovered():
-                imgui.begin_tooltip()
-                imgui.text("Your Theme Preferences will be saved locally")
-                imgui.end_tooltip()
+            UILib.TooltipIfHovered("Your Theme Preferences will be saved locally")
 
             imgui.same_line()
             if imgui.button("Close"): self.__Show = False

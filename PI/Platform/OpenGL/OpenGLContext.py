@@ -15,9 +15,14 @@ class OpenGLContext(GraphicsContext):
         glfw.make_context_current(self.__WindowHandle)
 
         PI_CORE_INFO("OpenGL Renderer")
-        PI_CORE_INFO("\tVendor     : {}", glGetString(GL_VENDOR)   .decode('utf-8'))
-        PI_CORE_INFO("\tRenderer   : {}", glGetString(GL_RENDERER) .decode('utf-8'))
-        PI_CORE_INFO("\tVersion    : {}", glGetString(GL_VERSION)  .decode('utf-8'))
+
+        # These Things might not work on every hardware
+        try:
+            PI_CORE_INFO("\tVendor     : {}", glGetString(GL_VENDOR)   .decode('utf-8'))
+            PI_CORE_INFO("\tRenderer   : {}", glGetString(GL_RENDERER) .decode('utf-8'))
+            PI_CORE_INFO("\tVersion    : {}", glGetString(GL_VERSION)  .decode('utf-8'))
+        
+        except Exception: pass
 
     def SwapBuffers(self) -> None:
         glfw.swap_buffers(self.__WindowHandle)

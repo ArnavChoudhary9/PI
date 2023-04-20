@@ -1,3 +1,4 @@
+from .logger import LogSubcriprtions
 from ..Core.Base import PI_DEBUG
 
 import datetime
@@ -15,6 +16,9 @@ class DebugConsole:
 
         ALL : int = TRACE | WARN | ERROR
 
+    @staticmethod
+    def Init() -> None: LogSubcriprtions.Subscribe(DebugConsole)
+        
     @staticmethod
     def GetLogs(filter: int=Severity.ALL) -> List[Tuple[int, str]]:
         if filter == DebugConsole.Severity.ALL: return DebugConsole.__Logs
@@ -52,6 +56,24 @@ class DebugConsole:
         return f"[{timeStr}]{extra}{string}"
 
     @staticmethod
+    def Trace(*args):
+        if len(args) == 1: DebugConsole.__Logs.append((DebugConsole.Severity.TRACE, DebugConsole.FormatString(args[0])))
+        else: DebugConsole.__Logs.append((DebugConsole.Severity.TRACE, DebugConsole.FormatString(" ".join(args))))
+        return DebugConsole
+
+    @staticmethod
+    def Info(*args):
+        if len(args) == 1: DebugConsole.__Logs.append((DebugConsole.Severity.TRACE, DebugConsole.FormatString(args[0])))
+        else: DebugConsole.__Logs.append((DebugConsole.Severity.TRACE, DebugConsole.FormatString(" ".join(args))))
+        return DebugConsole
+
+    @staticmethod
+    def Debug(*args):
+        if len(args) == 1: DebugConsole.__Logs.append((DebugConsole.Severity.TRACE, DebugConsole.FormatString(args[0])))
+        else: DebugConsole.__Logs.append((DebugConsole.Severity.TRACE, DebugConsole.FormatString(" ".join(args))))
+        return DebugConsole
+
+    @staticmethod
     def Log(*args):
         if len(args) == 1: DebugConsole.__Logs.append((DebugConsole.Severity.TRACE, DebugConsole.FormatString(args[0])))
         else: DebugConsole.__Logs.append((DebugConsole.Severity.TRACE, DebugConsole.FormatString(" ".join(args))))
@@ -65,6 +87,14 @@ class DebugConsole:
 
     @staticmethod
     def Error(*args):
+        if len(args) == 1: DebugConsole.__Logs.append((DebugConsole.Severity.ERROR, DebugConsole.FormatString(args[0])))
+        else: DebugConsole.__Logs.append((DebugConsole.Severity.TRACE, DebugConsole.FormatString(" ".join(args))))
+
+        DebugConsole.__ErrorOccured = True
+        return DebugConsole
+
+    @staticmethod
+    def Critical(*args):
         if len(args) == 1: DebugConsole.__Logs.append((DebugConsole.Severity.ERROR, DebugConsole.FormatString(args[0])))
         else: DebugConsole.__Logs.append((DebugConsole.Severity.TRACE, DebugConsole.FormatString(" ".join(args))))
 

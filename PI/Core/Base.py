@@ -2,11 +2,14 @@ from ..Instrumentation import Instrumentor, InstrumentationTimer
 
 from typing import Tuple as _Tuple
 
-PI_VERSION_TUPLE : _Tuple[int] = (1,1,1)
+PI_VERSION_TUPLE : _Tuple[int] = (1,1,5)
 PI_VERSION       : str         = f"{'.'.join([str(_) for _ in PI_VERSION_TUPLE])}.dev"
 
 PI_LATEST_UPDATE: str = """
-    1.1.1.dev - Improved Scripting API
+    1.1.2.dev - Added Entity Duplication
+    1.1.3.dev - Scripts are only reloaded if required
+    1.1.4.dev - Minor Bug Fixes
+    1.1.5.dev - Component Copying
 """
 
 #-------------------------------------------------------------------
@@ -62,7 +65,7 @@ if PI_CONFIG == "RELEASE_NO_IMGUI":
 # Checks the imports
 try:
     # if Python is able to import this it means the docking branch is enabled
-    from imgui import CONFIG_DOCKING_ENABLE as _IMPORT_TEST
+    from imgui import CONFIG_DOCKING_ENABLE as __IMPORT_TEST
 except ImportError:
     from ..Logging.logger import PI_CORE_ASSERT
     PI_CORE_ASSERT(False, "ImGui-Docking branch is not present.")
@@ -89,6 +92,17 @@ if PI_INSTRUMENTATION:
     PI_INSTRUMENTATION_BEGIN_SESSION = _BeginSession
     PI_INSTRUMENTATION_END_SESSION   = _EndSession
     PI_TIMER = _Timer
+
+from functools import wraps
+from typing    import Callable
+def Timer(func: Callable, name: str=None) -> Callable:
+    @wraps(func)
+    def TimerWarpper(*args, **kwargs):
+        _name = name if name is not None else func.__name__
+        timer =  PI_TIMER(_name)
+        func(*args, **kwargs)
+
+    return TimerWarpper
 #-------------------------------------------------------------------
 
 #-------------------------------------------------------------------
