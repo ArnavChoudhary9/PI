@@ -1,11 +1,10 @@
 from ..Renderer  import Camera, EditorCamera, RenderCommand, Material
-from ..Core      import PI_TIMER, PI_VERSION, Cache
+from ..Core      import PI_TIMER, PI_VERSION, Cache, Timer
 from .Components import *
 from .Entity     import Entity
 from ..Scripting import Color4, Color3
 
 from ..Renderer import Renderer, DirectionalLight
-from ..Logging  import PI_CORE_TRACE
 
 from ..AssetManager.AssetManager import AssetManager
 
@@ -78,6 +77,7 @@ class Scene:
     _Filepath : str = None
 
     __ToDestroy: List[Entity]
+    __ToDuplicate: List[Entity]
 
     __Running: bool
     __RBWorld: PySics
@@ -91,6 +91,7 @@ class Scene:
         self.__Running = False
 
         self.__ToDestroy = []
+        self.__ToDuplicate = []
 
         class _TransformUpdater(esper.Processor):
             def process(self, dt: float, running: bool):                
@@ -309,16 +310,10 @@ class Scene:
         return newScene
 
     @staticmethod
-    def CopyComponent(ComponentType: CTV, srcRegistry: esper.World, dstRegistry: esper.World, uuidEntityMap: Dict[UUID, int]) -> None:
-        for entity, (component, idComponent) in srcRegistry.get_components(ComponentType, IDComponent):
-            uuid = idComponent.ID
-
-            dstEntity = uuidEntityMap.get(uuid, None)
-            PI_CORE_ASSERT(dstEntity != None, "Cannot find entity with matching UUID.")
-
-            if ComponentType is MeshComponent: dstRegistry.add_component(dstEntity, component)
-            elif ComponentType is ScriptComponent: dstRegistry.add_component(dstEntity, component.Copy())
-            else: dstRegistry.add_component(dstEntity, deepcopy(component))
+    def CopyComponent(component: CTV, dstEntity: Entity) -> None:
+        if type(component) in [IDComponent, TagComponent, TransformComponent]: return
+        if dstEntity.HasComponent(type(component)): return
+        dstEntity._AddComponentInstance(component.Copy(dstEntity))
 
     def CreateEntity(self, name: str="Entity") -> Entity: return self.CreateEntityWithUUID(UUIDGenerator(), name)
 
@@ -328,6 +323,21 @@ class Scene:
         entity.AddComponent(TagComponent, name)
         entity.AddComponent(TransformComponent)
         return entity
+
+    def DuplicateEntity(self, entity: Entity) -> Entity:
+        newEntity = self.CreateEntity(entity.GetComponent(TagComponent).Tag)
+        
+        newTC = newEntity .GetComponent( TransformComponent )
+        oldTC = entity    .GetComponent( TransformComponent ).Copy(newEntity)
+        newTC.SetTranslation ( oldTC.Translation )
+        newTC.SetRotation    ( oldTC.Rotation    )
+        newTC.SetScale       ( oldTC.Scale       )
+        
+        for component in entity.AllComponents: Scene.CopyComponent(component, newEntity)
+        return newEntity
+
+    def DefferedDuplicateEntity(self, entity: Entity) -> None:
+        if entity not in self.__ToDuplicate: self.__ToDuplicate.append(entity)
 
     def DestroyEntity(self, entity: Entity) -> None:
         if entity.HasComponent(LightComponent):
@@ -355,6 +365,10 @@ class Scene:
 
                 self._PointLights = newLights
 
+        if entity.HasComponent(RigidBodyComponent):
+            if not self.__Running: return
+            self.__RBWorld.DeleteRigidBody(entity.GetComponent(RigidBodyComponent).RigidBody)
+
         self._Registry.delete_entity(int(entity), immediate=True)
 
     def DefferedDestroy(self, entity: Entity) -> None:
@@ -367,8 +381,8 @@ class Scene:
         for entity, script in self._Registry.get_component(ScriptComponent):
             if script.Bound: script.OnAttach()
 
-        for entity, rbComponent in self._Registry.get_component(RigidBodyComponent):
-            self.__RBWorld.AddRigidBody(rbComponent.RigidBody)
+        for entity, rb in self._Registry.get_component(RigidBodyComponent):
+            self.__RBWorld.AddRigidBody(rb.RigidBody)
 
         self.__RBWorld.OnSimulationStart()
 
@@ -385,33 +399,42 @@ class Scene:
                 script.OnDetach()
                 script.Reload()
 
-    def OnUpdateEditor(self, dt: float, camera: EditorCamera) -> None:
-        self._DrawCamera = camera
-        self._Registry.process(dt, self.__Running)
-
-    def OnUpdateRuntime(self, dt: float) -> None:
-        self._DrawCamera = None
-        timer = PI_TIMER("Scene::OnUpdateRuntime")
-        for entity, script in self._Registry.get_component(ScriptComponent):
-            if script.Bound: script.OnUpdate(dt)
-        self.__RBWorld.Update(dt)
-        self._Registry.process(dt, self.__Running)
+    def HandleDefferedStuff(self) -> None:
+        for entity in self.__ToDuplicate:
+            self.__ToDuplicate.remove(entity)
+            self.DuplicateEntity(entity)
 
         for entity in self.__ToDestroy:
             self.__ToDestroy.remove(entity)
             self.DestroyEntity(entity)
-        
+
+    def OnUpdateEditor(self, dt: float, camera: EditorCamera) -> None:
+        self._DrawCamera = camera
+        self._Registry.process(dt, self.__Running)
+        self.HandleDefferedStuff()
+
+    def OnUpdateRuntime(self, dt: float) -> None:
+        self._DrawCamera = None
+        for entity, script in self._Registry.get_component(ScriptComponent):
+            if script.Bound: script.OnUpdate(dt)
+ 
+        self.__RBWorld.Update(dt)
+        self._Registry.process(dt, self.__Running)
+
+        self.HandleDefferedStuff()
+    
     def Draw(self) -> None:
         if self._DrawCamera is None and self.PrimaryCameraEntity is None: return
+        camera = self._DrawCamera if self._DrawCamera else \
+            self.PrimaryCameraEntity.GetComponent(CameraComponent).Camera.CameraObject
 
         with Renderer.BeginScene(self, self._DrawCamera):
             for entity, (meshComponent, materialComponent, transform) in \
                 self._Registry.get_components(MeshComponent, MaterialComponent, TransformComponent):
 
                 if not meshComponent.Initialized: continue
+
                 mesh = meshComponent.MeshObject
-                camera = self._DrawCamera if self._DrawCamera else \
-                    self.PrimaryCameraEntity.GetComponent(CameraComponent).Camera.CameraObject
 
                 mesh.SetTranslation ( transform.Translation )
                 mesh.SetRotation    ( transform.Rotation    )
@@ -478,7 +501,8 @@ class Scene:
 
         elif isinstance(component, MeshComponent):
             component.Init()
-            if component.Path != "": entity.AddComponent(MaterialComponent, component.Path)
+            if component.Path != "" and not entity.HasComponent(MaterialComponent):
+                entity.AddComponent(MaterialComponent, component.Path)
         
         elif isinstance(component, MaterialComponent): component.Init()
 
@@ -510,3 +534,7 @@ class Scene:
                     newLights.append(_light)
 
                 self._PointLights = newLights
+
+        if isinstance(component, RigidBodyComponent):
+            if not self.__Running: return
+            self.__RBWorld.DeleteRigidBody(component.RigidBody)

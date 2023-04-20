@@ -20,9 +20,8 @@ class DebugStatsPanel:
             imgui.text("Draw Calls: {}".format(StateManager.Stats.DrawCalls))
 
             flags = imgui.TREE_NODE_OPEN_ON_ARROW | imgui.TREE_NODE_SPAN_AVAILABLE_WIDTH
-            if imgui.tree_node("Shaders (Binded {} times)".format(StateManager.Stats.Shaders.ShadersBinded),
-                flags=flags):
-
+            if imgui.tree_node("Shaders", flags=flags):
+                imgui.text("Binded: {}".format(StateManager.Stats.Shaders.ShadersBinded))
                 imgui.text("Uniforms:")
                 imgui.text("\tTotal Uniforms Uploaded : {}" \
                     .format(StateManager.Stats.Shaders.Uniforms.TotalUniforms))

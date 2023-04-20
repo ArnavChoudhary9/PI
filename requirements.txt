@@ -11,8 +11,10 @@ pyrr==0.10.3
 Panda3D==1.10.11
 PyYAML==6.0
 spdlog==2.0.4
+watchdog
+
 pyinstaller==4.7        # Only for building
 
 # You also need docking branch of imgui
 # Know how to download it from installing
-# section on https://HotShot0901.github.io/PIDocumentation.
+# section on https://HotShot0901.github.io/PIDocumentation

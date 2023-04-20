@@ -22,7 +22,7 @@ Entities:
     Path: .\InternalAssets\Meshes\Cube.obj
   RigidBodyComponent:
     IsStatic: false
-    Mass: 1.0
+    Mass: 10.0
   TagComponent:
     Tag: Cube2
   TransformComponent:
@@ -80,7 +80,7 @@ Entities:
     Path: .\InternalAssets\Meshes\Cube.obj
   RigidBodyComponent:
     IsStatic: false
-    Mass: 1.0
+    Mass: 10.0
   TagComponent:
     Tag: Cube3
   TransformComponent:
@@ -95,7 +95,7 @@ Entities:
     Path: .\InternalAssets\Meshes\Cube.obj
   RigidBodyComponent:
     IsStatic: false
-    Mass: 1.0
+    Mass: 10.0
   TagComponent:
     Tag: Cube4
   TransformComponent:
@@ -110,7 +110,7 @@ Entities:
     Path: .\InternalAssets\Meshes\Cube.obj
   RigidBodyComponent:
     IsStatic: false
-    Mass: 1.0
+    Mass: 10.0
   TagComponent:
     Tag: Cube5
   TransformComponent:
@@ -125,7 +125,7 @@ Entities:
     Path: .\InternalAssets\Meshes\Cube.obj
   RigidBodyComponent:
     IsStatic: false
-    Mass: 1.0
+    Mass: 10.0
   TagComponent:
     Tag: Cube6
   TransformComponent:
@@ -140,7 +140,7 @@ Entities:
     Path: .\InternalAssets\Meshes\Cube.obj
   RigidBodyComponent:
     IsStatic: false
-    Mass: 1.0
+    Mass: 10.0
   TagComponent:
     Tag: Cube7
   TransformComponent:
@@ -155,9 +155,9 @@ Entities:
     Path: .\InternalAssets\Meshes\Cube.obj
   RigidBodyComponent:
     IsStatic: false
-    Mass: 1.0
+    Mass: 10.0
   TagComponent:
-    Tag: Cube7
+    Tag: Cube8
   TransformComponent:
     Rotation: !<Vector3> [0.0, 0.0, 0.0]
     Scale: !<Vector3> [1.0, 1.0, 1.0]

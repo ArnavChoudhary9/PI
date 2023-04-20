@@ -4,7 +4,8 @@ import inspect
 import debugpy
 from typing import Dict, List, Any, Type, Callable
 
-from ..Logging.logger import PI_CORE_ERROR
+from ..Logging    import PI_CLIENT_ERROR, DebugConsole
+from .FileWatcher import *
 
 class Script: ...
 
@@ -24,7 +25,7 @@ class Module:
         sys.path.append(str(pathlib.Path(self.Path).absolute().parent))
         try: self.Module = importlib.reload(importlib.import_module(self.Name))
         except Exception as _:
-            PI_CORE_ERROR("Error loading module\n{}", _)
+            PI_CLIENT_ERROR("Error loading module\n{}", _)
             self.Error = True
         sys.path.pop()
 
@@ -116,6 +117,18 @@ class ScriptingEngine:
     DIR: str
     Modules: Dict[str, Module] = {}
 
+    _DirWatcher: DirectoryWatcher
+
+    class EventHandler(FileSystemEventHandler):
+        @staticmethod
+        def OnCreated  (_) -> None: ScriptingEngine.ScanForModules()
+        @staticmethod
+        def OnModified (_) -> None: ScriptingEngine.ScanForModules()
+        @staticmethod
+        def OnDeleted  (_) -> None: ScriptingEngine.ScanForModules()
+        @staticmethod
+        def OnMoved    (_) -> None: ScriptingEngine.ScanForModules()
+
     class Debugger:
         Running = False
 
@@ -156,8 +169,14 @@ class ScriptingEngine:
         ScriptingEngine.DIR = scriptDir
         ScriptingEngine.ScanForModules()
 
+        ScriptingEngine._DirWatcher = DirectoryWatcher(pathlib.Path(scriptDir), ScriptingEngine.EventHandler)
+        ScriptingEngine._DirWatcher.Start()
+        
+        DebugConsole.Init()
+
     @staticmethod
     def Shutdown() -> None:
+        ScriptingEngine._DirWatcher.Stop()
         ScriptingEngine.Debugger.Shutdown()
 
     @staticmethod

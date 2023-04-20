@@ -44,7 +44,7 @@ class ProjectSettingsTab:
 
         if (not ScriptingEngine.Debugger.Init(pythonPath) or
             not ScriptingEngine.Debugger.Listen(port)):
-            DebugConsole.Error(f"Envalid python path!!")
+            DebugConsole.Error(f"Envalid python path!! or Debugger is already Running")
 
     def OnImGuiRender(self, bgColor: ImVec4, activeColor: ImVec4) -> None:
         if not self.__Show: return

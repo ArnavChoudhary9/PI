@@ -24,7 +24,7 @@ class Mesh:
         ) -> None:
 
         self.__Name = name
-        self.__Path = "Internally Created Mesh"
+        self.__Path = "."
         self.__Material = Material(Material.Type.StandardPhong)
 
         self.__Translation = translation
@@ -54,7 +54,7 @@ class Mesh:
         ) -> None:
 
         self.__Name = name
-        self.__Path = "Internally Created Mesh"
+        self.__Path = "."
         self.__Material = Material(Material.Type.StandardPhong)
 
         self.__Translation = translation

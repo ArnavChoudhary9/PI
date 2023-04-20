@@ -20,7 +20,7 @@ class PySics:
         
         self.__BulletNodes = []
 
-    def AddRigidBody(self, body: RigidBody) -> None:
+    def AddRigidBody(self, body: RigidBody) -> Any:
         self.__Bodies.append(body)
 
         node = BulletRigidBodyNode("RB")
@@ -45,16 +45,24 @@ class PySics:
         node.addShape(shape)
         node.setMass(body.Mass)
 
-        node.setCcdMotionThreshold(1e-7)
-        node.setCcdSweptSphereRadius(0.50)
+        if body.CCD:
+            node.setCcdMotionThreshold(1e-7)
+            node.setCcdSweptSphereRadius(0.50)
 
         self.__BulletWorld.attachRigidBody(node)
         self.__BulletNodes.append(node)
+        body._Node = node
+        return node
 
     def CreateRigidBody(self, mat: PySicsMaterial) -> RigidBody:
         body = RigidBody(mat)
         self.AddRigidBody(body)
         return body
+
+    def DeleteRigidBody(self, rb: RigidBody) -> None:
+        self.__Bodies.remove(rb)
+        self.__BulletNodes.remove(rb._Node)
+        self.__BulletWorld.removeRigidBody(rb._Node)
 
     def OnSimulationStart(self) -> None: ...
 

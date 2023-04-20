@@ -13,7 +13,8 @@ class PySicsMaterial:
     Rotation: pyrr.Vector3
     Collider: Collider
 
-    IsStatic: bool
+    IsStatic : bool
+    CCD      : bool
 
     def __init__(self,
         mass     : float=1.0,
@@ -21,6 +22,7 @@ class PySicsMaterial:
         rotation : pyrr.Vector3=pyrr.Vector3([ 0, 0, 0 ]),
         collider : Collider=None,
         isStatic : bool=False,
+        ccd      : bool=True
     ) -> None:
         self.Mass     = mass
 
@@ -29,6 +31,7 @@ class PySicsMaterial:
         self.Collider = collider
 
         self.IsStatic = isStatic
+        self.CCD      = ccd
 
 class RigidBody:
     Mass: float
@@ -42,7 +45,10 @@ class RigidBody:
     AllowMovement: pyrr.Vector3
     AllowRotation: pyrr.Vector3
 
-    IsStatic: bool
+    IsStatic : bool
+    CCD      : bool
+
+    _Node: Any      # For Book Keeping
 
     __CentralForce: pyrr.Vector3
     __CentralTorque: pyrr.Vector3
@@ -60,6 +66,7 @@ class RigidBody:
         self.AllowRotation = Axis.X + Axis.Y + Axis.Z
 
         self.IsStatic = mat.IsStatic
+        self.CCD = mat.CCD
 
         self.__CentralForce  = pyrr.Vector3([ 0, 0, 0 ])
         self.__CentralTorque = pyrr.Vector3([ 0, 0, 0 ])

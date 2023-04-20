@@ -32,13 +32,13 @@ class CameraFire(Behaviour):
                 CollidorComponent.Shapes.Box, scale=pyrr.Vector3([ 0.1, 0.1, 0.1 ])
             )
             rb = entity.AddComponent(RigidBodyComponent, PySicsMaterial(
-                mass=10.0,
+                mass=0.01,
                 position=trans.Translation,
                 rotation=trans.Rotation,
                 collider=collidor.Collidor
             ))
 
-            rb.RigidBody.ApplyCentralForce(-forward * 10000)
+            rb.RigidBody.ApplyCentralForce(-forward * 500)
 
         if Input.IsKeyPressed(KeyCodes.PI_KEY_A): self._Transform.Translate(-right*self.Speed*dt)
         if Input.IsKeyPressed(KeyCodes.PI_KEY_D): self._Transform.Translate( right*self.Speed*dt)
