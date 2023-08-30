@@ -6,7 +6,7 @@
 **/releases
 **/ToIgnore
 
-*.json
+PI_*.json
 *.prof
 *.docx
 *.zip
