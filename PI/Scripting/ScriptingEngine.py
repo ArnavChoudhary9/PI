@@ -4,8 +4,8 @@ import inspect
 import debugpy
 from typing import Dict, List, Any, Type, Callable
 
-from ..Logging    import PI_CLIENT_ERROR, DebugConsole
-from .FileWatcher import *
+from ..Logging    import PI_CLIENT_ERROR, PI_CORE_TRACE, DebugConsole
+from ..Utility.Observatories.FileSystemObservatory import *
 
 class Script: ...
 
@@ -117,7 +117,9 @@ class ScriptingEngine:
     DIR: str
     Modules: Dict[str, Module] = {}
 
-    _DirWatcher: DirectoryWatcher
+    _DirWatcher: DirectoryObserver
+
+    BindedComponents: set = set()
 
     class EventHandler(FileSystemEventHandler):
         @staticmethod
@@ -169,10 +171,19 @@ class ScriptingEngine:
         ScriptingEngine.DIR = scriptDir
         ScriptingEngine.ScanForModules()
 
-        ScriptingEngine._DirWatcher = DirectoryWatcher(pathlib.Path(scriptDir), ScriptingEngine.EventHandler)
+        ScriptingEngine._DirWatcher = DirectoryObserver(pathlib.Path(scriptDir), ScriptingEngine.EventHandler)
         ScriptingEngine._DirWatcher.Start()
+
+        ScriptingEngine.BindedComponents: set = set()
         
         DebugConsole.Init()
+
+    @staticmethod
+    def AddComponent(component) -> None: ScriptingEngine.BindedComponents.add(component)
+    @staticmethod
+    def RemoveComponent(component) -> None:
+        try: ScriptingEngine.BindedComponents.remove(component)
+        except KeyError: pass
 
     @staticmethod
     def Shutdown() -> None:
@@ -181,6 +192,7 @@ class ScriptingEngine:
 
     @staticmethod
     def ScanForModules() -> Dict[str, Module]:
+        PI_CORE_TRACE("Scanning/Reloading modules...")
         ScriptingEngine.Modules = {}
 
         def _ScanForModules(path: str, nodes: List[str], allModules: List[str], filter: str='.py'):
@@ -201,6 +213,8 @@ class ScriptingEngine:
         for module in allModules:
             module = Module(module)
             ScriptingEngine.Modules[module.Name] = module
+
+        for component in ScriptingEngine.BindedComponents: component.Reload()
 
         return ScriptingEngine.Modules
 

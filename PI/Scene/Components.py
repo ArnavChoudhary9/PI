@@ -217,6 +217,8 @@ class ScriptComponent:
         self.Module = module
         self.Name   = name
 
+    def __del__(self) -> None: ScriptingEngine.RemoveComponent(self)
+
     def Bind(self) -> None:
         if self.Bound: return
         if self.Name == "": return
@@ -232,6 +234,8 @@ class ScriptComponent:
         self.OnAttach: Callable[[], None] = self.Script.OnAttach
         self.OnDetach: Callable[[], None] = self.Script.OnDetach
         self.OnUpdate: Callable[[float], None] = self.Script.OnUpdate
+
+        ScriptingEngine.AddComponent(self)
 
         self.Bound = True
 

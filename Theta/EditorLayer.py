@@ -200,12 +200,22 @@ class EditorLayer(Layer):
         if   type(event) == UndoEvent: return
         elif type(event) == ComponentDeletionEvent:
             event.Entity._AddComponentInstance(event.ComponentDeleted)
+        elif type(event) == ComponentChangedEvent:
+            if event.Type == TransformComponent:
+                event.ComponentChanged.SetTranslation (event.PrevValues[0])
+                event.ComponentChanged.SetRotation    (event.PrevValues[1])
+                event.ComponentChanged.SetScale       (event.PrevValues[2])
 
     def __Redo(self) -> None:
         event = UndoManager.GetInstance().PopRedo()
         if   type(event) == UndoEvent: return
         elif type(event) == ComponentDeletionEvent:
             event.Entity.RemoveComponent(type(event.ComponentDeleted))
+        elif type(event) == ComponentChangedEvent:
+            if event.Type == TransformComponent:
+                event.ComponentChanged.SetTranslation (event.NewValues[0])
+                event.ComponentChanged.SetRotation    (event.NewValues[1])
+                event.ComponentChanged.SetScale       (event.NewValues[2])
 
     def __CheckKeys(self, event: KeyPressedEvent) -> bool:
         control = Input.IsKeyPressed(PI_KEY_LEFT_CONTROL) or Input.IsKeyPressed(PI_KEY_RIGHT_CONTROL)
@@ -278,6 +288,9 @@ class EditorLayer(Layer):
                 if event.KeyCode == PI_KEY_N:
                     self.__ActiveScene.CreateEntity("New Entity")
                     return True
+
+        if event.KeyCode == PI_KEY_HOME:
+            self.__EditorCamera._Reset()
 
         return False
 

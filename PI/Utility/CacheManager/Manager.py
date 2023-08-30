@@ -1,4 +1,4 @@
-from ..Base import PI_VERSION
+from ...Core.Base import PI_VERSION
 
 import os
 import json

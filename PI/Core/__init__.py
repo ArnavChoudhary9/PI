@@ -9,5 +9,3 @@ from .Constants import *
 
 from .StateManager import *
 StateManager = PI.State
-
-from .CacheManager import *

@@ -1,7 +1,7 @@
 from ..Core.Base   import PI_VERSION
-from ..Logging     import PI_CLIENT_WARN
+from ..Logging     import PI_CLIENT_WARN, PI_CLIENT_TRACE
 from ..Scene.Scene import Scene
-from ..Core.CacheManager.Manager import ProjectCache
+from ..Utility.CacheManager.Manager import ProjectCache
 from ..AssetManager.AssetManager import AssetManager
 from ..Scripting.ScriptingEngine import ScriptingEngine
 
@@ -20,6 +20,10 @@ class Project:
 
     def __init__(self, name: str="", projFileLoc: str=None, newLoc: str=None) -> None:
         self.__Name = name
+        PI_CLIENT_TRACE(
+            "New Project Initialized {} ({})", name,
+            projFileLoc if projFileLoc is not None else newLoc
+        )
 
         if projFileLoc is None:
             self.__ProjLoc    = "DefaultProject" if newLoc is None else newLoc
@@ -88,6 +92,7 @@ class Project:
 
         path = f"{self.__ProjLoc}\\{self.__Name}.PIProj"
         with open(path, 'w') as f: yaml.dump(data, f)
+        PI_CLIENT_TRACE("Current Project Saved!!")
 
     def Load(self, filename: str):
         data = {}

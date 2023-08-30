@@ -16,7 +16,7 @@ class FileSystemEventHandler:
     @staticmethod
     def OnMoved    ( event: FileSystemMovedEvent ) -> None: ...
 
-class DirectoryWatcher:
+class DirectoryObserver:
     __EventHandler : _FSEventHandler
     __Observer     : Type[_Observer]
     __Directory    : pathlib.Path
@@ -42,3 +42,5 @@ class DirectoryWatcher:
     def Stop(self) -> None:
         self.__Observer.stop()
         self.__Observer.join()
+
+class FileSystemObservatory: ...

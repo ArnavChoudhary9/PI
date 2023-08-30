@@ -1,5 +1,6 @@
 from ..Renderer  import Camera, EditorCamera, RenderCommand, Material
-from ..Core      import PI_TIMER, PI_VERSION, Cache, Timer
+from ..Core      import PI_TIMER, PI_VERSION, Timer
+from ..Utility   import Cache
 from .Components import *
 from .Entity     import Entity
 from ..Scripting import Color4, Color3

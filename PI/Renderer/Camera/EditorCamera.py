@@ -8,20 +8,29 @@ from typing import Tuple
 import pyrr
 
 class EditorCamera(PerspectiveCamera):
-    __Position   : pyrr.Vector3 = pyrr.Vector3([ 0.0, 0.0, 0.0 ])
-    __FocalPoint : pyrr.Vector3 = pyrr.Vector3([ 0.0, 0.0, 0.0 ])
+    __Position   : pyrr.Vector3
+    __FocalPoint : pyrr.Vector3
 
     __InitialMousePosition: Tuple[float, float] = (0.0, 0.0)
 
-    __Distance: float = -5.0
-    __Pitch: float = 0.0
-    __Yaw: float = 0.0
+    __Distance: float
+    __Pitch: float
+    __Yaw: float
 
     __ViewportWidth: float = 1280
     __ViewportHeight: float = 720
 
     def __init__(self, fov: float, aspectRatio: float, near: float, far: float) -> None:
+        self._Reset()
         super().__init__(fov, aspectRatio, near, far)
+
+    def _Reset(self) -> None:
+        self.__Position   : pyrr.Vector3 = pyrr.Vector3([ 0.0, 0.0, 0.0 ])
+        self.__FocalPoint : pyrr.Vector3 = pyrr.Vector3([ 0.0, 0.0, 0.0 ])
+
+        self.__Distance: float = -5.0
+        self.__Pitch: float = 0.0
+        self.__Yaw: float = 0.0
 
     def _RecalculateViewMatrix(self) -> None:        
         self.__Position = self.__CalculatePosition()

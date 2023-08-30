@@ -65,7 +65,7 @@ class PI_Application(ABC):
         from ..Scripting.ScriptingEngine import ScriptingEngine
         ScriptingEngine.Init("DefaultProject\\Assets\\Scripts")
 
-        from .CacheManager import LocalCache, ProjectCache
+        from ..Utility.CacheManager import LocalCache, ProjectCache
         ProjectCache.Init("DefaultProject")
         LocalCache.Init()
         LocalCache.LoadFields()
@@ -154,7 +154,7 @@ class PI_Application(ABC):
         from ..Scripting.ScriptingEngine import ScriptingEngine
         ScriptingEngine.Shutdown()
 
-        from .CacheManager import LocalCache, ProjectCache
+        from ..Utility.CacheManager import LocalCache, ProjectCache
         ProjectCache.Shutdown()
         LocalCache.Shutdown()
 

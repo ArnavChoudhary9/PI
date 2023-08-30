@@ -6,9 +6,6 @@ PI_VERSION_TUPLE : _Tuple[int] = (1,1,5)
 PI_VERSION       : str         = f"{'.'.join([str(_) for _ in PI_VERSION_TUPLE])}.dev"
 
 PI_LATEST_UPDATE: str = """
-    1.1.2.dev - Added Entity Duplication
-    1.1.3.dev - Scripts are only reloaded if required
-    1.1.4.dev - Minor Bug Fixes
     1.1.5.dev - Component Copying
 """
 

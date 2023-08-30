@@ -112,9 +112,22 @@ class SceneHierarchyPanel:
     # ---------------------- Component UI Functions ----------------------
     @staticmethod
     def __TransformUIFunction(entity: Entity, component: TransformComponent) -> None:
-        component.SetTranslation ( UILib.DrawVector3Controls( "Translation" , component.Translation      ) [1] )
-        component.SetRotation    ( UILib.DrawVector3Controls( "Rotation"    , component.Rotation, 0, 0.5 ) [1] )
-        component.SetScale       ( UILib.DrawVector3Controls( "Scale"       , component.Scale, 1         ) [1] )
+        changedT, newT = UILib.DrawVector3Controls("Translation", component.Translation)
+        changedR, newR = UILib.DrawVector3Controls("Rotation", component.Rotation, 0, 0.5 )
+        changedS, newS = UILib.DrawVector3Controls("Scale", component.Scale, 1)
+
+        if changedT or changedR or changedS:
+            UndoManager().GetInstance().PushUndo(ComponentChangedEvent(component, entity,
+                prevVals= (
+                    component.Translation,
+                    component.Rotation,
+                    component.Scale
+                ), 
+                newVals=( newT, newR, newS )))
+            
+            component.SetTranslation(newT)
+            component.SetRotation(newR)
+            component.SetScale(newS)
     @staticmethod
     def __MeshUIFunction(entity: Entity, component: MeshComponent) -> None:
         path = AssetManager.GetInstance().GetRelativePath(component.Path)
